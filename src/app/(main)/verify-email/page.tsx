@@ -2,19 +2,23 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card"; 
 import { Toaster, toast } from "sonner";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
-const OTPVerificationPage = () => {
-  const [otp, setOtp] = useState("");
-  const router = useRouter(); 
+const OTPVerificationPage: React.FC = () => {
+  const [otp, setOtp] = useState<string>("");
+  const router = useRouter();
 
   const handleVerify = () => {
-    if (otp === "123456") {  //for testing purposes
+    if (otp === "123456") {  // for testing purposes
       toast.success("OTP verified successfully!");
-      router.push("/"); 
+      router.push("/");
     } else {
       toast.error("Invalid OTP. Please try again.");
     }
@@ -27,19 +31,25 @@ const OTPVerificationPage = () => {
         
         <Toaster />
 
-        <Input
-          className="mb-2"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          required
-          placeholder="Enter your OTP"
-        />
+      <div className="flex justify-center mb-4">
+        <InputOTP maxLength={6}>
+          <InputOTPGroup>
+            <InputOTPSlot index={0} />
+            <InputOTPSlot index={1} />
+            <InputOTPSlot index={2} />
+            <InputOTPSlot index={3} />
+            <InputOTPSlot index={4} />
+            <InputOTPSlot index={5} />
+          </InputOTPGroup>
+        </InputOTP>
+        </div>
 
-        <Button className="w-full bg-blue-600 text-white" onClick={handleVerify}>
+        <Button className="w-half bg-sky-500 text-white mt-4 mx-auto block" onClick={handleVerify}>
           Verify OTP
         </Button>
       </Card>
     </div>
+    
   );
 };
 
