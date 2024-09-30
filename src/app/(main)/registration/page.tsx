@@ -161,7 +161,7 @@ const RegisterPage = () => {
 
         <p className="mt-4 text-center text-blue-600">
           Already registered?{" "}
-          <a href="#" className="text-blue-600">
+          <a href="/login" className="text-blue-600">
             Click here to sign in.
           </a>
         </p>
