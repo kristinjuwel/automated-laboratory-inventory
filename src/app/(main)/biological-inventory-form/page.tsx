@@ -21,6 +21,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { DatePickerWithPresets } from "@/components/ui/datepicker";
 
 interface BiologicalFormValues {
   date: string;
@@ -73,273 +74,277 @@ const BiologicalInventoryForm = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-1/4 h-full p-4 bg-white shadow-md"></div>
-
-      {/* Form section */}
-      <div className="flex-1 flex justify-center items-center p-8">
-        <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg mt-20">
-          <div className="flex flex-col items-center mb-4">
-            <div className="flex space-x-4 mb-4">
-              <div className="w-24 h-24 relative">
-                <Image src="/images/mrl-logo.png" alt="Logo 1" layout="fill" objectFit="contain" />
-              </div>
-              <div className="w-24 h-24 relative">
-                <Image src="/images/pgh-logo.png" alt="Logo 2" layout="fill" objectFit="contain" />
-              </div>
+    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
+      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+        <div className="flex flex-col items-center mb-4">
+          <div className="flex space-x-4 mb-4">
+            <div className="w-24 h-24 relative">
+              <Image
+                src="/images/mrl-logo.png"
+                alt="Logo 1"
+                fill
+                style={{ objectFit: "contain" }}
+              />
             </div>
-            <h1 className="text-xl font-bold py-1">Biological Inventory Form</h1>
-            <hr className="w-full border-t-1 border-gray-300 my-1" />
+            <div className="w-24 h-24 relative">
+              <Image
+                src="/images/pgh-logo.png"
+                alt="Logo 2"
+                fill
+                style={{ objectFit: "contain" }}
+              />
+            </div>
           </div>
+          <h1 className="text-xl font-bold py-1">Biological Inventory Form</h1>
+          <hr className="w-full border-t-1 border-gray-300 my-1" />
+        </div>
 
-          <Toaster />
+        <Toaster />
 
-          <div className="overflow-y-auto max-h-[430px] mb-1">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <FormField
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              {...field}
-                              required
-                              className="w-full" 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  <FormField
-                    name="laboratory"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Laboratory Name</FormLabel>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full flex justify-between items-center">
-                              <span>{field.value || "Select Laboratory"}</span>
-                              <span className="ml-auto">▼</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-56">
-                            {["Pathology", "Immunology", "Microbiology"].map((option) => (
-                              <DropdownMenuCheckboxItem
-                                key={option}
-                                checked={field.value === option}
-                                onCheckedChange={(checked) => field.onChange(checked ? option : null)}
-                              >
-                                {option}
-                              </DropdownMenuCheckboxItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="personnel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Personnel</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Personnel Name"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <FormField
-                    name="itemName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Item Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Item Name"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="itemCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Item Code</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Item Code"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    name="quantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantity</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Quantity"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Unit (e.g., liters, grams)"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Location</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Location"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="expiryDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Expiry Date</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    name="supplier"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Supplier</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Supplier Name"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="cost"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cost</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Cost"
-                            {...field}
-                            required
-                            className="w-full" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
+        <div className="overflow-y-auto max-h-[430px] mb-1">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
+              <div className="grid grid-cols-3 gap-3 mb-4">
                 <FormField
-                  name="notes"
+                  name="date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Any relevant information..."
-                          {...field}
-                          className="w-full" 
+                        <DatePickerWithPresets
+                          date={field.value}
+                          setDate={(newDate) => field.onChange(newDate)}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-center mt-8">
-                  <Button
-                    type="submit"
-                    onClick={form.handleSubmit(handleSubmit)}
-                    className="bg-sky-500 text-white w-full"
-                  >
-                    Submit Form
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
-        </Card>
-      </div>
+                <FormField
+                  name="laboratory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Laboratory Name</FormLabel>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full flex justify-between items-center"
+                          >
+                            <span>{field.value || "Select Laboratory"}</span>
+                            <span className="ml-auto">▼</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          {["Pathology", "Immunology", "Microbiology"].map(
+                            (option) => (
+                              <DropdownMenuCheckboxItem
+                                key={option}
+                                checked={field.value === option}
+                                onCheckedChange={(checked) =>
+                                  field.onChange(checked ? option : null)
+                                }
+                              >
+                                {option}
+                              </DropdownMenuCheckboxItem>
+                            )
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="personnel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Personnel</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Personnel Name"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-      {/* Navbar */}
-      <div className="w-full h-20 bg-white shadow-md fixed top-0 z-10"></div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <FormField
+                  name="itemName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Item Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Item Name"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="itemCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Item Code</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Item Code"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantity</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Quantity"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Unit (e.g., liters, grams)"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Location"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="expiryDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expiry Date</FormLabel>
+                      <FormControl>
+                        <DatePickerWithPresets
+                          date={field.value}
+                          setDate={(newDate) => field.onChange(newDate)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="supplier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Supplier</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Supplier Name"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="cost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Cost"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Any relevant information..."
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-center mt-8">
+                <Button
+                  type="submit"
+                  onClick={form.handleSubmit(handleSubmit)}
+                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                >
+                  Submit Form
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+      </Card>
     </div>
   );
 };
