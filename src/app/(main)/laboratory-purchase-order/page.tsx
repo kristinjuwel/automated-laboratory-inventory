@@ -21,6 +21,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { DatePickerWithPresets } from "@/components/ui/datepicker";
 
 interface LabPurchaseValues {
   purchaseOrderNo: string;
@@ -200,11 +201,9 @@ const LabPurchaseOrder = () => {
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          required
-                          className="w-full"
+                        <DatePickerWithPresets
+                          date={field.value}
+                          setDate={(newDate) => field.onChange(newDate)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -542,7 +541,7 @@ const LabPurchaseOrder = () => {
                         <div className="flex justify-center">
                           <Button
                             onClick={handleAddRow}
-                            className="bg-gray-300 text-black hover:bg-sky-500 hover:text-white w-full"
+                            className="bg-amber-50 text-black hover:bg-amber-100 w-full"
                           >
                             Add New Row
                           </Button>
@@ -581,7 +580,7 @@ const LabPurchaseOrder = () => {
                 <Button
                   type="submit"
                   onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full"
+                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
