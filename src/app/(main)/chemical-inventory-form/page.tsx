@@ -74,19 +74,27 @@ const ChemicalInventoryForm = () => {
 
   return (
     <div className="flex w-screen h-screen bg-gray-100">
-      {/* Sidebar */}
       <div className="w-1/4 h-full p-4 bg-white shadow-md"></div>
 
-      {/* Form section */}
       <div className="flex-1 flex justify-center items-center p-8">
         <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg mt-20">
           <div className="flex flex-col items-center mb-4">
             <div className="flex space-x-4 mb-4">
               <div className="w-24 h-24 relative">
-                <Image src="/images/mrl-logo.png" alt="Logo 1" layout="fill" objectFit="contain" />
+                <Image
+                  src="/images/mrl-logo.png"
+                  alt="Logo 1"
+                  fill
+                  style={{ objectFit: "contain" }}
+                />
               </div>
               <div className="w-24 h-24 relative">
-                <Image src="/images/pgh-logo.png" alt="Logo 2" layout="fill" objectFit="contain" />
+                <Image
+                  src="/images/pgh-logo.png"
+                  alt="Logo 2"
+                  fill
+                  style={{ objectFit: "contain" }}
+                />
               </div>
             </div>
             <h1 className="text-xl font-bold py-1">Chemical Inventory Form</h1>
@@ -100,22 +108,22 @@ const ChemicalInventoryForm = () => {
               <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <FormField
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              {...field}
-                              required
-                              className="w-full" // Full width
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            required
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     name="laboratory"
                     render={({ field }) => (
@@ -123,21 +131,28 @@ const ChemicalInventoryForm = () => {
                         <FormLabel>Laboratory Name</FormLabel>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full flex justify-between items-center">
+                            <Button
+                              variant="outline"
+                              className="w-full flex justify-between items-center"
+                            >
                               <span>{field.value || "Select Laboratory"}</span>
                               <span className="ml-auto">▼</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-56">
-                            {["Pathology", "Immunology", "Microbiology"].map((option) => (
-                              <DropdownMenuCheckboxItem
-                                key={option}
-                                checked={field.value === option}
-                                onCheckedChange={(checked) => field.onChange(checked ? option : null)}
-                              >
-                                {option}
-                              </DropdownMenuCheckboxItem>
-                            ))}
+                            {["Pathology", "Immunology", "Microbiology"].map(
+                              (option) => (
+                                <DropdownMenuCheckboxItem
+                                  key={option}
+                                  checked={field.value === option}
+                                  onCheckedChange={(checked) =>
+                                    field.onChange(checked ? option : null)
+                                  }
+                                >
+                                  {option}
+                                </DropdownMenuCheckboxItem>
+                              )
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                         <FormMessage />
@@ -154,7 +169,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Personnel Name"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -174,7 +189,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Item Name"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -191,7 +206,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Item Code"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -210,7 +225,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Quantity"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -227,7 +242,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Unit (e.g., liters, grams)"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -245,7 +260,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Location"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -262,7 +277,7 @@ const ChemicalInventoryForm = () => {
                             type="date"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -280,7 +295,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Supplier Name"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -298,7 +313,7 @@ const ChemicalInventoryForm = () => {
                             placeholder="Cost"
                             {...field}
                             required
-                            className="w-full" // Full width
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -316,7 +331,7 @@ const ChemicalInventoryForm = () => {
                         <Input
                           placeholder="Any relevant information..."
                           {...field}
-                          className="w-full" // Full width
+                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />
