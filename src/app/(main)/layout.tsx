@@ -3,5 +3,9 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-  return <div className="flex bg-white ">{children}</div>;
+  return (
+    <div>
+      <div className="flex bg-white ">{children}</div>;
+    </div>
+  );
 }
