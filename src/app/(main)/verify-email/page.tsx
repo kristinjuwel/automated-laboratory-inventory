@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
@@ -15,7 +15,12 @@ const OTPVerificationPage = () => {
   const router = useRouter();
   const [otp, setOtp] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setEmail(storedEmail);
+    }
+  }, [router]);
   const handleOTPChange = (value: string) => {
     setOtp(value);
   };
