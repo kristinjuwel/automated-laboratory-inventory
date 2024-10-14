@@ -1,30 +1,56 @@
 "use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
-import { useRouter } from "next/navigation";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
-const OTPVerificationPage: React.FC = () => {
-  const [otp, setOtp] = useState<string>("");
+const OTPVerificationPage = () => {
   const router = useRouter();
+  const [otp, setOtp] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
 
   const handleOTPChange = (value: string) => {
     setOtp(value);
   };
 
-  const handleVerify = () => {
-    if (otp === "123456") {
-      toast.success("OTP verified successfully!");
+  const handleIdentifierChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setEmail(event.target.value);
+  };
+
+  const handleVerify = async () => {
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }verify?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(
+          otp
+        )}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Verification failed");
+      }
+
+      const result = await response.text();
+      toast.success(result);
       router.push("/login");
-    } else {
-      toast.error("Invalid OTP. Please try again.");
+    } catch (error) {
+      toast.error("An error occurred during verification.");
     }
   };
 
@@ -34,6 +60,16 @@ const OTPVerificationPage: React.FC = () => {
         <h1 className="text-xl font-bold mb-4 text-center">OTP Verification</h1>
 
         <Toaster />
+        <div className="mb-4 flex justify-center">
+          <Input
+            type="text"
+            placeholder="Enter email"
+            value={email}
+            onChange={handleIdentifierChange}
+            required
+            className="w-60"
+          />
+        </div>
 
         <div className="flex justify-center mb-4">
           <InputOTP maxLength={6} onChange={handleOTPChange}>
@@ -49,7 +85,7 @@ const OTPVerificationPage: React.FC = () => {
         </div>
 
         <Button
-          className="w-half bg-sky-500  hover:text-sky-700 transition-colors duration-300 ease-in-out text-white mt-4 mx-auto block"
+          className="w-half bg-sky-500 hover:bg-sky-700 transition-colors duration-300 ease-in-out text-white mt-4 mx-auto block"
           onClick={handleVerify}
         >
           Verify OTP
