@@ -32,7 +32,6 @@ interface GenLabSuppliesFormValues {
   quantity: number;
   unit: string;
   location: string;
-  expiryDate: string;
   supplier: string;
   cost: number;
   notes: string;
@@ -49,7 +48,6 @@ const GenLabSuppliesInventoryForm = () => {
       quantity: undefined,
       unit: "",
       location: "",
-      expiryDate: "",
       supplier: "",
       cost: undefined,
       notes: "",
