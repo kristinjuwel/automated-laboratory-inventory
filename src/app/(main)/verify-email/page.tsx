@@ -12,18 +12,17 @@ import {
 } from "@/components/ui/input-otp";
 
 const OTPVerificationPage: React.FC = () => {
-  const [otp, setOtp] = useState<string>("");  // Initialize OTP state
+  const [otp, setOtp] = useState<string>("");
   const router = useRouter();
 
-  // Handle OTP change
   const handleOTPChange = (value: string) => {
-    setOtp(value);  // Update OTP state with the current input
+    setOtp(value);
   };
 
   const handleVerify = () => {
-    if (otp === "123456") {  // for testing purposes
+    if (otp === "123456") {
       toast.success("OTP verified successfully!");
-      router.push("/");
+      router.push("/login");
     } else {
       toast.error("Invalid OTP. Please try again.");
     }
@@ -50,7 +49,7 @@ const OTPVerificationPage: React.FC = () => {
         </div>
 
         <Button
-          className="w-half bg-sky-500 text-white mt-4 mx-auto block"
+          className="w-half bg-sky-500  hover:text-sky-700 transition-colors duration-300 ease-in-out text-white mt-4 mx-auto block"
           onClick={handleVerify}
         >
           Verify OTP
