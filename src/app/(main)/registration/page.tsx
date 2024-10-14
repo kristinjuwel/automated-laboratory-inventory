@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,7 +15,14 @@ import {
 import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface RegisterFormValues {
   email: string;
@@ -29,6 +37,8 @@ interface RegisterFormValues {
 }
 
 const RegisterPage = () => {
+  const router = useRouter();
+
   const form = useForm<RegisterFormValues>({
     defaultValues: {
       email: "",
@@ -137,7 +147,10 @@ const RegisterPage = () => {
                     <FormLabel>Select Laboratory</FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full flex justify-between items-center">
+                        <Button
+                          variant="outline"
+                          className="w-full flex justify-between items-center"
+                        >
                           <span>{field.value || "Options"}</span>
                           <span className="ml-auto">▼</span>
                         </Button>
@@ -145,15 +158,19 @@ const RegisterPage = () => {
                       <DropdownMenuContent className="w-56">
                         <DropdownMenuLabel>Laboratories</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {["Pathology", "Immunology", "Microbiology"].map((option) => (
-                          <DropdownMenuCheckboxItem
-                            key={option}
-                            checked={field.value === option}
-                            onCheckedChange={(checked) => field.onChange(checked ? option : null)}
-                          >
-                            {option}
-                          </DropdownMenuCheckboxItem>
-                        ))}
+                        {["Pathology", "Immunology", "Microbiology"].map(
+                          (option) => (
+                            <DropdownMenuCheckboxItem
+                              key={option}
+                              checked={field.value === option}
+                              onCheckedChange={(checked) =>
+                                field.onChange(checked ? option : null)
+                              }
+                            >
+                              {option}
+                            </DropdownMenuCheckboxItem>
+                          )
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <FormMessage />
@@ -167,7 +184,10 @@ const RegisterPage = () => {
                     <FormLabel>Select Designation</FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full flex justify-between items-center">
+                        <Button
+                          variant="outline"
+                          className="w-full flex justify-between items-center"
+                        >
                           <span>{field.value || "Options"}</span>
                           <span className="ml-auto">▼</span>
                         </Button>
@@ -175,17 +195,23 @@ const RegisterPage = () => {
                       <DropdownMenuContent className="w-56">
                         <DropdownMenuLabel>Designations</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {["Medical Technologist", "Researcher", "Lab Manager", "Student", "Technician"].map(
-                          (option) => (
-                            <DropdownMenuCheckboxItem
-                              key={option}
-                              checked={field.value === option}
-                              onCheckedChange={(checked) => field.onChange(checked ? option : null)}
-                            >
-                              {option}
-                            </DropdownMenuCheckboxItem>
-                          )
-                        )}
+                        {[
+                          "Medical Technologist",
+                          "Researcher",
+                          "Lab Manager",
+                          "Student",
+                          "Technician",
+                        ].map((option) => (
+                          <DropdownMenuCheckboxItem
+                            key={option}
+                            checked={field.value === option}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked ? option : null)
+                            }
+                          >
+                            {option}
+                          </DropdownMenuCheckboxItem>
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <FormMessage />
@@ -201,7 +227,12 @@ const RegisterPage = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Password" {...field} required />
+                      <Input
+                        type="password"
+                        placeholder="Password"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -213,7 +244,12 @@ const RegisterPage = () => {
                   <FormItem>
                     <FormLabel>Re-enter Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Re-enter Password" {...field} required />
+                      <Input
+                        type="password"
+                        placeholder="Re-enter Password"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -221,15 +257,21 @@ const RegisterPage = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-sky-500 text-white">
+            <Button
+              type="submit"
+              className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+            >
               Register
             </Button>
             <p className="mt-4 text-center">
               Already registered?{" "}
-              <a href="#" className="text-sky-500">
+              <a
+                onClick={() => router.push("/login")}
+                className="text-sky-500 hover:text-sky-700 transition-colors duration-300 ease-in-out"
+              >
                 Click here to sign in.
               </a>
-          </p>
+            </p>
           </form>
         </Form>
       </Card>
