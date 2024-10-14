@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import {
   Form,
   FormField,
@@ -39,28 +39,45 @@ interface RegisterFormValues {
 const RegisterPage = () => {
   const router = useRouter();
 
-  const form = useForm<RegisterFormValues>({
-    defaultValues: {
-      email: "",
-      userName: "",
-      lastName: "",
-      firstName: "",
-      middleInitial: "",
-      laboratory: null,
-      designation: null,
-      password: "",
-      rePassword: "",
-    },
-  });
-
-  const handleRegister = (values: RegisterFormValues) => {
+  const handleRegister: SubmitHandler<RegisterFormValues> = async (values) => {
     if (values.password !== values.rePassword) {
       toast.error("Passwords do not match!");
       return;
     }
-    // Handle registration logic
-    toast.success("Registration successful!");
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: values.userName,
+            email: values.email,
+            password: values.password,
+            firstName: values.firstName,
+            middleName: values.middleInitial,
+            lastName: values.lastName,
+            designation: values.designation || undefined,
+            labId: values.laboratory ? parseInt(values.laboratory) : undefined,
+          }),
+        }
+      );
+      if (response.ok) {
+        localStorage.setItem("userEmail", values.email);
+        toast.success("Registration successful!");
+        router.push("/verify-email");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Registration failed!");
+      }
+    } catch (error) {
+      toast.error("An error occurred during registration.");
+    }
   };
+
+  const form = useForm<RegisterFormValues>();
 
   return (
     <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
@@ -151,26 +168,36 @@ const RegisterPage = () => {
                           variant="outline"
                           className="w-full flex justify-between items-center"
                         >
-                          <span>{field.value || "Options"}</span>
+                          <span>
+                            {field.value === 1
+                              ? "Pathology"
+                              : field.value === 2
+                              ? "Immunology"
+                              : field.value === 3
+                              ? "Microbiology"
+                              : "Options"}
+                          </span>
                           <span className="ml-auto">▼</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
                         <DropdownMenuLabel>Laboratories</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {["Pathology", "Immunology", "Microbiology"].map(
-                          (option) => (
-                            <DropdownMenuCheckboxItem
-                              key={option}
-                              checked={field.value === option}
-                              onCheckedChange={(checked) =>
-                                field.onChange(checked ? option : null)
-                              }
-                            >
-                              {option}
-                            </DropdownMenuCheckboxItem>
-                          )
-                        )}
+                        {[
+                          { label: "Pathology", value: 1 },
+                          { label: "Immunology", value: 2 },
+                          { label: "Microbiology", value: 3 },
+                        ].map((option) => (
+                          <DropdownMenuCheckboxItem
+                            key={option.value}
+                            checked={field.value === option.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked ? option.value : null)
+                            }
+                          >
+                            {option.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <FormMessage />
