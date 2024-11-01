@@ -61,8 +61,10 @@ const OTPVerificationPage = () => {
 
   return (
     <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
-      <Card className="p-8 w-full max-w-lg shadow-lg">
-        <h1 className="text-xl font-bold mb-4 text-center">OTP Verification</h1>
+      <Card className="p-8 w-full max-w-lg shadow-lg rounded-2xl">
+        <h1 className="text-xl font-bold mb-4 text-center text-teal-700">
+          OTP Verification
+        </h1>
 
         <Toaster />
         <div className="mb-4 flex justify-center">
@@ -90,7 +92,7 @@ const OTPVerificationPage = () => {
         </div>
 
         <Button
-          className="w-half bg-sky-500 hover:bg-sky-700 transition-colors duration-300 ease-in-out text-white mt-4 mx-auto block"
+          className="w-half bg-teal-500 hover:bg-teal-700 transition-colors duration-300 ease-in-out text-white mt-4 mx-auto w-1/2 rounded-xl block"
           onClick={handleVerify}
         >
           Verify OTP
