@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,16 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Eye, EyeOff } from "lucide-react";
+import OTPVerification from "@/components/molecules/verification";
 
 interface RegisterFormValues {
   email: string;
@@ -37,7 +47,47 @@ interface RegisterFormValues {
 }
 
 const RegisterPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRePassword, setShowRePassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [rePasswordError, setRePasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const router = useRouter();
+
+  const form = useForm<RegisterFormValues>();
+
+  // Email validation function
+  const validateEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      setEmailError("Please enter a valid email address");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  // Password validation function
+  const validatePassword = (value: string) => {
+    const passwordRegex =
+      /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}$/;
+    if (!passwordRegex.test(value)) {
+      setPasswordError(
+        "Password must be 8-15 characters long and include letters, numbers, and special characters"
+      );
+    } else {
+      setPasswordError("");
+    }
+  };
+
+  // Re-enter password validation function
+  const validateRePassword = (value: string) => {
+    if (value !== form.getValues("password")) {
+      setRePasswordError("Passwords do not match");
+    } else {
+      setRePasswordError("");
+    }
+  };
 
   const handleRegister: SubmitHandler<RegisterFormValues> = async (values) => {
     if (values.password !== values.rePassword) {
@@ -67,39 +117,63 @@ const RegisterPage = () => {
       if (response.ok) {
         localStorage.setItem("userEmail", values.email);
         toast.success("Registration successful!");
-        router.push("/verify-email");
+        setShowSuccessDialog(true);
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Registration failed!");
+        setShowSuccessDialog(true);
       }
     } catch (error) {
       toast.error("An error occurred during registration.");
+      setShowSuccessDialog(true);
     }
   };
 
-  const form = useForm<RegisterFormValues>();
-
   return (
     <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[600px] shadow-lg">
-        <div className="flex justify-center mb-4">
-          <h1 className="text-xl font-bold py-4">Register your account</h1>
+      <Card className="py-8 px-8 md:px-12 lg:w-3/5 md:w-4/5 w-full h-full md:h-auto max-w-screen-2xl shadow-lg rounded-3xl overflow-y-auto">
+        <div className="flex flex-col md:flex-row items-center justify-center">
+          <Image
+            src="/images/logo.png"
+            alt="Logo"
+            className="transition duration-500 hover:scale-105"
+            height={60}
+            width={60}
+          />
+          <h1 className="text-base md:text-xl text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+            Automated Laboratory Inventory Management System
+          </h1>
         </div>
+        <h1 className="text-base md:text-xl font-bold text-teal-700 text-center pb-8 md:-mt-4">
+          Registration
+        </h1>
 
         <Toaster />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleRegister)} className="mb-4">
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-2 mb-4">
               <FormField
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address</FormLabel>
+                    <FormLabel>
+                      Email Address <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Email" {...field} required />
+                      <Input
+                        className="rounded-xl w-full p-3 border border-gray-300"
+                        type="email"
+                        placeholder="Email"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          validateEmail(e.target.value);
+                        }}
+                        required
+                      />
                     </FormControl>
-                    <FormMessage />
+                    {emailError && <FormMessage>{emailError}</FormMessage>}
                   </FormItem>
                 )}
               />
@@ -107,9 +181,16 @@ const RegisterPage = () => {
                 name="userName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>
+                      Username <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Username" {...field} required />
+                      <Input
+                        className="rounded-xl"
+                        placeholder="Username"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -117,14 +198,21 @@ const RegisterPage = () => {
               />
             </div>
 
-            <div className="grid grid-cols-5 gap-2 mb-4">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-4">
               <FormField
                 name="lastName"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel>Last Name</FormLabel>
+                  <FormItem className="col-span-3 md:col-span-2">
+                    <FormLabel>
+                      Last Name <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Last Name" {...field} required />
+                      <Input
+                        className="rounded-xl"
+                        placeholder="Last Name"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -134,9 +222,16 @@ const RegisterPage = () => {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>
+                      First Name <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="First Name" {...field} required />
+                      <Input
+                        className="rounded-xl"
+                        placeholder="First Name"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,7 +243,12 @@ const RegisterPage = () => {
                   <FormItem>
                     <FormLabel>M.I.</FormLabel>
                     <FormControl>
-                      <Input placeholder="M.I." {...field} required />
+                      <Input
+                        className="rounded-xl"
+                        placeholder="M.I."
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -156,17 +256,19 @@ const RegisterPage = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid grid-cols-2 gap-2 mb-2">
               <FormField
                 name="laboratory"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select Laboratory</FormLabel>
+                    <FormLabel>
+                      Select Laboratory <span className="text-red-400">*</span>
+                    </FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full flex justify-between items-center"
+                          className="rounded-xl w-full flex justify-between items-center"
                         >
                           <span>
                             {field.value === 1
@@ -175,7 +277,7 @@ const RegisterPage = () => {
                               ? "Immunology"
                               : field.value === 3
                               ? "Microbiology"
-                              : "Options"}
+                              : ""}
                           </span>
                           <span className="ml-auto">▼</span>
                         </Button>
@@ -208,14 +310,16 @@ const RegisterPage = () => {
                 name="designation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select Designation</FormLabel>
+                    <FormLabel>
+                      Select Designation <span className="text-red-400">*</span>
+                    </FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full flex justify-between items-center"
+                          className="w-full flex justify-between items-center rounded-xl"
                         >
-                          <span>{field.value || "Options"}</span>
+                          <span>{field.value || ""}</span>
                           <span className="ml-auto">▼</span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -246,39 +350,81 @@ const RegisterPage = () => {
                 )}
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid-cols-1 grid md:grid-cols-2 gap-2 mb-4">
               <FormField
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>
+                      Password <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Password"
-                        {...field}
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          className="rounded-xl w-full p-3 pr-10 border border-gray-300"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Password"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            validatePassword(e.target.value);
+                          }}
+                          required
+                        />
+                        <div
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </div>
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    {passwordError && (
+                      <FormMessage>{passwordError}</FormMessage>
+                    )}
                   </FormItem>
                 )}
               />
+
               <FormField
                 name="rePassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Re-enter Password</FormLabel>
+                    <FormLabel>
+                      Re-enter Password <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Re-enter Password"
-                        {...field}
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          className="rounded-xl w-full p-3 pr-10 border border-gray-300"
+                          type={showRePassword ? "text" : "password"}
+                          placeholder="Re-enter Password"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            validateRePassword(e.target.value);
+                          }}
+                          required
+                        />
+                        <div
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400"
+                          onClick={() => setShowRePassword(!showRePassword)}
+                        >
+                          {showRePassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </div>
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    {rePasswordError && (
+                      <FormMessage>{rePasswordError}</FormMessage>
+                    )}
                   </FormItem>
                 )}
               />
@@ -286,15 +432,15 @@ const RegisterPage = () => {
 
             <Button
               type="submit"
-              className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+              className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out rounded-xl mt-6"
             >
               Register
             </Button>
-            <p className="mt-4 text-center">
+            <p className="mt-4 text-gray-500 text-sm text-center">
               Already registered?{" "}
               <a
                 onClick={() => router.push("/login")}
-                className="text-sky-500 hover:text-sky-700 transition-colors duration-300 ease-in-out"
+                className="text-teal-500 hover:text-teal-700 transition-colors duration-300 ease-in-out"
               >
                 Click here to sign in.
               </a>
@@ -302,6 +448,16 @@ const RegisterPage = () => {
           </form>
         </Form>
       </Card>
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-teal-700 text-center">
+              OTP Verification
+            </DialogTitle>
+          </DialogHeader>
+          <OTPVerification />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
