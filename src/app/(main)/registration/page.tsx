@@ -57,7 +57,6 @@ const RegisterPage = () => {
 
   const form = useForm<RegisterFormValues>();
 
-  // Email validation function
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
@@ -67,7 +66,6 @@ const RegisterPage = () => {
     }
   };
 
-  // Password validation function
   const validatePassword = (value: string) => {
     const passwordRegex =
       /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}$/;
@@ -80,7 +78,6 @@ const RegisterPage = () => {
     }
   };
 
-  // Re-enter password validation function
   const validateRePassword = (value: string) => {
     if (value !== form.getValues("password")) {
       setRePasswordError("Passwords do not match");
@@ -121,11 +118,9 @@ const RegisterPage = () => {
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Registration failed!");
-        setShowSuccessDialog(true);
       }
     } catch (error) {
       toast.error("An error occurred during registration.");
-      setShowSuccessDialog(true);
     }
   };
 
