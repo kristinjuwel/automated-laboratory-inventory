@@ -1,11 +1,16 @@
 import {
   ShoppingCart,
-  Microscope,
+  Bandage,
   Syringe,
   Dna,
   Package,
   Stethoscope,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import {
   Sidebar,
@@ -17,12 +22,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 const items = [
   {
     title: "Pathology",
     url: "#",
-    icon: Microscope,
+    icon: Bandage,
   },
   {
     title: "Immunology",
@@ -57,19 +64,35 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-base">
-            [icon] ALIMS
+            <div className="-ml-1 w-20 h-20 relative pb-4">
+              <Image
+                src="/images/placeholder.png"
+                alt="Logo 1"
+                fill
+                style={{ objectFit: "contain" }}
+              />
+              <Separator />
+            </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="h-10">
+            <SidebarMenu className="mt-6">
               {items.map((item) => (
-                <SidebarMenuItem key={item.title} className="h-10 text-xl">
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <Collapsible key={item.title}>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuItem className="h-10 text-xl">
+                      <SidebarMenuButton asChild>
+                        <a href={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    Yes. Free to use for personal and commercial projects. No
+                    attribution required.
+                  </CollapsibleContent>
+                </Collapsible>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>

@@ -11,9 +11,9 @@ interface User {
   lastName: string;
   firstName: string;
   middleName: string;
-  designation: string; 
-  laboratory: string; 
-  email: string; 
+  designation: string;
+  laboratory: string;
+  email: string;
   username: string;
 }
 
@@ -88,7 +88,7 @@ const AdminView = () => {
 
   return (
     <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+      <Card className="p-8 w-full -mt-20 -ml-20 max-w-[935px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <h1 className="text-xl font-bold py-1">View Users</h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
@@ -115,8 +115,12 @@ const AdminView = () => {
                       onClick={() => handleUserSelect(user)} // Click to view user details
                     >
                       <div>
-                        <p className="text-lg font-medium">{user.firstName} {user.middleName} {user.lastName}</p>
-                        <p className="text-sm text-gray-500">{user.designation} - {user.laboratory}</p>
+                        <p className="text-lg font-medium">
+                          {user.firstName} {user.middleName} {user.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {user.designation} - {user.laboratory}
+                        </p>
                       </div>
                     </li>
                   ))}
@@ -127,17 +131,20 @@ const AdminView = () => {
             </div>
           </>
         ) : (
-            <div className="flex flex-col">
-                <h2 className="text-lg font-bold mb-2">User Details</h2>
-                <p className="text-lg">Name: {selectedUser.firstName} {selectedUser.middleName} {selectedUser.lastName}</p>
-                <p className="text-lg">Username: {selectedUser.username}</p>
-                <p className="text-lg">Email: {selectedUser.email}</p>
-                <p className="text-lg">Designation: {selectedUser.designation}</p>
-                <p className="text-lg">Laboratory: {selectedUser.laboratory}</p>
-                <Button onClick={handleBackToList} className="mt-4">
-                Back to User List
-                </Button>
-            </div>
+          <div className="flex flex-col">
+            <h2 className="text-lg font-bold mb-2">User Details</h2>
+            <p className="text-lg">
+              Name: {selectedUser.firstName} {selectedUser.middleName}{" "}
+              {selectedUser.lastName}
+            </p>
+            <p className="text-lg">Username: {selectedUser.username}</p>
+            <p className="text-lg">Email: {selectedUser.email}</p>
+            <p className="text-lg">Designation: {selectedUser.designation}</p>
+            <p className="text-lg">Laboratory: {selectedUser.laboratory}</p>
+            <Button onClick={handleBackToList} className="mt-4">
+              Back to User List
+            </Button>
+          </div>
         )}
       </Card>
     </div>
