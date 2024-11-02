@@ -1,5 +1,4 @@
-import { AppSidebar } from "@/components/ui/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import Navbar from "@/components/molecules/navbar";
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -7,12 +6,9 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <main>
-        <SidebarTrigger className="size-10" />
-        {children}
-      </main>
-    </SidebarProvider>
+    <div>
+      <Navbar />
+      {children}
+    </div>
   );
 }
