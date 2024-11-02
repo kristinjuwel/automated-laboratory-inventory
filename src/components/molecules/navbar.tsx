@@ -25,8 +25,8 @@ const Navbar = () => {
   const router = useRouter();
 
   return (
-    <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50 overflow-x-hidden">
-      <div className="flex items-center space-x-1">
+    <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50">
+      <div className="flex items-center px-2 space-x-1">
         <Image
           src="/images/logo.png"
           alt="Logo"
@@ -37,7 +37,7 @@ const Navbar = () => {
         <span className="text-base text-teal-900">ALIMS</span>
       </div>
 
-      <NavigationMenu className="hidden md:flex text-teal-950 space-x-2 text-sm">
+      <NavigationMenu className="ml-36 hidden md:flex text-teal-950 justify-center space-x-2 text-sm">
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuTrigger>
