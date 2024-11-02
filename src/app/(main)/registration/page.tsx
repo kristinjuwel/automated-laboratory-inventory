@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Eye, EyeOff } from "lucide-react";
 import OTPVerification from "@/components/molecules/verification";
+import { cn } from "@/lib/utils";
 
 interface RegisterFormValues {
   email: string;
@@ -126,27 +127,27 @@ const RegisterPage = () => {
   return (
     <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
       <Card className="py-8 px-8 md:px-12 lg:w-3/5 md:w-4/5 w-full h-full md:h-auto max-w-screen-2xl shadow-lg rounded-3xl overflow-y-auto">
-        <div className="flex flex-col md:flex-row items-center justify-center">
+        <div className="flex flex-col gap-2 md:flex-row items-center justify-center">
           <Image
             src="/images/logo.png"
             alt="Logo"
             className="transition duration-500 hover:scale-105"
-            height={60}
-            width={60}
+            height={45}
+            width={45}
           />
           <h1 className="text-base md:text-xl text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
             Automated Laboratory Inventory Management System
           </h1>
         </div>
-        <h1 className="text-base md:text-xl font-bold text-teal-700 text-center pb-8 md:-mt-4">
-          Registration
+        <h1 className="text-base md:text-xl font-bold text-teal-700 text-center pb-8 tracking-tight md:-mt-1">
+          REGISTRATION
         </h1>
 
         <Toaster />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleRegister)} className="mb-4">
-            <div className="grid md:grid-cols-2 grid-cols-1 gap-2 mb-4">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-4 mb-5">
               <FormField
                 name="email"
                 render={({ field }) => (
@@ -192,7 +193,7 @@ const RegisterPage = () => {
               />
             </div>
 
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-4">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mb-5">
               <FormField
                 name="lastName"
                 render={({ field }) => (
@@ -250,13 +251,13 @@ const RegisterPage = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-2 gap-4 mb-5">
               <FormField
                 name="laboratory"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Select Laboratory <span className="text-red-400">*</span>
+                      Laboratory <span className="text-red-400">*</span>
                     </FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -264,14 +265,18 @@ const RegisterPage = () => {
                           variant="outline"
                           className="rounded-xl w-full flex justify-between items-center"
                         >
-                          <span>
+                          <span
+                            className={cn(
+                              field.value ? "text-black" : "text-gray-500"
+                            )}
+                          >
                             {field.value === 1
                               ? "Pathology"
                               : field.value === 2
                               ? "Immunology"
                               : field.value === 3
                               ? "Microbiology"
-                              : ""}
+                              : "Select Laboratory"}
                           </span>
                           <span className="ml-auto">▼</span>
                         </Button>
@@ -305,15 +310,21 @@ const RegisterPage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Select Designation <span className="text-red-400">*</span>
+                      Designation <span className="text-red-400">*</span>
                     </FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full flex justify-between items-center rounded-xl"
+                          className="w-full flex justify-between items-center"
                         >
-                          <span>{field.value || ""}</span>
+                          <span
+                            className={cn(
+                              field.value ? "text-black" : "text-gray-500"
+                            )}
+                          >
+                            {field.value || "Select Designation"}
+                          </span>
                           <span className="ml-auto">▼</span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -344,7 +355,7 @@ const RegisterPage = () => {
                 )}
               />
             </div>
-            <div className="grid-cols-1 grid md:grid-cols-2 gap-2 mb-4">
+            <div className="grid-cols-1 grid md:grid-cols-2 gap-4 mb-5">
               <FormField
                 name="password"
                 render={({ field }) => (
@@ -430,14 +441,15 @@ const RegisterPage = () => {
             >
               Register
             </Button>
-            <p className="mt-4 text-gray-500 text-sm text-center">
-              Already registered?{" "}
+            <p className="mt-2 text-gray-500 text-sm text-center">
+              Already registered? Click
               <a
                 onClick={() => router.push("/login")}
-                className="text-teal-500 hover:text-teal-700 transition-colors duration-300 ease-in-out"
+                className="mx-1 text-teal-500 hover:text-teal-700 transition-colors duration-300 ease-in-out"
               >
-                Click here to sign in.
+                here
               </a>
+              to sign in.
             </p>
           </form>
         </Form>

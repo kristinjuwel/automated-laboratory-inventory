@@ -44,17 +44,17 @@ const LoginPage = () => {
   return (
     <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
       <Card className="lg:w-3/5 md:w-4/5 md:flex-row flex max-w-screen-2xl h-auto md:h-2/3 shadow-lg rounded-3xl">
-        <div className="hidden w-1/2 p-12 bg-teal-100 h-full rounded-3xl rounded-r-none md:flex flex-col items-center">
-          <h1 className="lg:text-2xl xl:text-xl text-center font-bold antialiased mb-4 tracking-tight text-teal-900 transition duration-500 hover:scale-105">
-            Automated Laboratory Inventory Management System
-          </h1>
+        <div className="hidden w-1/2 p-8 bg-teal-100 h-full rounded-3xl rounded-r-none md:flex flex-col items-center">
           <Image
             src="/images/logo.png"
             alt="Logo"
-            className="transition duration-500 hover:scale-105"
+            className="transition duration-500 hover:scale-105 mt-3"
             height={300}
             width={300}
           />
+          <h1 className="text-lg px-5 pt-2 text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+            Automated Laboratory Inventory Management System
+          </h1>
         </div>
         <div className="sm:w-full md:w-1/2 flex flex-col h-full p-12 rounded-3xl rounded-l-none overflow-auto	">
           <div className="flex flex-col md:hidden items-center justify-center">
@@ -62,8 +62,8 @@ const LoginPage = () => {
               src="/images/logo.png"
               alt="Logo"
               className="transition duration-500 hover:scale-105"
-              height={60}
-              width={60}
+              height={45}
+              width={45}
             />
             <h1 className="text-base md:text-xl text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
               Automated Laboratory Inventory Management System
