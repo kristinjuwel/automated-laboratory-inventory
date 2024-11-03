@@ -17,21 +17,28 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     try {
-      const response = await fetch("/login", {
+      const url = `${
+        process.env.NEXT_PUBLIC_BACKEND_URL
+      }login?identifier=${encodeURIComponent(
+        email
+      )}&password=${encodeURIComponent(password)}`;
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          identifier: email,
-          password: password,
-        }),
       });
 
       if (response.ok) {
         toast.success("Login successful!");
-        router.push("/biological-inventory-form");
+        router.push("/admin-dashboard");
       } else {
         const errorMessage = await response.text();
         toast.error(errorMessage || "Login failed. Please try again.");

@@ -36,7 +36,11 @@ interface RegisterFormValues {
   rePassword: string;
 }
 
-const CreateAccount = () => {
+interface CreateAccountProps {
+  closeDialog: () => void;
+}
+
+const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showRePassword, setShowRePassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
@@ -81,7 +85,7 @@ const CreateAccount = () => {
     }
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}register`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}admin-register`,
         {
           method: "POST",
           headers: {
@@ -101,6 +105,8 @@ const CreateAccount = () => {
       );
       if (response.ok) {
         toast.success("Registration successful!");
+        closeDialog();
+        window.location.reload();
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Registration failed!");
@@ -400,6 +406,22 @@ const CreateAccount = () => {
                 </FormItem>
               )}
             />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={closeDialog}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            >
+              Add User
+            </Button>
           </div>
         </form>
       </Form>
