@@ -6,9 +6,9 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <div>
+    <>
       <Navbar />
-      <div className="flex bg-white ">{children}</div>;
-    </div>
+      {children}
+    </>
   );
 }
