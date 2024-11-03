@@ -1,3 +1,5 @@
+import Navbar from "@/components/molecules/navbar";
+
 interface RootLayoutProps {
   children: React.ReactNode;
 }
