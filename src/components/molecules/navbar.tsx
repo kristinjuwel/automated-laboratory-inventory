@@ -6,7 +6,7 @@ import {
   Microscope,
   Syringe,
   Dna,
-  Package,
+  Box,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -41,19 +41,13 @@ const Navbar = () => {
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuTrigger>
-              <Microscope className="size-5 pr-1" />
-              Pathology
+              <a className="flex" onClick={() => router.push("/lab/pathology")}>
+                <Microscope className="size-5 pr-1" />
+                Pathology
+              </a>
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="w-full md:relative right-0 md:w-48 bg-white shadow-lg rounded-xl">
-              <ul className="gap-3 p-2">
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/forms")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    View Forms
-                  </a>
-                </li>
+            <NavigationMenuContent className="w-full md:relative md:w-96 bg-white shadow-lg rounded-xl">
+              <ul className="grid md:grid-cols-2 gap-3 p-2">
                 <li>
                   <a
                     onClick={() => router.push("/microbiology/inventory")}
@@ -86,24 +80,37 @@ const Navbar = () => {
                     Disposition
                   </a>
                 </li>
+                <li>
+                  <a
+                    onClick={() => router.push("/microbiology/disposition")}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+                  >
+                    Calibration Logs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => router.push("/microbiology/disposition")}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+                  >
+                    Reagents Dispense
+                  </a>
+                </li>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger>
-              <Syringe className="size-5 pr-1" />
-              Immunology
+              <a
+                className="flex"
+                onClick={() => router.push("/lab/immunology")}
+              >
+                <Syringe className="size-5 pr-1" />
+                Immunology
+              </a>
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="w-full md:relative md:w-48 bg-white shadow-lg rounded-xl">
-              <ul className="gap-3 p-2">
-                <li>
-                  <a
-                    onClick={() => router.push("/immunology/forms")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    View Forms
-                  </a>
-                </li>
+            <NavigationMenuContent className="w-full md:relative md:w-96 bg-white shadow-lg rounded-xl">
+              <ul className="grid md:grid-cols-2 gap-3 p-2">
                 <li>
                   <a
                     onClick={() => router.push("/immunology/inventory")}
@@ -136,24 +143,37 @@ const Navbar = () => {
                     Disposition
                   </a>
                 </li>
+                <li>
+                  <a
+                    onClick={() => router.push("/microbiology/disposition")}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+                  >
+                    Calibration Logs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => router.push("/microbiology/disposition")}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+                  >
+                    Reagents Dispense
+                  </a>
+                </li>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger>
-              <Dna className="size-5 pr-1" />
-              Microbiology
+              <a
+                className="flex"
+                onClick={() => router.push("/lab/microbiology")}
+              >
+                <Dna className="size-5 pr-1" />
+                Microbiology
+              </a>
             </NavigationMenuTrigger>
-            <NavigationMenuContent className="w-full md:relative md:w-48 bg-white shadow-lg rounded-xl">
-              <ul className="gap-3 p-2">
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/forms")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    View Forms
-                  </a>
-                </li>
+            <NavigationMenuContent className="w-full md:relative md:w-96 bg-white shadow-lg rounded-xl">
+              <ul className="grid md:grid-cols-2 gap-3 p-2">
                 <li>
                   <a
                     onClick={() => router.push("/microbiology/inventory")}
@@ -186,6 +206,22 @@ const Navbar = () => {
                     Disposition
                   </a>
                 </li>
+                <li>
+                  <a
+                    onClick={() => router.push("/microbiology/disposition")}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+                  >
+                    Calibration Logs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => router.push("/microbiology/disposition")}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+                  >
+                    Reagents Dispense
+                  </a>
+                </li>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
@@ -197,7 +233,7 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink className="hover:text-teal-800 flex">
-              <Package className="size-5 pr-1" />
+              <Box className="size-5 pr-1" />
               Stock Level
             </NavigationMenuLink>
           </NavigationMenuItem>
