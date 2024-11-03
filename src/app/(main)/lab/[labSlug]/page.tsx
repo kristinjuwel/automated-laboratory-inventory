@@ -57,7 +57,7 @@ const DashboardPage = () => {
     }
   };
   return (
-    <div className="h-full w-full flex">
+    <div className="h-full w-full max-w-screen flex">
       <div className="flex-grow">
         <div className="flex items-center justify-center mb-8 pt-8">
           {getIconByLab(labSlug)}
@@ -68,7 +68,7 @@ const DashboardPage = () => {
 
         <Tabs
           defaultValue="inventory"
-          className="rounded-xl bg-white m-8 border-2 border-teal-100"
+          className="rounded-xl bg-white border-2 border-teal-100 lg:w-[1445px] max-w-[1445px] place-self-center"
         >
           <TabsList className="flex justify-around bg-teal-50 text-black rounded-b-none py-6">
             <TabsTrigger
@@ -115,7 +115,6 @@ const DashboardPage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Content for each tab */}
           <TabsContent value="inventory">
             <div className="flex gap-2">
               <div className="w-1/12 border-teal-100 border-r-2 px-4">
