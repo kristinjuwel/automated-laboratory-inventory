@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import {
   Table,
   TableBody,
@@ -29,67 +29,97 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import CreateAccount from "@/components/molecules/create-account";
+import { userSchema, UserSchema } from "@/packages/api/user";
+import { z } from "zod";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-interface User {
-  id: string;
+interface MappedUser {
+  userId: number;
   lastName: string;
   firstName: string;
-  middleName: string;
+  middleName: string | null;
   designation: string;
   laboratory: string;
-  email: string;
+  labId: number;
+  email: string | null;
   username: string;
   status: string;
 }
-
+const labMapping = {
+  Pathology: 1,
+  Immunology: 2,
+  Microbiology: 3,
+};
 const AdminView = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<MappedUser[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<MappedUser[]>([]);
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("table");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
+  const [formData, setFormData] = useState<Partial<MappedUser>>({});
 
+  const statuses = [
+    "active",
+    "inactive",
+    "to be approved",
+    "to be otp-verified",
+  ];
+  const laboratories = [
+    { name: "Pathology", id: 1 },
+    { name: "Immunology", id: 2 },
+    { name: "Microbiology", id: 3 },
+  ];
+  const designations = [
+    "medical technologist",
+    "researcher",
+    "lab manager",
+    "student",
+    "technician",
+  ];
   useEffect(() => {
-    const fetchData = [
-      {
-        id: "1",
-        lastName: "Doe",
-        firstName: "John",
-        middleName: "A.",
-        designation: "Researcher",
-        laboratory: "Pathology",
-        email: "john.doe@example.com",
-        username: "jdoe",
-        status: "active",
-      },
-      {
-        id: "2",
-        lastName: "Smith",
-        firstName: "Jane",
-        middleName: "B.",
-        designation: "Technician",
-        laboratory: "Immunology",
-        email: "jane.smith@example.com",
-        username: "jsmith",
-        status: "active",
-      },
-      {
-        id: "3",
-        lastName: "Brown",
-        firstName: "Alex",
-        middleName: "C.",
-        designation: "Lab Manager",
-        laboratory: "Microbiology",
-        email: "alex.brown@example.com",
-        username: "abrown",
-        status: "active",
-      },
-    ];
-    setUsers(fetchData);
-    setFilteredUsers(fetchData);
+    const fetchAllUsers = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}all-users`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        const data: UserSchema[] = await response.json();
+
+        const parsedData = z.array(userSchema).parse(data);
+
+        const mappedUsers: MappedUser[] = parsedData.map((user) => ({
+          userId: user.userId,
+          lastName: user.lastName,
+          firstName: user.firstName,
+          middleName: user.middleName ?? "",
+          designation: user.designation,
+          laboratory: user.laboratory.labName,
+          labId: user.labId,
+          email: user.email ?? "",
+          username: user.username,
+          status: user.status,
+        }));
+
+        setUsers(mappedUsers);
+        setFilteredUsers(mappedUsers);
+        console.log(mappedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchAllUsers();
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +137,86 @@ const AdminView = () => {
 
   const handleViewModeChange = (view: string) => {
     setViewMode(view);
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSubmit = async () => {
+    if (selectedUser) {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}update-user/${selectedUser.userId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...formData,
+              labId: formData.labId || selectedUser.labId,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const updatedUser = {
+            ...selectedUser,
+            ...formData,
+            labId: formData.labId || selectedUser.labId,
+          };
+          setUsers((prevUsers) =>
+            prevUsers.map((user) =>
+              user.userId === updatedUser.userId ? updatedUser : user
+            )
+          );
+          setFilteredUsers((prevUsers) =>
+            prevUsers.map((user) =>
+              user.userId === updatedUser.userId ? updatedUser : user
+            )
+          );
+          toast.success("User updated successfully!");
+          setIsEditDialogOpen(false);
+          window.location.reload();
+        } else {
+          throw new Error("Failed to update user");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        toast.error("Failed to update user");
+      }
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (selectedUser) {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}update-user/${selectedUser.userId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              status: "Deleted",
+            }),
+          }
+        );
+
+        if (response.ok) {
+          toast.success("User Deleted successfully!");
+          window.location.reload();
+        } else {
+          throw new Error("Failed to delete user");
+        }
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        toast.error("Failed to delete user");
+      }
+    }
   };
 
   return (
@@ -189,37 +299,52 @@ const AdminView = () => {
           <TableBody>
             {filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{`${user.lastName}, ${user.firstName} ${user.middleName}`}</TableCell>
-                  <TableCell>{user.designation}</TableCell>
-                  <TableCell>{user.laboratory}</TableCell>
-                  <TableCell>{user.status}</TableCell>
+                <TableRow
+                  key={user.userId}
+                  className={cn(
+                    `capitalize ${
+                      user.status === "Deleted" ? "text-red-500 rounded-md" : ""
+                    }`
+                  )}
+                >
+                  <TableCell>{user.userId}</TableCell>
+                  <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
+                  <TableCell className="capitalize">
+                    {user.designation}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {user.laboratory}
+                  </TableCell>
+                  <TableCell className="capitalize">{user.status}</TableCell>
                   <TableCell className="text-center">{user.username}</TableCell>
                   <TableCell className="text-center">{user.email}</TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
-                      onClick={() => {
-                        setSelectedUser(user);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
-                      onClick={() => {
-                        setSelectedUser(user);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash className="w-4 h-4 -mr-1" /> Delete
-                    </Button>
+                    {user.status !== "Deleted" && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash className="w-4 h-4 -mr-1" /> Delete
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -235,9 +360,9 @@ const AdminView = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredUsers.map((user) => (
-            <Card key={user.id}>
+            <Card key={user.userId}>
               <CardHeader>
-                <CardTitle className="text-teal-900 pt-2">{`${user.lastName}, ${user.firstName} ${user.middleName} `}</CardTitle>
+                <CardTitle className="text-teal-900 pt-2">{`${user.firstName} ${user.middleName} ${user.lastName}`}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>Designation: {user.designation}</p>
@@ -287,57 +412,158 @@ const AdminView = () => {
       )}
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white max-h-4/5 h-4/5 overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
-          <div>
-            <Input
-              value={selectedUser?.firstName}
-              placeholder="First Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.middleName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.lastName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.designation}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.laboratory}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.email}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.username}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <div className="relative">
-              <Button
-                className="absolute right-0 mr-4"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Save Changes
-              </Button>
+          {selectedUser && (
+            <div>
+              <form className="space-y-4">
+                <div>
+                  <label className="text-sm text-gray-500" htmlFor="firstName">
+                    First Name
+                  </label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    placeholder="First Name"
+                    value={formData.firstName || selectedUser.firstName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500" htmlFor="middleName">
+                    Middle Name
+                  </label>
+                  <Input
+                    id="middleName"
+                    name="middleName"
+                    placeholder="Middle Name"
+                    value={formData.middleName || selectedUser.middleName || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500" htmlFor="lastName">
+                    Last Name
+                  </label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    placeholder="Last Name"
+                    value={formData.lastName || selectedUser.lastName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Designation</label>
+                  <Select
+                    value={formData.designation || selectedUser.designation}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, designation: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Designation" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {designations.map((designation) => (
+                        <SelectItem key={designation} value={designation}>
+                          {designation.charAt(0).toUpperCase() +
+                            designation.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Laboratory</label>
+                  <Select
+                    value={
+                      formData.labId?.toString() ||
+                      labMapping[
+                        selectedUser.laboratory as keyof typeof labMapping
+                      ]?.toString()
+                    }
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        labId: parseInt(value, 10), // Convert the selected value back to a number
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Laboratory" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {laboratories.map((lab) => (
+                        <SelectItem key={lab.id} value={lab.id.toString()}>
+                          {lab.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500" htmlFor="email">
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    placeholder="Email"
+                    type="email"
+                    value={formData.email || selectedUser.email || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500" htmlFor="username">
+                    Username
+                  </label>
+                  <Input
+                    id="username"
+                    name="username"
+                    placeholder="Username"
+                    value={formData.username || selectedUser.username}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Status</label>
+                  <Select
+                    value={formData.status || selectedUser.status}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, status: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </form>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleEditSubmit}>Save Changes</Button>
+              </div>
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
+      <Toaster />
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="bg-white">
@@ -366,7 +592,10 @@ const AdminView = () => {
             </Button>
             <Button
               variant="destructive"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => {
+                handleDeleteUser();
+                setIsDeleteDialogOpen(true);
+              }}
             >
               Confirm
             </Button>
@@ -382,23 +611,7 @@ const AdminView = () => {
               Add User
             </DialogTitle>
           </DialogHeader>
-          <CreateAccount />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Add User
-            </Button>
-          </div>
+          <CreateAccount closeDialog={() => setIsCreateDialogOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>
