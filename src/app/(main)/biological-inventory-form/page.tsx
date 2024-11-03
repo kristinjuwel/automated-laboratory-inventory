@@ -74,7 +74,7 @@ const BiologicalInventoryForm = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
+    <div className="flex h-screen justify-center items-center bg-gray-100">
       <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
@@ -336,7 +336,7 @@ const BiologicalInventoryForm = () => {
                 <Button
                   type="submit"
                   onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
