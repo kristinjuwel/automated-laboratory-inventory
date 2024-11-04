@@ -40,6 +40,9 @@ interface LabPurchaseValues {
   items: {
     purchaseOrderNumber: string;
     description: string;
+    itemName: string;
+    itemCode: string;
+    category: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;
@@ -66,6 +69,9 @@ const LabPurchaseOrder = () => {
         {
           purchaseOrderNumber: "",
           description: "",
+          itemName: "",
+          itemCode: "",
+          category: "",
           quantity: 0,
           unitPrice: 0,
           totalPrice: 0,
@@ -78,6 +84,9 @@ const LabPurchaseOrder = () => {
     {
       purchaseOrderNumber: string;
       description: string;
+      itemName: "",
+      itemCode: "",
+      category: "",
       quantity: number;
       unitPrice: number;
       totalPrice: number;
@@ -86,6 +95,9 @@ const LabPurchaseOrder = () => {
     {
       purchaseOrderNumber: "",
       description: "",
+      itemName: "",
+      itemCode: "",
+      category: "",
       quantity: 0,
       unitPrice: 0,
       totalPrice: 0,
@@ -98,6 +110,9 @@ const LabPurchaseOrder = () => {
       {
         purchaseOrderNumber: "",
         description: "",
+        itemName: "",
+        itemCode: "",
+        category: "",
         quantity: 0,
         unitPrice: 0,
         totalPrice: 0,
@@ -133,6 +148,9 @@ const LabPurchaseOrder = () => {
         {
           purchaseOrderNumber: "",
           description: "",
+          itemName: "",
+          itemCode: "",
+          category: "",
           quantity: 0,
           unitPrice: 0,
           totalPrice: 0,
@@ -146,7 +164,7 @@ const LabPurchaseOrder = () => {
 
   return (
     <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+      <Card className="p-8 w-full max-w-[990px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
             <div className="w-24 h-24 relative">
@@ -463,6 +481,9 @@ const LabPurchaseOrder = () => {
                       <th className="text-sm px-2 py-1 border">
                         Purchase Order No.
                       </th>
+                      <th className="text-sm px-2 py-1 border">Item Code</th>
+                      <th className="text-sm px-2 py-1 border">Item Name</th>
+                      <th className="text-sm px-2 py-1 border">Category</th>
                       <th className="text-sm px-2 py-1 border">Description</th>
                       <th className="text-sm px-2 py-1 border">Quantity</th>
                       <th className="text-sm px-2 py-1 border">
@@ -487,6 +508,33 @@ const LabPurchaseOrder = () => {
                               )
                             }
                             placeholder="PO Number"
+                          />
+                        </td>
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.itemCode}
+                            onChange={(e) =>
+                              handleChange(index, "itemCode", e.target.value)
+                            }
+                            placeholder="Item Code"
+                          />
+                        </td>
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.itemName}
+                            onChange={(e) =>
+                              handleChange(index, "itemName", e.target.value)
+                            }
+                            placeholder="Item Name"
+                          />
+                        </td>
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.category}
+                            onChange={(e) =>
+                              handleChange(index, "category", e.target.value)
+                            }
+                            placeholder="Category"
                           />
                         </td>
                         <td className="border px-4 py-2">
@@ -537,7 +585,7 @@ const LabPurchaseOrder = () => {
                       </tr>
                     ))}
                     <tr>
-                      <td colSpan={5}>
+                      <td colSpan={8}>
                         <div className="flex justify-center">
                           <Button
                             onClick={handleAddRow}
@@ -549,28 +597,32 @@ const LabPurchaseOrder = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">Subtotal: </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">Subtotal: </td>
+                      <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">Tax (10%): </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">Tax : </td>
+                      <td colSpan={2} className="border px-4 py-2">
+                          <Input
+                            type="number"
+                          />
+                      </td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">
+                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">
                         Shipping Cost:{" "}
                       </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">
+                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">
                         Grand Total:{" "}
                       </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                   </tbody>
                 </table>
