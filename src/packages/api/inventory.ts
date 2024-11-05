@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { categorySchema, laboratorySchema, supplierSchema } from "./lab";
+import { userSchema } from "./user";
 
+// Material Schema remains the same
 export const materialSchema = z.object({
   materialId: z.number().optional(),
   labId: z.number(),
@@ -24,13 +26,15 @@ export const materialSchema = z.object({
   updatedAt: z.string().datetime().optional(),
 });
 
-export type Material = z.infer<typeof materialSchema>;
-
-export const validateMaterial = (data: any) => {
-  try {
-    const parsedData = materialSchema.parse(data);
-    return { valid: true, parsedData };
-  } catch (error) {
-    return { valid: false, errors: error };
-  }
-};
+// InventoryLog Schema
+export const inventoryLogSchema = z.object({
+  inventoryLogId: z.number().optional(),
+  userId: z.number(),
+  user: userSchema.optional(),
+  materialId: z.number(),
+  material: materialSchema.optional(),
+  date: z.string(),
+  quantity: z.number(),
+  source: z.string().optional(),
+  remarks: z.string().optional(),
+});

@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, TriangleAlert, FilePlus, Printer } from "lucide-react";
+import {
+  Edit,
+  Search,
+  TriangleAlert,
+  FilePlus,
+  Printer,
+  History,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,13 +50,27 @@ interface Material {
   updatedAt?: string;
 }
 
+interface Logs {
+  inventoryLogId: number;
+  userId: number;
+  user: { lastName: string; firstName: string; middleName?: string };
+  materialId: number;
+  material: { itemName: string };
+  date: string;
+  quantity: number;
+  source?: string;
+  remarks?: string;
+}
+
 const Biological = () => {
   const router = useRouter();
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [logs, setLogs] = useState<Logs[]>([]);
   const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
   const [search, setSearch] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
     null
   );
@@ -65,8 +85,13 @@ const Biological = () => {
           throw new Error("Failed to fetch materials");
         }
         const data = await response.json();
-        setMaterials(data);
-        setFilteredMaterials(data);
+        // Filter materials to only include those with category "biological"
+        const biologicalMaterials = data.filter(
+          (material: Material) =>
+            material.category.shortName.toLowerCase() === "biological"
+        );
+        setMaterials(biologicalMaterials);
+        setFilteredMaterials(biologicalMaterials);
       } catch (error) {
         console.error("Error fetching materials:", error);
       }
@@ -74,6 +99,21 @@ const Biological = () => {
 
     fetchMaterials();
   }, []);
+
+  const fetchInventoryLogs = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}inventory-log/logs/${selectedMaterial?.materialId}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch inventory logs");
+      }
+      const data = await response.json();
+      setLogs(data);
+    } catch (error) {
+      console.error("Error fetching inventory logs:", error);
+    }
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -91,7 +131,7 @@ const Biological = () => {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
-        Biological Inventory Forms
+        Biological Inventory
       </h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
@@ -152,12 +192,30 @@ const Biological = () => {
                 <TableCell>{material.itemName}</TableCell>
                 <TableCell>{material.unit}</TableCell>
                 <TableCell>{material.location}</TableCell>
-                <TableCell>{material.expiryDate}</TableCell>
+                <TableCell>
+                  {new Date(material.expiryDate).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  })}
+                </TableCell>
                 <TableCell>{material.cost}</TableCell>
                 <TableCell>{material.quantityAvailable}</TableCell>
                 <TableCell>{material.reorderThreshold}</TableCell>
                 <TableCell>{material.maxThreshold}</TableCell>
                 <TableCell className="text-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-md text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50"
+                    onClick={() => {
+                      setSelectedMaterial(material);
+                      fetchInventoryLogs();
+                      setIsHistoryDialogOpen(true);
+                    }}
+                  >
+                    <History className="w-4 h-4 -mr-1" /> Logs
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -254,6 +312,72 @@ const Biological = () => {
               onClick={() => setIsDeleteDialogOpen(false)}
             >
               Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+        <DialogContent className="bg-white max-h-4/5 h-auto max-w-1/2 w-2/3">
+          <DialogHeader>
+            <DialogTitle className="flex items-center  gap-2 tracking-tight">
+              <History className="text-yellow-600 size-5 -mt-0.5" />
+              Inventory Logs
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-2">
+            <Table className="items-center justify-center w-full overflow-x-auto">
+              <TableHeader className="text-center justify-center bg-teal-50">
+                <TableRow>
+                  <TableHead>Log ID</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Remarks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.length > 0 ? (
+                  logs.map((log) => (
+                    <TableRow className="bg-white" key={log.inventoryLogId}>
+                      <TableCell>{log.inventoryLogId}</TableCell>
+                      <TableCell>{`${log.user.firstName} ${log.user.lastName}`}</TableCell>
+                      <TableCell>
+                        {new Date(log.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })}
+                      </TableCell>
+                      <TableCell>{log.quantity}</TableCell>
+                      <TableCell>{log.source || "N/A"}</TableCell>
+                      <TableCell>{log.remarks || "N/A"}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-gray-500"
+                    >
+                      No logs found for this material.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => {
+                setIsHistoryDialogOpen(false);
+                window.location.reload();
+              }}
+            >
+              Close
             </Button>
           </div>
         </DialogContent>
