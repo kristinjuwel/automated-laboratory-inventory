@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ interface LabPurchaseValues {
   labContactPerson: string;
   items: {
     purchaseOrderNumber: string;
+    labName: string;
     description: string;
     itemName: string;
     itemCode: string;
@@ -68,6 +69,7 @@ const LabPurchaseOrder = () => {
       items: [
         {
           purchaseOrderNumber: "",
+          labName: "",
           description: "",
           itemName: "",
           itemCode: "",
@@ -84,6 +86,7 @@ const LabPurchaseOrder = () => {
     {
       purchaseOrderNumber: string;
       description: string;
+      labName: "",
       itemName: "",
       itemCode: "",
       category: "",
@@ -94,6 +97,7 @@ const LabPurchaseOrder = () => {
   >([
     {
       purchaseOrderNumber: "",
+      labName: "",
       description: "",
       itemName: "",
       itemCode: "",
@@ -104,11 +108,26 @@ const LabPurchaseOrder = () => {
     },
   ]);
 
+  const [labDetailsInHeader, setLabDetailsInHeader] = useState(false);
+  const toggleLabDetailsLocation = () => {
+    // Check if any lab detail field in the header form has a value
+    const isHeaderFilled = form.getValues("labName") || form.getValues("labAddress") ||
+      form.getValues("labPhoneNo") || form.getValues("labEmail") || form.getValues("labContactPerson");
+    setLabDetailsInHeader(!!isHeaderFilled);
+  };
+
+  // Call toggleLabDetailsLocation whenever form fields change
+  useEffect(() => {
+    const subscription = form.watch(() => toggleLabDetailsLocation());
+    return () => subscription.unsubscribe();
+  }, [form]);
+  
   const handleAddRow = () => {
     setItems([
       ...items,
       {
         purchaseOrderNumber: "",
+        labName: "",
         description: "",
         itemName: "",
         itemCode: "",
@@ -147,6 +166,7 @@ const LabPurchaseOrder = () => {
       setItems([
         {
           purchaseOrderNumber: "",
+          labName: "",
           description: "",
           itemName: "",
           itemCode: "",
@@ -163,8 +183,8 @@ const LabPurchaseOrder = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[990px] max-h-[700px] shadow-lg">
+    <div className="flex w-[82vw] h-[97vh] justify-center items-center bg-gray-100 overflow-hidden">
+      <Card className="p-8 w-full max-w-[1000px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
             <div className="w-24 h-24 relative">
@@ -275,9 +295,12 @@ const LabPurchaseOrder = () => {
                     Supplier Information
                   </h4>
                 </div>
+                {!labDetailsInHeader && (
+               <>
                 <div>
                   <h4 className="text-s font-bold py-1">Buyer Information</h4>
                 </div>
+                </>)}
 
                 <FormField
                   name="supplierName"
@@ -296,7 +319,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-
+              {!labDetailsInHeader && (
+               <>
                 <FormField
                   name="labName"
                   render={({ field }) => (
@@ -332,6 +356,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                </>
+              )}
 
                 <FormField
                   name="supplierAddress"
@@ -350,6 +376,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                 {!labDetailsInHeader && (
+                <>
                 <FormField
                   name="labAddress"
                   render={({ field }) => (
@@ -367,6 +395,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                </>
+                )}
 
                 <FormField
                   name="supplierPhoneNo"
@@ -385,6 +415,9 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                 
+                {!labDetailsInHeader && (
+                <>
                 <FormField
                   name="labPhoneNo"
                   render={({ field }) => (
@@ -402,7 +435,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-
+                </>
+                )}
                 <FormField
                   name="supplierEmail"
                   render={({ field }) => (
@@ -420,6 +454,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                {!labDetailsInHeader && (
+                <>
                 <FormField
                   name="labEmail"
                   render={({ field }) => (
@@ -437,6 +473,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                </>
+                )}
 
                 <FormField
                   name="supplierContactPerson"
@@ -455,6 +493,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                {!labDetailsInHeader && (
+                <>
                 <FormField
                   name="labContactPerson"
                   render={({ field }) => (
@@ -472,6 +512,8 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                </>
+                )}
               </div>
 
               <div className="overflow-x-auto mb-4">
@@ -481,6 +523,7 @@ const LabPurchaseOrder = () => {
                       <th className="text-sm px-2 py-1 border">
                         Purchase Order No.
                       </th>
+                      {!labDetailsInHeader && (<><th className="text-sm px-2 py-1 border">Laboratory</th></>)}
                       <th className="text-sm px-2 py-1 border">Item Code</th>
                       <th className="text-sm px-2 py-1 border">Item Name</th>
                       <th className="text-sm px-2 py-1 border">Category</th>
@@ -510,6 +553,19 @@ const LabPurchaseOrder = () => {
                             placeholder="PO Number"
                           />
                         </td>
+                        {!labDetailsInHeader && (
+                        <>
+                          <td className="border px-4 py-2">
+                            <Input
+                              value={item.labName}
+                              onChange={(e) =>
+                                handleChange(index, "labName", e.target.value)
+                              }
+                              placeholder="Laboratory"
+                            />
+                          </td> 
+                        </>
+                        )}
                         <td className="border px-4 py-2">
                           <Input
                             value={item.itemCode}
@@ -585,7 +641,7 @@ const LabPurchaseOrder = () => {
                       </tr>
                     ))}
                     <tr>
-                      <td colSpan={8}>
+                      <td colSpan={9}>
                         <div className="flex justify-center">
                           <Button
                             onClick={handleAddRow}
@@ -597,12 +653,12 @@ const LabPurchaseOrder = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={5} className="border px-4 py-2"></td>
                       <td colSpan={2} className="border px-4 py-2 text-sm">Subtotal: </td>
                       <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
-                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={5} className="border px-4 py-2"></td>
                       <td colSpan={2} className="border px-4 py-2 text-sm">Tax : </td>
                       <td colSpan={2} className="border px-4 py-2">
                           <Input
@@ -611,14 +667,14 @@ const LabPurchaseOrder = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={5} className="border px-4 py-2"></td>
                       <td colSpan={2} className="border px-4 py-2 text-sm">
                         Shipping Cost:{" "}
                       </td>
                       <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
-                      <td colSpan={4} className="border px-4 py-2"></td>
+                      <td colSpan={5} className="border px-4 py-2"></td>
                       <td colSpan={2} className="border px-4 py-2 text-sm">
                         Grand Total:{" "}
                       </td>
@@ -632,7 +688,7 @@ const LabPurchaseOrder = () => {
                 <Button
                   type="submit"
                   onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
