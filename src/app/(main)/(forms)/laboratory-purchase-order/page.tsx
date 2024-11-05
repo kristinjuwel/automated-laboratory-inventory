@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,20 +107,6 @@ const LabPurchaseOrder = () => {
       totalPrice: 0,
     },
   ]);
-
-  const [labDetailsInHeader, setLabDetailsInHeader] = useState(false);
-  const toggleLabDetailsLocation = () => {
-    // Check if any lab detail field in the header form has a value
-    const isHeaderFilled = form.getValues("labName") || form.getValues("labAddress") ||
-      form.getValues("labPhoneNo") || form.getValues("labEmail") || form.getValues("labContactPerson");
-    setLabDetailsInHeader(!!isHeaderFilled);
-  };
-
-  // Call toggleLabDetailsLocation whenever form fields change
-  useEffect(() => {
-    const subscription = form.watch(() => toggleLabDetailsLocation());
-    return () => subscription.unsubscribe();
-  }, [form]);
   
   const handleAddRow = () => {
     setItems([
@@ -274,9 +260,9 @@ const LabPurchaseOrder = () => {
                             <DropdownMenuCheckboxItem
                               key={option}
                               checked={field.value === option}
-                              onCheckedChange={(checked) =>
-                                field.onChange(checked ? option : null)
-                              }
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked ? option : null);
+                              }}
                             >
                               {option}
                             </DropdownMenuCheckboxItem>
@@ -295,12 +281,10 @@ const LabPurchaseOrder = () => {
                     Supplier Information
                   </h4>
                 </div>
-                {!labDetailsInHeader && (
-               <>
+
                 <div>
                   <h4 className="text-s font-bold py-1">Buyer Information</h4>
                 </div>
-                </>)}
 
                 <FormField
                   name="supplierName"
@@ -319,8 +303,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-              {!labDetailsInHeader && (
-               <>
+
                 <FormField
                   name="labName"
                   render={({ field }) => (
@@ -356,8 +339,6 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                </>
-              )}
 
                 <FormField
                   name="supplierAddress"
@@ -376,8 +357,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                 {!labDetailsInHeader && (
-                <>
+
                 <FormField
                   name="labAddress"
                   render={({ field }) => (
@@ -395,8 +375,6 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                </>
-                )}
 
                 <FormField
                   name="supplierPhoneNo"
@@ -416,8 +394,6 @@ const LabPurchaseOrder = () => {
                   )}
                 />
                  
-                {!labDetailsInHeader && (
-                <>
                 <FormField
                   name="labPhoneNo"
                   render={({ field }) => (
@@ -435,8 +411,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                </>
-                )}
+
                 <FormField
                   name="supplierEmail"
                   render={({ field }) => (
@@ -454,8 +429,6 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                {!labDetailsInHeader && (
-                <>
                 <FormField
                   name="labEmail"
                   render={({ field }) => (
@@ -473,8 +446,6 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                </>
-                )}
 
                 <FormField
                   name="supplierContactPerson"
@@ -493,8 +464,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                {!labDetailsInHeader && (
-                <>
+
                 <FormField
                   name="labContactPerson"
                   render={({ field }) => (
@@ -512,8 +482,6 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                </>
-                )}
               </div>
 
               <div className="overflow-x-auto mb-4">
@@ -523,7 +491,7 @@ const LabPurchaseOrder = () => {
                       <th className="text-sm px-2 py-1 border">
                         Purchase Order No.
                       </th>
-                      {!labDetailsInHeader && (<><th className="text-sm px-2 py-1 border">Laboratory</th></>)}
+                      <th className="text-sm px-2 py-1 border">Laboratory</th>
                       <th className="text-sm px-2 py-1 border">Item Code</th>
                       <th className="text-sm px-2 py-1 border">Item Name</th>
                       <th className="text-sm px-2 py-1 border">Category</th>
@@ -553,8 +521,6 @@ const LabPurchaseOrder = () => {
                             placeholder="PO Number"
                           />
                         </td>
-                        {!labDetailsInHeader && (
-                        <>
                           <td className="border px-4 py-2">
                             <Input
                               value={item.labName}
@@ -564,8 +530,6 @@ const LabPurchaseOrder = () => {
                               placeholder="Laboratory"
                             />
                           </td> 
-                        </>
-                        )}
                         <td className="border px-4 py-2">
                           <Input
                             value={item.itemCode}
