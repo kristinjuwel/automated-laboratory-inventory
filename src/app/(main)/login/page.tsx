@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff, RotateCw, TriangleAlert } from "lucide-react";
+import { Eye, EyeOff, RotateCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +69,6 @@ const LoginPage = () => {
         throw new Error("Failed to reset password");
       }
 
-      const result = await response.text();
       toast.success("Password reset email sent successfully.");
       setShowResetDialog(false);
     } catch (error) {
