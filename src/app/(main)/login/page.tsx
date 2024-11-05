@@ -8,13 +8,20 @@ import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, RotateCw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -45,6 +52,28 @@ const LoginPage = () => {
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
+    }
+  };
+  const handlePasswordReset = async () => {
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }forgot-password?email=${encodeURIComponent(email)}`,
+        {
+          method: "PUT",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to reset password");
+      }
+
+      toast.success("Password reset email sent successfully.");
+      setShowResetDialog(false);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to reset password. Please try again.");
     }
   };
 
@@ -105,7 +134,9 @@ const LoginPage = () => {
             </div>
           </div>
           <a
-            onClick={() => router.push("/registration")}
+            onClick={() => {
+              setShowResetDialog(true);
+            }}
             className="text-teal-500  hover:text-teal-700 transition-colors duration-300 ease-in-out text-right text-sm pb-6 mt-1"
           >
             Forgot password?
@@ -129,6 +160,54 @@ const LoginPage = () => {
           </p>
         </div>
       </Card>
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+              <RotateCw className="text-teal-900 size-5 -mt-0.5" />
+              Reset Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <label
+              htmlFor="email"
+              className="text-xs font-medium text-gray-500"
+            >
+              Email Address
+            </label>
+            <Input
+              type="email"
+              id="email"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+            />
+          </div>
+          <p className="text-left ml-1 -mt-2 relative text-sm mb-3">
+            By clicking, a temporary password will be emailed to you.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setShowResetDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="ghost"
+              className="bg-teal-500 text-white hover:bg-teal-700 hover:text-white transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                handlePasswordReset();
+              }}
+            >
+              Send
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
