@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, TriangleAlert, FilePlus, Printer } from "lucide-react";
+import { Edit, Search, TriangleAlert, Trash, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,89 +20,77 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-interface User {
-  id: string;
-  lastName: string;
-  firstName: string;
-  middleName: string;
-  designation: string;
-  laboratory: string;
-  email: string;
-  username: string;
+interface StockLevelValues {
+  itemNo: string;
+  description: string;
+  onHand: number;
+  minLevel: number;
+  maxLevel: number;
   status: string;
+  action: string;
 }
 
 const StockLevel = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [stockLevels, setStockLevels] = useState<StockLevelValues[]>([]);
+  const [filteredStockLevels, setFilteredStockLevels] = useState<StockLevelValues[]>([]);
   const [search, setSearch] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedStock, setSelectedStock] = useState<StockLevelValues | null>(null);
 
   useEffect(() => {
     const fetchData = [
       {
-        id: "1",
-        lastName: "Doe",
-        firstName: "John",
-        middleName: "A.",
-        designation: "Researcher",
-        laboratory: "Pathology",
-        email: "john.doe@example.com",
-        username: "jdoe",
-        status: "active",
+        itemNo: "001",
+        description: "Test Tube",
+        onHand: 150,
+        minLevel: 50,
+        maxLevel: 200,
+        status: "Sufficient",
+        action: "Monitor",
       },
       {
-        id: "2",
-        lastName: "Smith",
-        firstName: "Jane",
-        middleName: "B.",
-        designation: "Technician",
-        laboratory: "Immunology",
-        email: "jane.smith@example.com",
-        username: "jsmith",
-        status: "active",
+        itemNo: "002",
+        description: "Petri Dish",
+        onHand: 30,
+        minLevel: 50,
+        maxLevel: 200,
+        status: "Low",
+        action: "Reorder",
       },
       {
-        id: "3",
-        lastName: "Brown",
-        firstName: "Alex",
-        middleName: "C.",
-        designation: "Lab Manager",
-        laboratory: "Microbiology",
-        email: "alex.brown@example.com",
-        username: "abrown",
-        status: "active",
+        itemNo: "003",
+        description: "Microscope Slide",
+        onHand: 120,
+        minLevel: 60,
+        maxLevel: 180,
+        status: "Sufficient",
+        action: "Monitor",
       },
     ];
-    setUsers(fetchData);
-    setFilteredUsers(fetchData);
+    setStockLevels(fetchData);
+    setFilteredStockLevels(fetchData);
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearch(query);
 
-    setFilteredUsers(
-      users.filter((user) =>
-        `${user.firstName} ${user.lastName} ${user.middleName}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
+    setFilteredStockLevels(
+      stockLevels.filter((stock) =>
+        `${stock.itemNo} ${stock.description}`.toLowerCase().includes(query.toLowerCase())
       )
     );
   };
 
   return (
-    <div className=" p-8">
-      <h1 className="text-3xl font-semibold text-teal-700 mb-4">
-        Stock Level Reports
-      </h1>
+    <div className="p-8">
+      <h1 className="text-3xl font-semibold text-teal-700 mb-4">Stock Level Reports</h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for an entry"
+            placeholder="Search for an item"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -119,8 +107,8 @@ const StockLevel = () => {
               setIsCreateDialogOpen(true);
             }}
           >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Generate Report
+             <Printer className="w-4 h-4 -mr-1" />
+            Print Report
           </Button>
         </div>
       </div>
@@ -130,34 +118,34 @@ const StockLevel = () => {
       <Table className="items-center justify-center">
         <TableHeader className="text-center justify-center">
           <TableRow>
-            <TableHead>Id</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Designation</TableHead>
-            <TableHead>Laboratory</TableHead>
+            <TableHead>Item No</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>On Hand</TableHead>
+            <TableHead>Min Level</TableHead>
+            <TableHead>Max Level</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-center">Username</TableHead>
-            <TableHead className="text-center">Email</TableHead>
+            <TableHead>Action</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{`${user.lastName}, ${user.firstName} ${user.middleName}`}</TableCell>
-                <TableCell>{user.designation}</TableCell>
-                <TableCell>{user.laboratory}</TableCell>
-                <TableCell>{user.status}</TableCell>
-                <TableCell className="text-center">{user.username}</TableCell>
-                <TableCell className="text-center">{user.email}</TableCell>
+          {filteredStockLevels.length > 0 ? (
+            filteredStockLevels.map((stock) => (
+              <TableRow key={stock.itemNo}>
+                <TableCell>{stock.itemNo}</TableCell>
+                <TableCell>{stock.description}</TableCell>
+                <TableCell>{stock.onHand}</TableCell>
+                <TableCell>{stock.minLevel}</TableCell>
+                <TableCell>{stock.maxLevel}</TableCell>
+                <TableCell>{stock.status}</TableCell>
+                <TableCell>{stock.action}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="sm"
                     className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
                     onClick={() => {
-                      setSelectedUser(user);
+                      setSelectedStock(stock);
                       setIsEditDialogOpen(true);
                     }}
                   >
@@ -168,11 +156,11 @@ const StockLevel = () => {
                     size="sm"
                     className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
                     onClick={() => {
-                      setSelectedUser(user);
+                      setSelectedStock(stock);
                       setIsDeleteDialogOpen(true);
                     }}
                   >
-                    <Printer className="w-4 h-4 -mr-1" /> Print
+                    <Trash className="w-4 h-4 -mr-1" /> Delete
                   </Button>
                 </TableCell>
               </TableRow>
@@ -180,7 +168,7 @@ const StockLevel = () => {
           ) : (
             <TableRow>
               <TableCell colSpan={8} className="text-center text-gray-500">
-                No users found.
+                No stock levels found.
               </TableCell>
             </TableRow>
           )}
@@ -188,49 +176,74 @@ const StockLevel = () => {
       </Table>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white h-[530px] overflow-y-auto mb-8">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit Stock Item</DialogTitle>
           </DialogHeader>
           <div>
-            <Input
-              value={selectedUser?.firstName}
-              placeholder="First Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.middleName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.lastName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.designation}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.laboratory}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.email}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.username}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <div className="relative">
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <Input
+                id="description"
+                value={selectedStock?.description}
+                placeholder="Description"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="onHand" className="block text-sm font-medium text-gray-700 mb-1">
+                On Hand
+              </label>
+              <Input
+                id="onHand"
+                value={selectedStock?.onHand.toString()}
+                placeholder="On Hand"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="minLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                Min Level
+              </label>
+              <Input
+                id="minLevel"
+                value={selectedStock?.minLevel.toString()}
+                placeholder="Min Level"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="maxLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                Max Level
+              </label>
+              <Input
+                id="maxLevel"
+                value={selectedStock?.maxLevel.toString()}
+                placeholder="Max Level"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <Input
+                id="status"
+                value={selectedStock?.status}
+                placeholder="Status"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
+                Action
+              </label>
+              <Input
+                id="action"
+                value={selectedStock?.action}
+                placeholder="Action"
+              />
+            </div>
+            <div className="relative mb-8">
               <Button
-                className="absolute right-0 mr-4"
+                className="absolute right-0 mr-4 "
                 onClick={() => setIsEditDialogOpen(false)}
               >
                 Save Changes
@@ -240,20 +253,21 @@ const StockLevel = () => {
         </DialogContent>
       </Dialog>
 
+
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               <TriangleAlert className="text-red-500 size-5 -mt-0.5" />
-              Delete User
+              Delete Stock Item
             </DialogTitle>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
-            Are you sure you want to delete this user?
+            Are you sure you want to delete this stock item?
           </p>
           <p className="text-left bg-red-300 -mt-2 relative py-2 text-sm">
             <span className="pl-4">
-              By deleting this user, they will be removed indefinitely.
+              By deleting this item, it will be removed indefinitely.
             </span>
             <span className="absolute left-0 top-0 h-full w-2 bg-red-600"></span>
           </p>
@@ -276,27 +290,27 @@ const StockLevel = () => {
       </Dialog>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-white">
+      <DialogContent className="bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight mb-4">
-              <FilePlus className="text-teal-500 size-5 -mt-0.5" />
-              Add User
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              Print Stock Level Report
             </DialogTitle>
           </DialogHeader>
-          <div className="flex justify-end gap-2">
+          <p className="text-left pt-2 text-sm">
+            Are you sure you want to print this report?
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsCreateDialogOpen(false)}
+              onClick={() => setIsDeleteDialogOpen(false)}
             >
               Cancel
             </Button>
-
             <Button
-              className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-              onClick={() => setIsCreateDialogOpen(false)}
+              onClick={() => setIsDeleteDialogOpen(false)}
             >
-              Add User
+              Confirm
             </Button>
           </div>
         </DialogContent>
