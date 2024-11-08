@@ -25,7 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface Material {
   materialId: number;
@@ -64,6 +64,8 @@ interface Logs {
 
 const Biological = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const labSlug = pathname?.split("/")[2];
   const [materials, setMaterials] = useState<Material[]>([]);
   const [logs, setLogs] = useState<Logs[]>([]);
   const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
@@ -88,7 +90,8 @@ const Biological = () => {
         // Filter materials to only include those with category "biological"
         const biologicalMaterials = data.filter(
           (material: Material) =>
-            material.category.shortName.toLowerCase() === "biological"
+            material.category.shortName.toLowerCase() === "biological" &&
+            material.laboratory.labName.toLowerCase() === labSlug
         );
         setMaterials(biologicalMaterials);
         setFilteredMaterials(biologicalMaterials);
@@ -98,17 +101,18 @@ const Biological = () => {
     };
 
     fetchMaterials();
-  }, []);
+  }, [labSlug]);
 
-  const fetchInventoryLogs = async () => {
+  const fetchInventoryLogs = async (materialId: number) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}inventory-log/logs/${selectedMaterial?.materialId}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}inventory-log/logs/${materialId}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch inventory logs");
       }
       const data = await response.json();
+      console.log(data);
       setLogs(data);
     } catch (error) {
       console.error("Error fetching inventory logs:", error);
@@ -210,7 +214,7 @@ const Biological = () => {
                     className="rounded-md text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50"
                     onClick={() => {
                       setSelectedMaterial(material);
-                      fetchInventoryLogs();
+                      fetchInventoryLogs(material.materialId);
                       setIsHistoryDialogOpen(true);
                     }}
                   >
