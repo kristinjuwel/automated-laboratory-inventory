@@ -336,7 +336,7 @@ const ChemicalInventoryForm = () => {
                 <Button
                   type="submit"
                   onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
