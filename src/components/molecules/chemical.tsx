@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,75 +18,73 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
-interface User {
-  id: string;
-  lastName: string;
-  firstName: string;
-  middleName: string;
-  designation: string;
-  laboratory: string;
-  email: string;
-  username: string;
-  status: string;
+interface Material {
+  materialId: number;
+  labId: number;
+  categoryId: number;
+  supplierId: number;
+  laboratory: { labName: string };
+  category: { shortName: string };
+  supplier: { companyName: string };
+  itemCode: string;
+  itemName: string;
+  unit: string;
+  location: string;
+  expiryDate: string;
+  cost: number;
+  description?: string;
+  notes?: string;
+  quantityAvailable: number;
+  reorderThreshold: number;
+  maxThreshold: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const Chemical = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const router = useRouter();
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
   const [search, setSearch] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
+    null
+  );
 
   useEffect(() => {
-    const fetchData = [
-      {
-        id: "1",
-        lastName: "Doe",
-        firstName: "John",
-        middleName: "A.",
-        designation: "Researcher",
-        laboratory: "Pathology",
-        email: "john.doe@example.com",
-        username: "jdoe",
-        status: "active",
-      },
-      {
-        id: "2",
-        lastName: "Smith",
-        firstName: "Jane",
-        middleName: "B.",
-        designation: "Technician",
-        laboratory: "Immunology",
-        email: "jane.smith@example.com",
-        username: "jsmith",
-        status: "active",
-      },
-      {
-        id: "3",
-        lastName: "Brown",
-        firstName: "Alex",
-        middleName: "C.",
-        designation: "Lab Manager",
-        laboratory: "Microbiology",
-        email: "alex.brown@example.com",
-        username: "abrown",
-        status: "active",
-      },
-    ];
-    setUsers(fetchData);
-    setFilteredUsers(fetchData);
+    const fetchMaterials = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch materials");
+        }
+        const data = await response.json();
+        const biologicalMaterials = data.filter(
+          (material: Material) =>
+            material.category.shortName.toLowerCase() === "chemical"
+        );
+        setMaterials(biologicalMaterials);
+        setFilteredMaterials(biologicalMaterials);
+      } catch (error) {
+        console.error("Error fetching materials:", error);
+      }
+    };
+
+    fetchMaterials();
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearch(query);
 
-    setFilteredUsers(
-      users.filter((user) =>
-        `${user.firstName} ${user.lastName} ${user.middleName}`
+    setFilteredMaterials(
+      materials.filter((material) =>
+        `${material.itemName} ${material.itemCode}`
           .toLowerCase()
           .includes(query.toLowerCase())
       )
@@ -95,14 +92,14 @@ const Chemical = () => {
   };
 
   return (
-    <div className=" p-8">
+    <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
-        Chemical Inventory Forms
+        Chemical Inventory
       </h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for an entry"
+            placeholder="Search for a material"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -116,48 +113,60 @@ const Chemical = () => {
               `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
             )}
             onClick={() => {
-              setIsCreateDialogOpen(true);
+              router.push("/biological-inventory-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Create Form
+            Create Material
           </Button>
         </div>
       </div>
 
       <Toaster />
 
-      <Table className="items-center justify-center">
+      <Table className="items-center justify-center w-max-full w-58 overflow-x-auto">
         <TableHeader className="text-center justify-center">
           <TableRow>
-            <TableHead>Id</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Designation</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead>Laboratory</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-center">Username</TableHead>
-            <TableHead className="text-center">Email</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Supplier</TableHead>
+            <TableHead>Item Code</TableHead>
+            <TableHead>Item Name</TableHead>
+            <TableHead>Unit</TableHead>
+            <TableHead>Location</TableHead>
+            <TableHead>Expiry Date</TableHead>
+            <TableHead>Cost</TableHead>
+            <TableHead>Quantity Available</TableHead>
+            <TableHead>Reorder Threshold</TableHead>
+            <TableHead>Max Threshold</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{`${user.lastName}, ${user.firstName} ${user.middleName}`}</TableCell>
-                <TableCell>{user.designation}</TableCell>
-                <TableCell>{user.laboratory}</TableCell>
-                <TableCell>{user.status}</TableCell>
-                <TableCell className="text-center">{user.username}</TableCell>
-                <TableCell className="text-center">{user.email}</TableCell>
+          {filteredMaterials.length > 0 ? (
+            filteredMaterials.map((material) => (
+              <TableRow key={material.materialId}>
+                <TableCell>{material.materialId}</TableCell>
+                <TableCell>{material.laboratory.labName}</TableCell>
+                <TableCell>{material.category.shortName}</TableCell>
+                <TableCell>{material.supplier.companyName}</TableCell>
+                <TableCell>{material.itemCode}</TableCell>
+                <TableCell>{material.itemName}</TableCell>
+                <TableCell>{material.unit}</TableCell>
+                <TableCell>{material.location}</TableCell>
+                <TableCell>{material.expiryDate}</TableCell>
+                <TableCell>{material.cost}</TableCell>
+                <TableCell>{material.quantityAvailable}</TableCell>
+                <TableCell>{material.reorderThreshold}</TableCell>
+                <TableCell>{material.maxThreshold}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="sm"
                     className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
                     onClick={() => {
-                      setSelectedUser(user);
+                      setSelectedMaterial(material);
                       setIsEditDialogOpen(true);
                     }}
                   >
@@ -168,7 +177,7 @@ const Chemical = () => {
                     size="sm"
                     className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
                     onClick={() => {
-                      setSelectedUser(user);
+                      setSelectedMaterial(material);
                       setIsDeleteDialogOpen(true);
                     }}
                   >
@@ -179,8 +188,8 @@ const Chemical = () => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-gray-500">
-                No users found.
+              <TableCell colSpan={17} className="text-center text-gray-500">
+                No materials found.
               </TableCell>
             </TableRow>
           )}
@@ -190,44 +199,22 @@ const Chemical = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit Material</DialogTitle>
           </DialogHeader>
           <div>
-            <Input
-              value={selectedUser?.firstName}
-              placeholder="First Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.middleName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.lastName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.designation}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.laboratory}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.email}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.username}
-              placeholder="Last Name"
-              className="mb-4"
-            />
+            {selectedMaterial &&
+              Object.entries(selectedMaterial).map(([key, value]) => (
+                <Input
+                  key={key}
+                  value={
+                    typeof value === "object"
+                      ? JSON.stringify(value)
+                      : (value as string)
+                  }
+                  placeholder={key}
+                  className="mb-4"
+                />
+              ))}
             <div className="relative">
               <Button
                 className="absolute right-0 mr-4"
@@ -245,15 +232,15 @@ const Chemical = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               <TriangleAlert className="text-red-500 size-5 -mt-0.5" />
-              Delete User
+              Delete Material
             </DialogTitle>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
-            Are you sure you want to delete this user?
+            Are you sure you want to delete this material?
           </p>
           <p className="text-left bg-red-300 -mt-2 relative py-2 text-sm">
             <span className="pl-4">
-              By deleting this user, they will be removed indefinitely.
+              By deleting this material, it will be removed indefinitely.
             </span>
             <span className="absolute left-0 top-0 h-full w-2 bg-red-600"></span>
           </p>
@@ -270,33 +257,6 @@ const Chemical = () => {
               onClick={() => setIsDeleteDialogOpen(false)}
             >
               Confirm
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight mb-4">
-              <FilePlus className="text-teal-500 size-5 -mt-0.5" />
-              Add User
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Add User
             </Button>
           </div>
         </DialogContent>
