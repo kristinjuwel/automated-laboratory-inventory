@@ -44,8 +44,26 @@ const LoginPage = () => {
       });
 
       if (response.ok) {
-        toast.success("Login successful!");
-        router.push("/admin-dashboard");
+        const data = await response.text(); // Get the response data
+
+        const userIdMatch = data.match(/userId:(\d+)/);
+        const roleMatch = data.match(/role:(\w+)/);
+
+        if (userIdMatch && roleMatch) {
+          const userId = userIdMatch[1];
+          const role = roleMatch[1];
+
+          localStorage.setItem("authToken", userId); // Example of storing userId
+          localStorage.setItem("userRole", role); // Store the role
+
+          // Check if role matches 'admin' or 'superadmin'
+          if (role === "admin" || role === "superadmin") {
+            router.push("/admin-dashboard");
+          } else {
+            router.push("/lab/pathological");
+          }
+          toast.success("Login successful!");
+        }
       } else {
         const errorMessage = await response.text();
         toast.error(errorMessage || "Login failed. Please try again.");
@@ -119,7 +137,7 @@ const LoginPage = () => {
           />
           <label className="pb-2 text-base text-gray-500">Password</label>
           <div className="relative">
-            <input
+            <Input
               className="rounded-xl w-full p-3 pr-10 border border-gray-300"
               type={showPassword ? "text" : "password"}
               value={password}

@@ -7,6 +7,7 @@ import {
   Syringe,
   Dna,
   Box,
+  LogOut,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -14,15 +15,46 @@ import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
   NavigationMenuLink,
 } from "../ui/navigation-menu";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast, Toaster } from "sonner";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Button } from "../ui/button";
 
 const Navbar = () => {
   const router = useRouter();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
+  const logoutUser = () => {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      toast.error("User is not logged in.");
+      return;
+    }
+
+    const userId = token;
+
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}logout?userId=${userId}`, {
+      method: "POST",
+    })
+      .then((response) => {
+        if (response.ok) {
+          localStorage.removeItem("authToken");
+          toast.success("Logged out successfully.");
+          router.push("/login");
+        } else {
+          throw new Error("Failed to log out.");
+        }
+      })
+      .catch((error) => {
+        toast.error("Error logging out. Please try again.");
+        console.error("Logout error:", error);
+      });
+  };
 
   return (
     <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50">
@@ -40,67 +72,15 @@ const Navbar = () => {
       <NavigationMenu className="ml-36 hidden md:flex text-teal-950 justify-center space-x-2 text-sm">
         <NavigationMenuList>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>
+            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl">
               <a className="flex" onClick={() => router.push("/lab/pathology")}>
                 <Microscope className="size-5 pr-1" />
                 Pathology
               </a>
-            </NavigationMenuTrigger>
-            <NavigationMenuContent className="w-full md:relative md:w-96 bg-white shadow-lg rounded-xl">
-              <ul className="grid md:grid-cols-2 gap-3 p-2">
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/inventory")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Inventory
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/purchase-order")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Purchase Order
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/stock-level")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Stock Level
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Disposition
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Calibration Logs
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Reagents Dispense
-                  </a>
-                </li>
-              </ul>
-            </NavigationMenuContent>
+            </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>
+            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl">
               <a
                 className="flex"
                 onClick={() => router.push("/lab/immunology")}
@@ -108,62 +88,10 @@ const Navbar = () => {
                 <Syringe className="size-5 pr-1" />
                 Immunology
               </a>
-            </NavigationMenuTrigger>
-            <NavigationMenuContent className="w-full md:relative md:w-96 bg-white shadow-lg rounded-xl">
-              <ul className="grid md:grid-cols-2 gap-3 p-2">
-                <li>
-                  <a
-                    onClick={() => router.push("/immunology/inventory")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Inventory
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/immunology/purchase-order")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Purchase Order
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/immunology/stock-level")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Stock Level
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/immunology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Disposition
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Calibration Logs
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Reagents Dispense
-                  </a>
-                </li>
-              </ul>
-            </NavigationMenuContent>
+            </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>
+            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl">
               <a
                 className="flex"
                 onClick={() => router.push("/lab/microbiology")}
@@ -171,62 +99,10 @@ const Navbar = () => {
                 <Dna className="size-5 pr-1" />
                 Microbiology
               </a>
-            </NavigationMenuTrigger>
-            <NavigationMenuContent className="w-full md:relative md:w-96 bg-white shadow-lg rounded-xl">
-              <ul className="grid md:grid-cols-2 gap-3 p-2">
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/inventory")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Inventory
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/purchase-order")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Purchase Order
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/stock-level")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Stock Level
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Disposition
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Calibration Logs
-                  </a>
-                </li>
-                <li>
-                  <a
-                    onClick={() => router.push("/microbiology/disposition")}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
-                  >
-                    Reagents Dispense
-                  </a>
-                </li>
-              </ul>
-            </NavigationMenuContent>
+            </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink className="pr-5 flex hover:text-teal-800">
+            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800">
               <ShoppingCart className="size-5 pr-1" />
               Purchase Order
             </NavigationMenuLink>
@@ -271,13 +147,47 @@ const Navbar = () => {
               Settings
             </a>
             <a
-              onClick={() => router.push("/logout")}
+              onClick={() => setIsLogoutDialogOpen(true)}
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
             >
               Logout
             </a>
           </PopoverContent>
         </Popover>
+
+        <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight">
+                <LogOut className="text-red-500 size-5 -mt-0.5" />
+                Confirm Logout
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-left pt-2 text-sm">
+              Are you sure you want to log out of your account?
+            </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="ghost"
+                className="bg-gray-100"
+                onClick={() => setIsLogoutDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setIsLogoutDialogOpen(false);
+                  logoutUser();
+                }}
+              >
+                Confirm
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Toaster />
       </div>
     </div>
   );

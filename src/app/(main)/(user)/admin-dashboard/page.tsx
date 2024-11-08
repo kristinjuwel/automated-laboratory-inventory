@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 
 interface MappedUser {
   userId: number;
@@ -66,7 +67,7 @@ const AdminView = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
   const [formData, setFormData] = useState<Partial<MappedUser>>({});
-
+  const router = useRouter();
   const statuses = [
     "active",
     "inactive",
@@ -86,6 +87,14 @@ const AdminView = () => {
     "technician",
   ];
   useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+
+    if (userRole !== "admin" && userRole !== "superadmin") {
+      router.push("/lab/pathology");
+    }
+  }, [router]);
+
+  useEffect(() => {
     const fetchAllUsers = async () => {
       try {
         const response = await fetch(
@@ -97,8 +106,17 @@ const AdminView = () => {
         const data: UserSchema[] = await response.json();
 
         const parsedData = z.array(userSchema).parse(data);
+        const userRole = localStorage.getItem("userRole");
+        const filteredData =
+          userRole === "admin"
+            ? parsedData.filter(
+                (user) =>
+                  user.designation !== "admin" &&
+                  user.designation !== "superadmin"
+              )
+            : parsedData;
 
-        const mappedUsers: MappedUser[] = parsedData.map((user) => ({
+        const mappedUsers: MappedUser[] = filteredData.map((user) => ({
           userId: user.userId,
           lastName: user.lastName,
           firstName: user.firstName,
