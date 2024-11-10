@@ -93,7 +93,9 @@ const GenLabSuppliesInventoryForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">General Laboratory Supplies Inventory Form</h1>
+          <h1 className="text-xl font-bold py-1">
+            General Laboratory Supplies Inventory Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
@@ -298,20 +300,20 @@ const GenLabSuppliesInventoryForm = () => {
                   )}
                 />
                 <FormField
-                    name="notes"
-                    render={({ field }) => (
+                  name="notes"
+                  render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
                         <Input
-                            placeholder="Any relevant information..."
-                            {...field}
-                            className="w-full"
+                          placeholder="Any relevant information..."
+                          {...field}
+                          className="w-full"
                         />
-                        </FormControl>
-                        <FormMessage />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
-                    )}
+                  )}
                 />
               </div>
               <div className="flex justify-center mt-8">
