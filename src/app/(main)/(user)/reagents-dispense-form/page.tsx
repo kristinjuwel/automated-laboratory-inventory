@@ -41,7 +41,6 @@ const ReagentDispenseForm = () => {
   });
 
   const handleSubmit = async (values: ReagentDispenseFormValues) => {
-    // Automatically calculate remaining quantity
     const updatedValues = {
       ...values,
       remainingQuantity: values.totalContainers - values.quantityDispensed,
@@ -56,7 +55,6 @@ const ReagentDispenseForm = () => {
       toast.error("Submission failed. Please try again.");
     }
   };
-
 
   return (
     <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
@@ -108,7 +106,6 @@ const ReagentDispenseForm = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
-
                 <FormField
                   name="totalContainers"
                   render={({ field }) => (
@@ -146,7 +143,6 @@ const ReagentDispenseForm = () => {
                   )}
                 />
 
-
                 <FormField
                   name="quantityDispensed"
                   render={({ field }) => (
@@ -168,14 +164,17 @@ const ReagentDispenseForm = () => {
 
                 <FormField
                   name="remainingQuantity"
-                  render={({ field }) => (
+                  render={({}) => (
                     <FormItem>
                       <FormLabel>Remaining Quantity</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           placeholder="Calculated automatically"
-                          value={form.watch("totalContainers") - form.watch("quantityDispensed")}
+                          value={
+                            form.watch("totalContainers") -
+                            form.watch("quantityDispensed")
+                          }
                           disabled
                           className="w-full"
                         />
@@ -185,23 +184,23 @@ const ReagentDispenseForm = () => {
                   )}
                 />
               </div>
-               <FormField
-                  name="remarks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Remarks</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Remarks"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                name="remarks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Remarks</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Remarks"
+                        {...field}
+                        required
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 name="analyst"
                 render={({ field }) => (
