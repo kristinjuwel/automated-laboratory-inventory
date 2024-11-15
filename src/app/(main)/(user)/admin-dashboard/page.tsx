@@ -335,7 +335,9 @@ const AdminView = () => {
                   </TableCell>
                   <TableCell className="capitalize">{user.status}</TableCell>
                   <TableCell className="text-center">{user.username}</TableCell>
-                  <TableCell className="text-center">{user.email}</TableCell>
+                  <TableCell className="text-center lowercase">
+                    {user.email}
+                  </TableCell>
                   <TableCell className="text-center">
                     {user.status !== "Deleted" && (
                       <>
