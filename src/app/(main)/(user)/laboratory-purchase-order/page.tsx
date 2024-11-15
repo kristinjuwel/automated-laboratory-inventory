@@ -39,7 +39,11 @@ interface LabPurchaseValues {
   labContactPerson: string;
   items: {
     purchaseOrderNumber: string;
+    labName: string;
     description: string;
+    itemName: string;
+    itemCode: string;
+    category: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;
@@ -65,7 +69,11 @@ const LabPurchaseOrder = () => {
       items: [
         {
           purchaseOrderNumber: "",
+          labName: "",
           description: "",
+          itemName: "",
+          itemCode: "",
+          category: "",
           quantity: 0,
           unitPrice: 0,
           totalPrice: 0,
@@ -78,6 +86,10 @@ const LabPurchaseOrder = () => {
     {
       purchaseOrderNumber: string;
       description: string;
+      labName: "",
+      itemName: "",
+      itemCode: "",
+      category: "",
       quantity: number;
       unitPrice: number;
       totalPrice: number;
@@ -85,19 +97,27 @@ const LabPurchaseOrder = () => {
   >([
     {
       purchaseOrderNumber: "",
+      labName: "",
       description: "",
+      itemName: "",
+      itemCode: "",
+      category: "",
       quantity: 0,
       unitPrice: 0,
       totalPrice: 0,
     },
   ]);
-
+  
   const handleAddRow = () => {
     setItems([
       ...items,
       {
         purchaseOrderNumber: "",
+        labName: "",
         description: "",
+        itemName: "",
+        itemCode: "",
+        category: "",
         quantity: 0,
         unitPrice: 0,
         totalPrice: 0,
@@ -132,7 +152,11 @@ const LabPurchaseOrder = () => {
       setItems([
         {
           purchaseOrderNumber: "",
+          labName: "",
           description: "",
+          itemName: "",
+          itemCode: "",
+          category: "",
           quantity: 0,
           unitPrice: 0,
           totalPrice: 0,
@@ -145,8 +169,8 @@ const LabPurchaseOrder = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+    <div className="flex w-[82vw] h-[97vh] justify-center items-center bg-gray-100 overflow-hidden">
+      <Card className="p-8 w-full max-w-[1000px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
             <div className="w-24 h-24 relative">
@@ -236,9 +260,9 @@ const LabPurchaseOrder = () => {
                             <DropdownMenuCheckboxItem
                               key={option}
                               checked={field.value === option}
-                              onCheckedChange={(checked) =>
-                                field.onChange(checked ? option : null)
-                              }
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked ? option : null);
+                              }}
                             >
                               {option}
                             </DropdownMenuCheckboxItem>
@@ -257,6 +281,7 @@ const LabPurchaseOrder = () => {
                     Supplier Information
                   </h4>
                 </div>
+
                 <div>
                   <h4 className="text-s font-bold py-1">Buyer Information</h4>
                 </div>
@@ -332,6 +357,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   name="labAddress"
                   render={({ field }) => (
@@ -367,6 +393,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                 
                 <FormField
                   name="labPhoneNo"
                   render={({ field }) => (
@@ -437,6 +464,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   name="labContactPerson"
                   render={({ field }) => (
@@ -463,6 +491,10 @@ const LabPurchaseOrder = () => {
                       <th className="text-sm px-2 py-1 border">
                         Purchase Order No.
                       </th>
+                      <th className="text-sm px-2 py-1 border">Laboratory</th>
+                      <th className="text-sm px-2 py-1 border">Item Code</th>
+                      <th className="text-sm px-2 py-1 border">Item Name</th>
+                      <th className="text-sm px-2 py-1 border">Category</th>
                       <th className="text-sm px-2 py-1 border">Description</th>
                       <th className="text-sm px-2 py-1 border">Quantity</th>
                       <th className="text-sm px-2 py-1 border">
@@ -487,6 +519,42 @@ const LabPurchaseOrder = () => {
                               )
                             }
                             placeholder="PO Number"
+                          />
+                        </td>
+                          <td className="border px-4 py-2">
+                            <Input
+                              value={item.labName}
+                              onChange={(e) =>
+                                handleChange(index, "labName", e.target.value)
+                              }
+                              placeholder="Laboratory"
+                            />
+                          </td> 
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.itemCode}
+                            onChange={(e) =>
+                              handleChange(index, "itemCode", e.target.value)
+                            }
+                            placeholder="Item Code"
+                          />
+                        </td>
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.itemName}
+                            onChange={(e) =>
+                              handleChange(index, "itemName", e.target.value)
+                            }
+                            placeholder="Item Name"
+                          />
+                        </td>
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.category}
+                            onChange={(e) =>
+                              handleChange(index, "category", e.target.value)
+                            }
+                            placeholder="Category"
                           />
                         </td>
                         <td className="border px-4 py-2">
@@ -537,7 +605,7 @@ const LabPurchaseOrder = () => {
                       </tr>
                     ))}
                     <tr>
-                      <td colSpan={5}>
+                      <td colSpan={9}>
                         <div className="flex justify-center">
                           <Button
                             onClick={handleAddRow}
@@ -549,28 +617,32 @@ const LabPurchaseOrder = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">Subtotal: </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={5} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">Subtotal: </td>
+                      <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">Tax (10%): </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={5} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">Tax : </td>
+                      <td colSpan={2} className="border px-4 py-2">
+                          <Input
+                            type="number"
+                          />
+                      </td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">
+                      <td colSpan={5} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">
                         Shipping Cost:{" "}
                       </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="border px-4 py-2"></td>
-                      <td className="border px-4 py-2 text-sm">
+                      <td colSpan={5} className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">
                         Grand Total:{" "}
                       </td>
-                      <td className="border px-4 py-2"></td>
+                      <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                   </tbody>
                 </table>
