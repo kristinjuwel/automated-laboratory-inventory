@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
 
-interface ChemicalFormValues {
+interface GenLabSuppliesFormValues {
   date: string;
   labName: string;
   personnel: string;
@@ -32,14 +32,13 @@ interface ChemicalFormValues {
   quantity: number;
   unit: string;
   location: string;
-  expiryDate: string;
   supplier: string;
   cost: number;
   notes: string;
 }
 
-const ChemicalInventoryForm = () => {
-  const form = useForm<ChemicalFormValues>({
+const GenLabSuppliesInventoryForm = () => {
+  const form = useForm<GenLabSuppliesFormValues>({
     defaultValues: {
       date: "",
       labName: "",
@@ -49,14 +48,13 @@ const ChemicalInventoryForm = () => {
       quantity: undefined,
       unit: "",
       location: "",
-      expiryDate: "",
       supplier: "",
       cost: undefined,
       notes: "",
     },
   });
 
-  const handleSubmit = async (values: ChemicalFormValues) => {
+  const handleSubmit = async (values: GenLabSuppliesFormValues) => {
     const parsedValues = {
       ...values,
       quantity: Number(values.quantity),
@@ -95,7 +93,9 @@ const ChemicalInventoryForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">Chemical Inventory Form</h1>
+          <h1 className="text-xl font-bold py-1">
+            General Laboratory Supplies Inventory Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
@@ -263,21 +263,6 @@ const ChemicalInventoryForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  name="expiryDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expiry Date</FormLabel>
-                      <FormControl>
-                        <DatePickerWithPresets
-                          date={field.value}
-                          setDate={(newDate) => field.onChange(newDate)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   name="supplier"
@@ -314,29 +299,28 @@ const ChemicalInventoryForm = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Any relevant information..."
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-
-              <FormField
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Any relevant information..."
-                        {...field}
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <div className="flex justify-center mt-8">
                 <Button
                   type="submit"
                   onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
@@ -349,4 +333,4 @@ const ChemicalInventoryForm = () => {
   );
 };
 
-export default ChemicalInventoryForm;
+export default GenLabSuppliesInventoryForm;

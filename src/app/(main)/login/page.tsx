@@ -8,36 +8,90 @@ import { Card } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, RotateCw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     try {
-      const response = await fetch("/login", {
+      const url = `${
+        process.env.NEXT_PUBLIC_BACKEND_URL
+      }login?identifier=${encodeURIComponent(
+        email
+      )}&password=${encodeURIComponent(password)}`;
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          identifier: email,
-          password: password,
-        }),
       });
 
       if (response.ok) {
-        toast.success("Login successful!");
-        router.push("/biological-inventory-form");
+        const data = await response.text(); // Get the response data
+
+        const userIdMatch = data.match(/userId:(\d+)/);
+        const roleMatch = data.match(/role:(\w+)/);
+
+        if (userIdMatch && roleMatch) {
+          const userId = userIdMatch[1];
+          const role = roleMatch[1];
+
+          localStorage.setItem("authToken", userId); // Example of storing userId
+          localStorage.setItem("userRole", role); // Store the role
+
+          // Check if role matches 'admin' or 'superadmin'
+          if (role === "admin" || role === "superadmin") {
+            router.push("/admin-dashboard");
+          } else {
+            router.push("/lab/pathological");
+          }
+          toast.success("Login successful!");
+        }
       } else {
         const errorMessage = await response.text();
         toast.error(errorMessage || "Login failed. Please try again.");
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
+    }
+  };
+  const handlePasswordReset = async () => {
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }forgot-password?email=${encodeURIComponent(email)}`,
+        {
+          method: "PUT",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to reset password");
+      }
+
+      toast.success("Password reset email sent successfully.");
+      setShowResetDialog(false);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to reset password. Please try again.");
     }
   };
 
@@ -83,7 +137,7 @@ const LoginPage = () => {
           />
           <label className="pb-2 text-base text-gray-500">Password</label>
           <div className="relative">
-            <input
+            <Input
               className="rounded-xl w-full p-3 pr-10 border border-gray-300"
               type={showPassword ? "text" : "password"}
               value={password}
@@ -98,7 +152,9 @@ const LoginPage = () => {
             </div>
           </div>
           <a
-            onClick={() => router.push("/registration")}
+            onClick={() => {
+              setShowResetDialog(true);
+            }}
             className="text-teal-500  hover:text-teal-700 transition-colors duration-300 ease-in-out text-right text-sm pb-6 mt-1"
           >
             Forgot password?
@@ -122,6 +178,54 @@ const LoginPage = () => {
           </p>
         </div>
       </Card>
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+              <RotateCw className="text-teal-900 size-5 -mt-0.5" />
+              Reset Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <label
+              htmlFor="email"
+              className="text-xs font-medium text-gray-500"
+            >
+              Email Address
+            </label>
+            <Input
+              type="email"
+              id="email"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+            />
+          </div>
+          <p className="text-left ml-1 -mt-2 relative text-sm mb-3">
+            By clicking, a temporary password will be emailed to you.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setShowResetDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="ghost"
+              className="bg-teal-500 text-white hover:bg-teal-700 hover:text-white transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                handlePasswordReset();
+              }}
+            >
+              Send
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
