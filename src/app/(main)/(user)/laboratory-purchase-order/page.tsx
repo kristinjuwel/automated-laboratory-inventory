@@ -86,10 +86,10 @@ const LabPurchaseOrder = () => {
     {
       purchaseOrderNumber: string;
       description: string;
-      labName: "",
-      itemName: "",
-      itemCode: "",
-      category: "",
+      labName: "";
+      itemName: "";
+      itemCode: "";
+      category: "";
       quantity: number;
       unitPrice: number;
       totalPrice: number;
@@ -107,7 +107,7 @@ const LabPurchaseOrder = () => {
       totalPrice: 0,
     },
   ]);
-  
+
   const handleAddRow = () => {
     setItems([
       ...items,
@@ -169,7 +169,7 @@ const LabPurchaseOrder = () => {
   };
 
   return (
-    <div className="flex w-[82vw] h-[97vh] justify-center items-center bg-gray-100 overflow-hidden">
+    <div className="flex justify-center items-center bg-gray-100 overflow-hidden">
       <Card className="p-8 w-full max-w-[1000px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
@@ -393,7 +393,7 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
-                 
+
                 <FormField
                   name="labPhoneNo"
                   render={({ field }) => (
@@ -521,15 +521,15 @@ const LabPurchaseOrder = () => {
                             placeholder="PO Number"
                           />
                         </td>
-                          <td className="border px-4 py-2">
-                            <Input
-                              value={item.labName}
-                              onChange={(e) =>
-                                handleChange(index, "labName", e.target.value)
-                              }
-                              placeholder="Laboratory"
-                            />
-                          </td> 
+                        <td className="border px-4 py-2">
+                          <Input
+                            value={item.labName}
+                            onChange={(e) =>
+                              handleChange(index, "labName", e.target.value)
+                            }
+                            placeholder="Laboratory"
+                          />
+                        </td>
                         <td className="border px-4 py-2">
                           <Input
                             value={item.itemCode}
@@ -618,16 +618,18 @@ const LabPurchaseOrder = () => {
                     </tr>
                     <tr>
                       <td colSpan={5} className="border px-4 py-2"></td>
-                      <td colSpan={2} className="border px-4 py-2 text-sm">Subtotal: </td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">
+                        Subtotal:{" "}
+                      </td>
                       <td colSpan={2} className="border px-4 py-2"></td>
                     </tr>
                     <tr>
                       <td colSpan={5} className="border px-4 py-2"></td>
-                      <td colSpan={2} className="border px-4 py-2 text-sm">Tax : </td>
+                      <td colSpan={2} className="border px-4 py-2 text-sm">
+                        Tax :{" "}
+                      </td>
                       <td colSpan={2} className="border px-4 py-2">
-                          <Input
-                            type="number"
-                          />
+                        <Input type="number" />
                       </td>
                     </tr>
                     <tr>
