@@ -16,49 +16,79 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
+import TimePicker from "@/components/ui/timepicker";
 
-interface LMBFormValues {
-  date: string;
-  labName: string;
-  personnel: string;
-  itemName: string;
-  itemCode: string;
-  quantity: number;
+interface BorrowFormValues {
+  dateBorrowed: string;
+  detailsOfBorrowed: string;
+  equipment: string;
+  qty: number;
   unit: string;
-  location: string;
-  expiryDate: string;
-  supplier: string;
-  cost: number;
-  notes: string;
+  borrowerDetail: string;
+  department: string;
+  timeBorrowed: string;
+  dateReturned: string;
+  timeReturned: string;
+  remarks: string;
+  damageMaterials: string;
 }
 
-const LMBInventoryForm = () => {
-  const form = useForm<LMBFormValues>({
+const InputField = ({
+  label,
+  placeholder,
+  name,
+  type = "text",
+  required = false,
+  field,
+}: {
+  label: string;
+  placeholder: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+  field: any;
+}) => (
+  <FormField
+    name={name}
+    render={() => (
+      <FormItem>
+        <FormLabel>{label}</FormLabel>
+        <FormControl>
+          <Input
+            type={type}
+            placeholder={placeholder}
+            {...field}
+            required={required}
+            className="w-full"
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
+const BorrowForm = () => {
+  const form = useForm<BorrowFormValues>({
     defaultValues: {
-      date: "",
-      labName: "",
-      personnel: "",
-      itemName: "",
-      itemCode: "",
-      quantity: undefined,
+      dateBorrowed: "",
+      detailsOfBorrowed: "",
+      equipment: "",
+      qty: 0,
       unit: "",
-      location: "",
-      expiryDate: "",
-      supplier: "",
-      cost: undefined,
-      notes: "",
+      borrowerDetail: "",
+      department: "",
+      timeBorrowed: "",
+      dateReturned: "",
+      timeReturned: "",
+      remarks: "",
+      damageMaterials: "",
     },
   });
 
-  const handleSubmit = async (values: LMBFormValues) => {
-    const parsedValues = {
-      ...values,
-      quantity: Number(values.quantity),
-      cost: Number(values.cost),
-    };
-
+  const handleSubmit = async (values: BorrowFormValues) => {
     try {
-      console.log("Submitted Values:", parsedValues);
+      console.log("Submitted Values:", values);
       toast.success("Submission successful!");
       form.reset();
     } catch (error) {
@@ -69,10 +99,10 @@ const LMBInventoryForm = () => {
 
   return (
     <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+      <Card className="p-6 sm:p-8 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[935px] max-h-[700px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-24 h-24 relative">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
@@ -80,7 +110,7 @@ const LMBInventoryForm = () => {
                 style={{ objectFit: "contain" }}
               />
             </div>
-            <div className="w-24 h-24 relative">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
@@ -89,7 +119,9 @@ const LMBInventoryForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">Lab Materials Borrow Form</h1>
+          <h1 className="text-lg sm:text-xl font-bold py-1 text-center">
+            Lab Materials Borrow Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
@@ -98,9 +130,10 @@ const LMBInventoryForm = () => {
         <div className="overflow-y-auto max-h-[430px] mb-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                {/* Date Borrowed */}
                 <FormField
-                  name="date"
+                  name="dateBorrowed"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Date Borrowed</FormLabel>
@@ -115,36 +148,16 @@ const LMBInventoryForm = () => {
                   )}
                 />
 
-
-
+                {/* Time Borrowed */}
                 <FormField
-                  name="borrowTime"
+                  name="timeBorrowed"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Time Borrowed</FormLabel>
                       <FormControl>
-                        <DatePickerWithPresets
+                        <TimePicker
                           date={field.value}
-                          setDate={(newDate) => field.onChange(newDate)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                  name="details"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Details of Borrowed Equipment</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter details"
-                          {...field}
-                          required
-                          className="w-full"
+                          setDate={(newTime) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -152,86 +165,12 @@ const LMBInventoryForm = () => {
                   )}
                 />
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
-
+                {/* Date Returned */}
                 <FormField
-                  name="quantity"
+                  name="dateReturned"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantity</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Quantity"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Unit</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Unit (e.g., liters, grams)"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  name="borrowDetails"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Borrower Details</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Details of Borrower"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Department"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-
-                <FormField
-                  name="borrowDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date Borrowed</FormLabel>
+                      <FormLabel>Date Returned</FormLabel>
                       <FormControl>
                         <DatePickerWithPresets
                           date={field.value}
@@ -243,78 +182,96 @@ const LMBInventoryForm = () => {
                   )}
                 />
 
+                {/* Time Returned */}
                 <FormField
-                  name="returnTime"
+                  name="timeReturned"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Time Returned</FormLabel>
                       <FormControl>
-                        <DatePickerWithPresets
+                        <TimePicker
                           date={field.value}
-                          setDate={(newDate) => field.onChange(newDate)}
+                          setDate={(newTime) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  name="remarks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Remarks</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Remarks"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-<FormField
-                name="damage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Damage Materials</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Damage Materials"
-                        {...field}
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               </div>
 
-              <FormField
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Any relevant information..."
-                        {...field}
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Details of Borrowed */}
+              <div className="mb-6">
+                <InputField
+                  label="Details of Borrowed Equipment"
+                  placeholder="Enter details"
+                  name="detailsOfBorrowed"
+                  required
+                  field={form.register("detailsOfBorrowed")}
+                />
+              </div>
+
+              {/* Quantity and Unit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <InputField
+                  label="Quantity"
+                  placeholder="Quantity"
+                  name="qty"
+                  type="number"
+                  required
+                  field={form.register("qty", { valueAsNumber: true, min: 1 })}
+                />
+                <InputField
+                  label="Unit"
+                  placeholder="Unit (e.g., liters, grams)"
+                  name="unit"
+                  required
+                  field={form.register("unit")}
+                />
+              </div>
+
+              {/* Borrower Details */}
+              <div className="mb-6">
+                <InputField
+                  label="Borrower Details"
+                  placeholder="Details of Borrower"
+                  name="borrowerDetail"
+                  required
+                  field={form.register("borrowerDetail")}
+                />
+              </div>
+
+              {/* Department */}
+              <div className="mb-6">
+                <InputField
+                  label="Department"
+                  placeholder="Department"
+                  name="department"
+                  required
+                  field={form.register("department")}
+                />
+              </div>
+
+              {/* Remarks */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <InputField
+                  label="Remarks"
+                  placeholder="Remarks"
+                  name="remarks"
+                  field={form.register("remarks")}
+                />
+                <InputField
+                  label="Damage Materials"
+                  placeholder="Damage Materials"
+                  name="damageMaterials"
+                  field={form.register("damageMaterials")}
+                />
+              </div>
+
+              {/* Submit Button */}
               <div className="flex justify-center mt-8">
                 <Button
                   type="submit"
-                  onClick={form.handleSubmit(handleSubmit)}
                   className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
@@ -325,7 +282,8 @@ const LMBInventoryForm = () => {
         </div>
       </Card>
     </div>
+
   );
 };
 
-export default LMBInventoryForm;
+export default BorrowForm;
