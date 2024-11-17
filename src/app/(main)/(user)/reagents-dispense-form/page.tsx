@@ -57,11 +57,11 @@ const ReagentDispenseForm = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+    <div className="flex w-full h-screen justify-center items-center bg-gray-100 px-4 sm:px-8">
+      <Card className="p-4 sm:p-6 lg:p-8 w-full max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-24 h-24 relative">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
@@ -69,7 +69,7 @@ const ReagentDispenseForm = () => {
                 style={{ objectFit: "contain" }}
               />
             </div>
-            <div className="w-24 h-24 relative">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
@@ -78,16 +78,22 @@ const ReagentDispenseForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">Reagent Dispense Form</h1>
+          <h1 className="text-lg sm:text-xl font-bold py-1 text-center">
+            Reagent Dispense Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[430px] mb-1">
+        <div className="overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-[500px] mb-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-3 gap-3 mb-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="grid gap-4"
+            >
+              {/* Date and Quantity */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -103,46 +109,6 @@ const ReagentDispenseForm = () => {
                     </FormItem>
                   )}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <FormField
-                  name="totalContainers"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total No. of Containers</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Total Containers"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  name="lotNo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lot No.</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Lot Number"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   name="quantityDispensed"
                   render={({ field }) => (
@@ -154,14 +120,12 @@ const ReagentDispenseForm = () => {
                           placeholder="Quantity Dispensed"
                           {...field}
                           required
-                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   name="remainingQuantity"
                   render={({}) => (
@@ -176,7 +140,6 @@ const ReagentDispenseForm = () => {
                             form.watch("quantityDispensed")
                           }
                           disabled
-                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />
@@ -184,46 +147,85 @@ const ReagentDispenseForm = () => {
                   )}
                 />
               </div>
-              <FormField
-                name="remarks"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Remarks</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Remarks"
-                        {...field}
-                        required
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="analyst"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Analyst</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Name of Analyst"
-                        {...field}
-                        required
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <div className="flex justify-center mt-8">
+              {/* Total Containers and Lot No */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  name="totalContainers"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total No. of Containers</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Total Containers"
+                          {...field}
+                          required
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="lotNo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lot No.</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Lot Number"
+                          {...field}
+                          required
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Remarks and Analyst */}
+              <div className="grid gap-4">
+                <FormField
+                  name="remarks"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Remarks</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Remarks"
+                          {...field}
+                          required
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="analyst"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Analyst</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Name of Analyst"
+                          {...field}
+                          required
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-center mt-4">
                 <Button
                   type="submit"
-                  onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
