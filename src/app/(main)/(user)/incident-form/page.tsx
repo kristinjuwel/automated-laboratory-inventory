@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
+import TimePicker from "@/components/ui/timepicker";
 
 interface IncidentFormValues {
   date: string;
@@ -62,11 +63,11 @@ const IncidentForm = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+    <div className="flex w-full min-h-screen justify-center items-center bg-gray-100 px-4 sm:px-6 lg:px-8">
+      <Card className="p-6 sm:p-8 md:p-10 lg:p-12 w-full max-w-[935px] sm:max-w-[700px] lg:max-w-[900px] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-24 h-24 relative">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
@@ -74,7 +75,7 @@ const IncidentForm = () => {
                 style={{ objectFit: "contain" }}
               />
             </div>
-            <div className="w-24 h-24 relative">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
@@ -83,16 +84,22 @@ const IncidentForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">Incident Form</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold py-1">
+            Incident Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[430px] mb-1">
+        <div className="overflow-y-auto max-h-[400px] sm:max-h-[500px] md:max-h-[600px] mb-4">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-3 gap-3 mb-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
+              {/* Date and Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -108,47 +115,21 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   name="time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time</FormLabel>
+                      <FormLabel>Time of Incident</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="time"
-                          {...field}
-                          required
-                          className="w-full"
+                        <TimePicker
+                          date={field.value}
+                          setDate={(newTime) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-                  
-                <FormField
-                  name="incident"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nature of Incident</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Nature of Incident"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-            <div className="overflow-y-auto max-h-[430px] mb-1">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-
                 <FormField
                   name="quantity"
                   render={({ field }) => (
@@ -167,7 +148,28 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
+              </div>
 
+              {/* Incident Details */}
+              <FormField
+                name="incident"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nature of Incident</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nature of Incident"
+                        {...field}
+                        required
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   name="materials"
                   render={({ field }) => (
@@ -185,7 +187,6 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   name="brand"
                   render={({ field }) => (
@@ -205,67 +206,66 @@ const IncidentForm = () => {
                 />
               </div>
 
-                <FormField
-                  name="remarks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Remarks</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Remarks"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                name="remarks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Remarks</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Remarks"
+                        {...field}
+                        required
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  name="individuals"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Involved Individuals</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="individuals"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-  
-                <FormField
-                  name="document"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Attached Documentations</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter document here"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-              </div>
+              <FormField
+                name="individuals"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Involved Individuals</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Individuals"
+                        {...field}
+                        required
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div className="flex justify-center mt-8">
+              {/* Attachment */}
+              <FormField
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Attached Documentations</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.png,.jpg"
+                        onChange={(e) => field.onChange(e.target.files)}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Submit Button */}
+              <div className="flex justify-center">
                 <Button
                   type="submit"
-                  onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
@@ -275,6 +275,7 @@ const IncidentForm = () => {
         </div>
       </Card>
     </div>
+
   );
 };
 
