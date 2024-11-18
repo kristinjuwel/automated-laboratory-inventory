@@ -102,13 +102,20 @@ const LoginPage = () => {
           <Image
             src="/images/logo.png"
             alt="Logo"
-            className="transition duration-500 hover:scale-105 mt-3"
+            className="transition duration-500 hover:scale-105 mt-3 "
             height={300}
             width={300}
           />
-          <h1 className="text-lg px-5 pt-2 text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+          <h1 className="text-lg px-5 pt-2 text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105 ">
             Automated Laboratory Inventory Management System
           </h1>
+
+          <h3 className="text-center text-teal-950 invisible 2xl:visible">
+            Project ALIMS is designed for PGH Medical Research Laboratory 
+            of Pathology, Immunology, and Microbiology. Providing assistance 
+            with report generation and inventory management.
+          </h3>
+
         </div>
         <div className="sm:w-full md:w-1/2 flex flex-col h-full p-12 rounded-3xl rounded-l-none overflow-auto	">
           <div className="flex flex-col md:hidden items-center justify-center">
@@ -226,6 +233,7 @@ const LoginPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 };
