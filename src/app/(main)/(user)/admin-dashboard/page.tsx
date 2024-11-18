@@ -321,7 +321,17 @@ const AdminView = () => {
                   key={user.userId}
                   className={cn(
                     `capitalize ${
-                      user.status === "Deleted" ? "text-red-500 rounded-md" : ""
+                      user.status === "deleted"
+                          ? "text-red-500 rounded-md"
+                          : user.status === "active"
+                          ? "text-teal-500 rounded-md"
+                          : user.status === "inactive"
+                          ? "text-gray-500 rounded-md"
+                          : user.status === "to be approved"
+                          ? "text-yellow-500 rounded-md"
+                          : user.status === "to be otp-verified"
+                          ? "text-blue-500 rounded-md"
+                          : "text-black rounded-md"
                     }`
                   )}
                 >
