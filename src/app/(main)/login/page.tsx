@@ -96,13 +96,17 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
-      <Card className="lg:w-3/5 md:w-4/5 md:flex-row flex max-w-screen-2xl h-auto md:h-2/3 shadow-lg rounded-3xl">
-        <div className="hidden w-1/2 p-8 bg-teal-100 h-full rounded-3xl rounded-r-none md:flex flex-col items-center">
+    <div className="flex w-screen h-screen items-center justify-center bg-gray-100 overflow-x-hidden">
+      <Card className="lg:w-3/5 md:w-4/5 md:flex-row flex max-w-screen-2xl h-auto md:h-2/3 
+       shadow-lg rounded-3xl overflow-x-hidden overflow-y-auto">
+        <div className="hidden w-1/2  bg-teal-100 rounded-3xl rounded-r-none md:flex 
+         flex-col items-center overflow-hidden size-full">
+          <div className="flex flex-col items-center content-center size-full h-screen ">
           <Image
             src="/images/logo.png"
             alt="Logo"
-            className="transition duration-500 hover:scale-105 mt-3 "
+            className="transition duration-500 hover:scale-105 mt-3 lg:h-48 lg:w-48 
+             max-h-min "
             height={300}
             width={300}
           />
@@ -110,14 +114,17 @@ const LoginPage = () => {
             Automated Laboratory Inventory Management System
           </h1>
 
-          <h3 className="text-center text-teal-950 invisible 2xl:visible">
+          <h3 className="text-center p-5 text-teal-950 max-lg:overflow-hidden invisible lg:visible">
             Project ALIMS is designed for PGH Medical Research Laboratory 
             of Pathology, Immunology, and Microbiology. Providing assistance 
             with report generation and inventory management.
           </h3>
+          </div>
+
+          
 
         </div>
-        <div className="sm:w-full md:w-1/2 flex flex-col h-full p-12 rounded-3xl rounded-l-none overflow-auto	">
+        <div className="sm:w-full md:w-1/2 flex flex-col h-full p-12 rounded-3xl rounded-l-none">
           <div className="flex flex-col md:hidden items-center justify-center">
             <Image
               src="/images/logo.png"
