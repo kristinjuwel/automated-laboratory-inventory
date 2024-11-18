@@ -317,37 +317,32 @@ const AdminView = () => {
           <TableBody>
             {filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
-                <TableRow
-                  key={user.userId}
-                  className={cn(
-                    `capitalize ${
-                      user.status === "deleted"
-                          ? "text-red-500 rounded-md"
-                          : user.status === "active"
-                          ? "text-teal-500 rounded-md"
-                          : user.status === "inactive"
-                          ? "text-gray-500 rounded-md"
-                          : user.status === "to be approved"
-                          ? "text-yellow-500 rounded-md"
-                          : user.status === "to be otp-verified"
-                          ? "text-blue-500 rounded-md"
-                          : "text-black rounded-md"
-                    }`
-                  )}
-                >
+                <TableRow key={user.userId} className={"text-gray-900"}>
                   <TableCell>{user.userId}</TableCell>
                   <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
-                  <TableCell className="capitalize">
-                    {user.designation}
+                  <TableCell className="capitalize">{user.designation}</TableCell>
+                  <TableCell className="capitalize">{user.laboratory}</TableCell>
+                  <TableCell
+                    className={cn(
+                      `capitalize ${
+                        user.status === "deleted"
+                          ? "text-red-500"
+                          : user.status === "active"
+                          ? "text-teal-500"
+                          : user.status === "inactive"
+                          ? "text-gray-500"
+                          : user.status === "to be approved"
+                          ? "text-yellow-500"
+                          : user.status === "to be otp-verified"
+                          ? "text-blue-500"
+                          : "text-black"
+                      }`
+                    )}
+                  >
+                    {user.status}
                   </TableCell>
-                  <TableCell className="capitalize">
-                    {user.laboratory}
-                  </TableCell>
-                  <TableCell className="capitalize">{user.status}</TableCell>
                   <TableCell className="text-center">{user.username}</TableCell>
-                  <TableCell className="text-center lowercase">
-                    {user.email}
-                  </TableCell>
+                  <TableCell className="text-center lowercase">{user.email}</TableCell>
                   <TableCell className="text-center">
                     {user.status !== "Deleted" && (
                       <>
