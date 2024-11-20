@@ -10,14 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Edit,
-  Search,
-  TriangleAlert,
-  FilePlus,
-  Printer,
-  History,
-} from "lucide-react";
+import { Edit, Search, TriangleAlert, FilePlus, History } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,8 +37,6 @@ interface Material {
   description?: string;
   notes?: string;
   quantityAvailable: number;
-  reorderThreshold: number;
-  maxThreshold: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -87,7 +78,6 @@ const Biological = () => {
           throw new Error("Failed to fetch materials");
         }
         const data = await response.json();
-        // Filter materials to only include those with category "biological"
         const biologicalMaterials = data.filter(
           (material: Material) =>
             material.category.shortName.toLowerCase() === "biological" &&
@@ -158,7 +148,7 @@ const Biological = () => {
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Create Material
+            Add Material
           </Button>
         </div>
       </div>
@@ -169,18 +159,16 @@ const Biological = () => {
         <TableHeader className="text-center justify-center">
           <TableRow>
             <TableHead>ID</TableHead>
+            <TableHead>Item Code</TableHead>
+            <TableHead>Item Name</TableHead>
             <TableHead>Laboratory</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Supplier</TableHead>
-            <TableHead>Item Code</TableHead>
-            <TableHead>Item Name</TableHead>
             <TableHead>Unit</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Expiry Date</TableHead>
             <TableHead>Cost</TableHead>
             <TableHead>Quantity Available</TableHead>
-            <TableHead>Reorder Threshold</TableHead>
-            <TableHead>Max Threshold</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -189,11 +177,11 @@ const Biological = () => {
             filteredMaterials.map((material) => (
               <TableRow key={material.materialId}>
                 <TableCell>{material.materialId}</TableCell>
+                <TableCell>{material.itemCode}</TableCell>
+                <TableCell>{material.itemName}</TableCell>
                 <TableCell>{material.laboratory.labName}</TableCell>
                 <TableCell>{material.category.shortName}</TableCell>
                 <TableCell>{material.supplier.companyName}</TableCell>
-                <TableCell>{material.itemCode}</TableCell>
-                <TableCell>{material.itemName}</TableCell>
                 <TableCell>{material.unit}</TableCell>
                 <TableCell>{material.location}</TableCell>
                 <TableCell>
@@ -205,9 +193,7 @@ const Biological = () => {
                 </TableCell>
                 <TableCell>{material.cost}</TableCell>
                 <TableCell>{material.quantityAvailable}</TableCell>
-                <TableCell>{material.reorderThreshold}</TableCell>
-                <TableCell>{material.maxThreshold}</TableCell>
-                <TableCell className="text-center">
+                <TableCell className="">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -230,17 +216,6 @@ const Biological = () => {
                     }}
                   >
                     <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
-                    onClick={() => {
-                      setSelectedMaterial(material);
-                      setIsDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Printer className="w-4 h-4 -mr-1" /> Print
                   </Button>
                 </TableCell>
               </TableRow>
