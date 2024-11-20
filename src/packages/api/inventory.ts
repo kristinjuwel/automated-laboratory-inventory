@@ -2,7 +2,6 @@ import { z } from "zod";
 import { categorySchema, laboratorySchema, supplierSchema } from "./lab";
 import { userSchema } from "./user";
 
-// Material Schema remains the same
 export const materialSchema = z.object({
   materialId: z.number().optional(),
   labId: z.number(),
@@ -19,14 +18,11 @@ export const materialSchema = z.object({
   cost: z.number().positive(),
   description: z.string().optional(),
   notes: z.string().optional(),
-  quantityAvailable: z.number().int().nonnegative(),
-  reorderThreshold: z.number().int().nonnegative(),
-  maxThreshold: z.number().int().nonnegative(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  quantityAvailable: z.number().int().nonnegative().optional(),
+  reorderThreshold: z.number().int().nonnegative().optional(),
+  maxThreshold: z.number().int().nonnegative().optional(),
 });
 
-// InventoryLog Schema
 export const inventoryLogSchema = z.object({
   inventoryLogId: z.number().optional(),
   userId: z.number(),
@@ -38,3 +34,6 @@ export const inventoryLogSchema = z.object({
   source: z.string().optional(),
   remarks: z.string().optional(),
 });
+
+export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
+export type MaterialSchema = z.infer<typeof materialSchema>;
