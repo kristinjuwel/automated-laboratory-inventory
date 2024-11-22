@@ -498,9 +498,7 @@ const BiologicalInventoryForm = () => {
                   name="labId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Laboratory <span className="text-red-400">*</span>
-                      </FormLabel>
+                      <FormLabel>Laboratory</FormLabel>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
