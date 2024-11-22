@@ -320,20 +320,24 @@ const AdminView = () => {
                 <TableRow key={user.userId} className={"text-gray-900"}>
                   <TableCell>{user.userId}</TableCell>
                   <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
-                  <TableCell className="capitalize">{user.designation}</TableCell>
-                  <TableCell className="capitalize">{user.laboratory}</TableCell>
+                  <TableCell className="capitalize">
+                    {user.designation}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {user.laboratory}
+                  </TableCell>
                   <TableCell
                     className={cn(
                       `capitalize ${
-                        user.status === "deleted"
+                        user.status?.toLowerCase() === "deleted"
                           ? "text-red-500"
-                          : user.status === "active"
+                          : user.status?.toLowerCase() === "active"
                           ? "text-teal-500"
-                          : user.status === "inactive"
+                          : user.status?.toLowerCase() === "inactive"
                           ? "text-gray-500"
-                          : user.status === "to be approved"
+                          : user.status?.toLowerCase() === "to be approved"
                           ? "text-yellow-500"
-                          : user.status === "to be otp-verified"
+                          : user.status?.toLowerCase() === "to be otp-verified"
                           ? "text-blue-500"
                           : "text-black"
                       }`
@@ -342,7 +346,9 @@ const AdminView = () => {
                     {user.status}
                   </TableCell>
                   <TableCell className="text-center">{user.username}</TableCell>
-                  <TableCell className="text-center lowercase">{user.email}</TableCell>
+                  <TableCell className="text-center lowercase">
+                    {user.email}
+                  </TableCell>
                   <TableCell className="text-center">
                     {user.status !== "Deleted" && (
                       <>
