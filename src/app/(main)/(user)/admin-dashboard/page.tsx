@@ -508,7 +508,7 @@ const AdminView = () => {
                     onValueChange={(value) =>
                       setFormData((prev) => ({
                         ...prev,
-                        labId: parseInt(value, 10), // Convert the selected value back to a number
+                        labId: parseInt(value, 10),
                       }))
                     }
                   >

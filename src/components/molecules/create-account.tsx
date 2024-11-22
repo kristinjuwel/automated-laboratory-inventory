@@ -121,7 +121,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
       <Toaster />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleRegister)} className="mb-4">
+        <form onSubmit={form.handleSubmit(handleRegister)}>
           <div className="grid md:grid-cols-2 grid-cols-1 gap-4 mb-5 text-sm">
             <FormField
               name="email"
@@ -217,7 +217,6 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
                       className="rounded-xl"
                       placeholder="M.I."
                       {...field}
-                      required
                     />
                   </FormControl>
                   <FormMessage />
@@ -407,7 +406,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
               )}
             />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-6">
             <Button
               variant="ghost"
               className="bg-gray-100"

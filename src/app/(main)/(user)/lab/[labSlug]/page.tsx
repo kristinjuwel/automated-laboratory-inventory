@@ -68,7 +68,7 @@ const DashboardPage = () => {
 
         <Tabs
           defaultValue="inventory"
-          className="rounded-xl bg-white border-2 border-teal-100 lg:w-[1445px] max-w-[1445px] place-self-center"
+          className="rounded-xl overflow-auto max-w-screen bg-white border-2 border-teal-100 lg:w-[1445px] max-w-[1445px] place-self-center"
         >
           <TabsList className="flex justify-around bg-teal-50 text-black rounded-b-none py-6">
             <TabsTrigger

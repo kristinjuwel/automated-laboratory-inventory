@@ -44,8 +44,7 @@ const LoginPage = () => {
       });
 
       if (response.ok) {
-        const data = await response.text(); // Get the response data
-
+        const data = await response.text();
         const userIdMatch = data.match(/userId:(\d+)/);
         const roleMatch = data.match(/role:(\w+)/);
 
@@ -53,14 +52,13 @@ const LoginPage = () => {
           const userId = userIdMatch[1];
           const role = roleMatch[1];
 
-          localStorage.setItem("authToken", userId); // Example of storing userId
-          localStorage.setItem("userRole", role); // Store the role
+          localStorage.setItem("authToken", userId);
+          localStorage.setItem("userRole", role);
 
-          // Check if role matches 'admin' or 'superadmin'
           if (role === "admin" || role === "superadmin") {
             router.push("/admin-dashboard");
           } else {
-            router.push("/lab/pathological");
+            router.push("/lab/pathology");
           }
           toast.success("Login successful!");
         }
