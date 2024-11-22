@@ -10,15 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, TriangleAlert, FilePlus, History } from "lucide-react";
+import { Edit, Search, FilePlus, History } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
+import EditBiological from "./edit-biological";
 
 interface Material {
   materialId: number;
@@ -62,12 +64,10 @@ const Biological = () => {
   const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
   const [search, setSearch] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
     null
   );
-
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
@@ -155,7 +155,7 @@ const Biological = () => {
 
       <Toaster />
 
-      <Table className="items-center justify-center w-max-full w-58 overflow-x-auto">
+      <Table className="overflow-x-auto">
         <TableHeader className="text-center justify-center">
           <TableRow>
             <TableHead>ID</TableHead>
@@ -166,9 +166,9 @@ const Biological = () => {
             <TableHead>Supplier</TableHead>
             <TableHead>Unit</TableHead>
             <TableHead>Location</TableHead>
-            <TableHead>Expiry Date</TableHead>
             <TableHead>Cost</TableHead>
-            <TableHead>Quantity Available</TableHead>
+            <TableHead>Quantity</TableHead>
+            <TableHead>Expiry Date</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -184,6 +184,8 @@ const Biological = () => {
                 <TableCell>{material.supplier.companyName}</TableCell>
                 <TableCell>{material.unit}</TableCell>
                 <TableCell>{material.location}</TableCell>
+                <TableCell>{material.cost}</TableCell>
+                <TableCell>{material.quantityAvailable}</TableCell>
                 <TableCell>
                   {new Date(material.expiryDate).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -191,9 +193,7 @@ const Biological = () => {
                     day: "2-digit",
                   })}
                 </TableCell>
-                <TableCell>{material.cost}</TableCell>
-                <TableCell>{material.quantityAvailable}</TableCell>
-                <TableCell className="">
+                <TableCell>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -233,66 +233,31 @@ const Biological = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Material</DialogTitle>
-          </DialogHeader>
-          <div>
-            {selectedMaterial &&
-              Object.entries(selectedMaterial).map(([key, value]) => (
-                <Input
-                  key={key}
-                  value={
-                    typeof value === "object"
-                      ? JSON.stringify(value)
-                      : (value as string)
-                  }
-                  placeholder={key}
-                  className="mb-4"
-                />
-              ))}
-            <div className="relative">
-              <Button
-                className="absolute right-0 mr-4"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <TriangleAlert className="text-red-500 size-5 -mt-0.5" />
-              Delete Material
+              <Edit className="text-teal-500 size-5 -mt-0.5" />
+              Edit Material
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to delete this material?
-          </p>
-          <p className="text-left bg-red-300 -mt-2 relative py-2 text-sm">
-            <span className="pl-4">
-              By deleting this material, it will be removed indefinitely.
-            </span>
-            <span className="absolute left-0 top-0 h-full w-2 bg-red-600"></span>
-          </p>
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Confirm
-            </Button>
-          </div>
+          {selectedMaterial && (
+            <EditBiological
+              materialId={selectedMaterial.materialId}
+              labId={selectedMaterial.labId}
+              category={selectedMaterial.categoryId}
+              personnel={0}
+              itemName={selectedMaterial.itemName}
+              itemCode={selectedMaterial.itemCode}
+              quantity={selectedMaterial.quantityAvailable}
+              unit={selectedMaterial.unit}
+              location={selectedMaterial.location}
+              expiryDate={selectedMaterial.expiryDate}
+              supplier={selectedMaterial.supplierId}
+              cost={selectedMaterial.cost.toString()}
+              notes={""}
+              date={""}
+              closeDialog={() => setIsEditDialogOpen(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
@@ -303,6 +268,7 @@ const Biological = () => {
               <History className="text-yellow-600 size-5 -mt-0.5" />
               Inventory Logs
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <div className="p-2">
             <Table className="items-center justify-center w-full overflow-x-auto">
