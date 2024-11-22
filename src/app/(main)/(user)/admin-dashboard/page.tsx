@@ -86,6 +86,7 @@ const AdminView = () => {
     "student",
     "technician",
   ];
+
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
 
@@ -238,25 +239,33 @@ const AdminView = () => {
   };
 
   return (
-    <div className="p-12 w-screen h-screen bg-white">
+    <div className="p-12 w-screen h-screen bg-white ">
       <h1 className="text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex-grow">
         MANAGE USERS
       </h1>
-      <div className="flex text-right justify-between items-center mb-4">
-        <div className="flex items-center">
-          <Input
+      <div className="flex text-right justify-between items-center mb-4  max-md:grid max-md:grid-cols-2">
+        <div className="flex items-center ">
+          <div className=" max-md:col-span-2">
+            <Input
             placeholder="Search for a user"
             value={search}
             onChange={handleSearch}
-            className="w-80 pr-8"
+            className="w-80 pr-8 max-md:w-60 max-sm:50"
           />
+          </div>
+          
           <span className="relative -ml-8">
             <Search className="size-5 text-gray-500" />
           </span>
 
-          <Button
+          <div className=" max-md:col-span-2">
+            <Button
             className={cn(
-              `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 ${
+              `bg-teal-500 text-white w-28 justify-center rounded-lg
+               hover:bg-teal-700 transition-colors duration-300 ease-in-out 
+               mx-6 
+               max-sm:w-10
+              ${
                 viewMode === "card" ? "hidden" : ""
               }`
             )}
@@ -265,11 +274,16 @@ const AdminView = () => {
             }}
           >
             <UserPlus className="w-4 h-4" strokeWidth={1.5} />
-            Add User
+            <p className="max-sm:invisible max-sm:size-0">Add User</p>
           </Button>
+
+          </div>
+          
         </div>
 
-        <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
+        <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden                
+         max-md:col-span-2 max-md:mt-3 max-md:max-w-52
+">
           <button
             className={cn(
               `px-4 py-2 ${
