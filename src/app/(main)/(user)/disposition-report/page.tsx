@@ -25,6 +25,8 @@ interface DispositionReportValues {
   date: string;
   dispositionedBy: string;
   comments: string;
+  personnel: number;
+
 }
 
 const DispositionReportForm = () => {
@@ -37,6 +39,8 @@ const DispositionReportForm = () => {
         date: "",
         dispositionedBy: "",
         comments: "",
+        personnel: undefined,
+
       },
     });
   
@@ -87,7 +91,7 @@ const DispositionReportForm = () => {
           <div className="overflow-y-auto max-h-[430px] mb-1">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                
                   <FormField
                     name="date"
@@ -105,13 +109,33 @@ const DispositionReportForm = () => {
                     )}
                   />
                   <FormField
+                    name="personnel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Personnel ID</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="ID of the personnel"
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />     
+
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <FormField
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Item Description</FormLabel>
+                        <FormLabel>Description</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder=" Description of Item"
+                            placeholder="Item Description"
                             {...field}
                             required
                             className="w-full"
@@ -177,24 +201,24 @@ const DispositionReportForm = () => {
                       </FormItem>
                     )}
                   />
-         
-                </div>
+
                 <FormField
-                  name="dispositionedBy"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Name"
-                          {...field}
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />       
+                    name="dispositionedBy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dispositioned By</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Name"
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  /> 
+                </div>  
                 <FormField
                   name="comments"
                   render={({ field }) => (
