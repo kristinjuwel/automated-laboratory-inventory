@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CalibrationLogValues {
   material: string;
@@ -29,12 +30,12 @@ interface CalibrationLogValues {
 const CalibrationLogForms = () => {
   const form = useForm<CalibrationLogValues>({
     defaultValues: {
-        material: "",
-        calibrationDate: "",
-        nextCal: "",
-        notes: "",
-        document: "",
-        personnel: undefined,
+      material: "",
+      calibrationDate: "",
+      nextCal: "",
+      notes: "",
+      document: "",
+      personnel: undefined,
     },
   });
 
@@ -54,8 +55,8 @@ const CalibrationLogForms = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100 ">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg ">
+    <div className="flex justify-center bg-gray-100">
+      <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
             <div className="w-24 h-24 relative">
@@ -64,6 +65,8 @@ const CalibrationLogForms = () => {
                 alt="Logo 1"
                 fill
                 style={{ objectFit: "contain" }}
+                priority
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
             <div className="w-24 h-24 relative">
@@ -72,6 +75,7 @@ const CalibrationLogForms = () => {
                 alt="Logo 2"
                 fill
                 style={{ objectFit: "contain" }}
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
           </div>
@@ -81,18 +85,15 @@ const CalibrationLogForms = () => {
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[430px] mb-1 ">
+        <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-             
-                <FormField 
-                  
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <FormField
                   name="calibrationDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel 
-                      >Calibration Date</FormLabel>
+                      <FormLabel>Calibration Date</FormLabel>
                       <FormControl>
                         <DatePickerWithPresets
                           date={field.value}
@@ -107,8 +108,7 @@ const CalibrationLogForms = () => {
                   name="nextCalibration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel
-                      >Next Calibration</FormLabel>
+                      <FormLabel>Next Calibration</FormLabel>
                       <FormControl>
                         <DatePickerWithPresets
                           date={field.value}
@@ -119,27 +119,25 @@ const CalibrationLogForms = () => {
                     </FormItem>
                   )}
                 />
-                
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <FormField
-                    name="personnel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel 
-                        >Personnel</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Personnel ID"
-                            {...field}
-                            required
-                            className="w-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  name="personnel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Personnel</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Personnel ID"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   name="material"
                   render={({ field }) => (
@@ -158,42 +156,44 @@ const CalibrationLogForms = () => {
                   )}
                 />
               </div>
-              <FormField
-                name="document"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Attached Documentations</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter document here"
-                        {...field}
-                        required
-                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" id="multiple_files" type="file"/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-       
+              <div className="grid grid-cols-1 gap-4 mb-4">
+                <FormField
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Attached Documentations</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter document here"
+                          {...field}
+                          required
+                          className="w-full"
+                          id="multiple_files"
+                          type="file"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <textarea
-                        placeholder="Any relevant information..."
-                        {...field}
-                        className="block p-5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-                
-              />
-
+                <FormField
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Any relevant information..."
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="flex justify-center mt-8">
                 <Button
                   type="submit"
