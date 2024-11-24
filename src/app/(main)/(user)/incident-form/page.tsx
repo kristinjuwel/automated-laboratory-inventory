@@ -28,7 +28,7 @@ interface IncidentFormValues {
   brand: string;
   remarks: string;
   individuals: string;
-  document: string;
+  document: File[];
 }
 
 const IncidentForm = () => {
@@ -42,7 +42,7 @@ const IncidentForm = () => {
       brand: "",
       remarks: undefined,
       individuals: "",
-      document: "",
+      document: [],
     }
   });
 
@@ -122,8 +122,8 @@ const IncidentForm = () => {
                       <FormLabel>Time of Incident</FormLabel>
                       <FormControl>
                         <TimePicker
-                          date={field.value}
-                          setDate={(newTime) => field.onChange(newTime)}
+                          date={field.value} // Pass the `date` prop
+                          setDate={(newTime: string) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -252,7 +252,10 @@ const IncidentForm = () => {
                       <Input
                         type="file"
                         accept=".pdf,.doc,.docx,.png,.jpg"
-                        onChange={(e) => field.onChange(e.target.files)}
+                        onChange={(e) => {
+                          const files = e.target.files ? Array.from(e.target.files) : [];
+                          field.onChange(files);
+                        }}
                         className="w-full"
                       />
                     </FormControl>
