@@ -98,8 +98,8 @@ const BorrowForm = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-6 sm:p-8 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[935px] max-h-[700px] shadow-lg">
+    <div className="flex justify-center items-center bg-gray-100 w-full h-screen">
+      <Card className="my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-[610px] shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
             <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
@@ -127,10 +127,10 @@ const BorrowForm = () => {
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[430px] mb-1">
+        <div className="overflow-y-auto max-h-[400px] mb-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Date Borrowed */}
                 <FormField
                   name="dateBorrowed"
@@ -214,7 +214,7 @@ const BorrowForm = () => {
               </div>
 
               {/* Quantity and Unit */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <InputField
                   label="Quantity"
                   placeholder="Quantity"
