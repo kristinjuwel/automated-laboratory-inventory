@@ -19,6 +19,7 @@ import { DatePickerWithPresets } from "@/components/ui/datepicker";
 
 interface ReagentDispenseFormValues {
   date: string;
+  material: string;
   totalContainers: number;
   lotNo: string;
   quantityDispensed: number;
@@ -31,10 +32,11 @@ const ReagentDispenseForm = () => {
   const form = useForm<ReagentDispenseFormValues>({
     defaultValues: {
       date: "",
-      totalContainers: undefined,
+      material: "",
+      totalContainers: 0,
       lotNo: "",
-      quantityDispensed: undefined,
-      remainingQuantity: undefined,
+      quantityDispensed: 0,
+      remainingQuantity: 0,
       remarks: "",
       analyst: "",
     },
@@ -57,24 +59,27 @@ const ReagentDispenseForm = () => {
   };
 
   return (
-    <div className="flex w-full h-screen justify-center items-center bg-gray-100 px-4 sm:px-8">
-      <Card className="p-4 sm:p-6 lg:p-8 w-full max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl shadow-lg">
+    <div className="flex justify-center bg-gray-100">
+      <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-16 h-16 sm:w-24 sm:h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
                 fill
                 style={{ objectFit: "contain" }}
+                priority
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
-            <div className="w-16 h-16 sm:w-24 sm:h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
                 fill
                 style={{ objectFit: "contain" }}
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
           </div>
@@ -86,14 +91,10 @@ const ReagentDispenseForm = () => {
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-[500px] mb-1">
+        <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="grid gap-4"
-            >
-              {/* Date and Quantity */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -104,6 +105,18 @@ const ReagentDispenseForm = () => {
                           date={field.value}
                           setDate={(newDate) => field.onChange(newDate)}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="material"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Material</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Material" {...field} required />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -148,8 +161,7 @@ const ReagentDispenseForm = () => {
                 />
               </div>
 
-              {/* Total Containers and Lot No */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="totalContainers"
                   render={({ field }) => (
@@ -173,36 +185,14 @@ const ReagentDispenseForm = () => {
                     <FormItem>
                       <FormLabel>Lot No.</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Lot Number"
-                          {...field}
-                          required
-                        />
+                        <Input placeholder="Lot Number" {...field} required />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-
-              {/* Remarks and Analyst */}
-              <div className="grid gap-4">
-                <FormField
-                  name="remarks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Remarks</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Remarks"
-                          {...field}
-                          required
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 gap-3 mb-4">
                 <FormField
                   name="analyst"
                   render={({ field }) => (
@@ -219,12 +209,24 @@ const ReagentDispenseForm = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  name="remarks"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Remarks</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Remarks" {...field} required />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-center mt-4">
+              <div className="flex justify-center mt-8">
                 <Button
                   type="submit"
+                  onClick={form.handleSubmit(handleSubmit)}
                   className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
