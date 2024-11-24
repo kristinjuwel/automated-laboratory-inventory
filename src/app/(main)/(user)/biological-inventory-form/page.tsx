@@ -58,6 +58,7 @@ import AddSupplier from "@/components/molecules/supplier";
 import { Category, Supplier } from "@/packages/api/lab";
 import AddCategory from "@/components/molecules/category";
 import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
 
 interface BiologicalFormValues {
   date: string;
@@ -104,25 +105,14 @@ const BiologicalInventoryForm = () => {
     number | null
   >(null);
 
-  const form = useForm<BiologicalFormValues>({
-    defaultValues: {
-      date: "",
-      labId: "",
-      personnel: 0,
-      itemName: "",
-      itemCode: "",
-      quantity: 0,
-      unit: "",
-      location: "",
-      expiryDate: "",
-      category: 1,
-      supplier: 1,
-      cost: 0,
-      notes: "",
-    },
-  });
+  const form = useForm<BiologicalFormValues>({});
 
   const addFilteredSupplier = async () => {
+    if (!selectedUserId) {
+      toast.error("Please select a user first.");
+      return;
+    }
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}filtered-suppliers/${selectedUserId}`
@@ -170,7 +160,7 @@ const BiologicalInventoryForm = () => {
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
     }
-    setSelectedSupplierId(null);
+    setSelectedSupplierId(1);
   };
 
   const clearFilter = useCallback(async () => {
@@ -374,10 +364,10 @@ const BiologicalInventoryForm = () => {
 
   return (
     <div className="flex justify-center bg-gray-100">
-      <Card className="my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-[610px] shadow-lg md:rounded-lg rounded-none">
+      <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-24 h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
@@ -387,7 +377,7 @@ const BiologicalInventoryForm = () => {
                 sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
-            <div className="w-24 h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
@@ -397,16 +387,18 @@ const BiologicalInventoryForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">Biological Inventory Form</h1>
+          <h1 className="text-lg md:text-xl font-bold py-1 text-center">
+            Biological Inventory Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[400px] mb-1">
+        <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-2 gap-3 mb-4">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -493,7 +485,7 @@ const BiologicalInventoryForm = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="labId"
                   render={({ field }) => (
@@ -639,7 +631,7 @@ const BiologicalInventoryForm = () => {
                   )}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="itemName"
                   render={({ field }) => (
@@ -892,7 +884,7 @@ const BiologicalInventoryForm = () => {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Input
+                      <Textarea
                         placeholder="Any relevant information..."
                         {...field}
                         className="w-full"
