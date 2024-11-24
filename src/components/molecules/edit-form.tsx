@@ -399,7 +399,7 @@ const EditInventory = ({
       <div className="overflow-y-auto max-h-[400px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="date"
                 render={({ field }) => (
@@ -486,7 +486,7 @@ const EditInventory = ({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="labId"
                 render={({}) => (
@@ -632,7 +632,7 @@ const EditInventory = ({
                 )}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="itemName"
                 render={({ field }) => (
@@ -732,7 +732,7 @@ const EditInventory = ({
                 )}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="supplier"
                 render={({ field }) => (

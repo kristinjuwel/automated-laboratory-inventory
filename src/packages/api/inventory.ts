@@ -21,6 +21,8 @@ export const materialSchema = z.object({
   quantityAvailable: z.number().int().nonnegative().optional(),
   reorderThreshold: z.number().int().nonnegative().optional(),
   maxThreshold: z.number().int().nonnegative().optional(),
+  lotNo: z.string().optional(),
+  totalNoContainers: z.number().optional(),
 });
 
 export const inventoryLogSchema = z.object({
