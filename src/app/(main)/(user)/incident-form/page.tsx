@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
+import TimePicker from "@/components/ui/timepicker";
 
 interface IncidentFormValues {
   date: string;
@@ -27,7 +28,7 @@ interface IncidentFormValues {
   brand: string;
   remarks: string;
   individuals: string;
-  document: string;
+  document: File[];
 }
 
 const IncidentForm = () => {
@@ -41,8 +42,8 @@ const IncidentForm = () => {
       brand: "",
       remarks: undefined,
       individuals: "",
-      document: "",
-    }
+      document: [],
+    },
   });
 
   const handleSubmit = async (values: IncidentFormValues) => {
@@ -62,37 +63,42 @@ const IncidentForm = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen justify-center items-center bg-gray-100">
-      <Card className="p-8 w-full max-w-[935px] max-h-[700px] shadow-lg">
+    <div className="flex justify-center bg-gray-100">
+      <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-24 h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
                 fill
                 style={{ objectFit: "contain" }}
+                priority
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
-            <div className="w-24 h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
                 fill
                 style={{ objectFit: "contain" }}
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
           </div>
-          <h1 className="text-xl font-bold py-1">Incident Form</h1>
+          <h1 className="text-lg sm:text-xl font-bold py-1 text-center">
+            Incident Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[430px] mb-1">
+        <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-3 gap-3 mb-4">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -108,47 +114,21 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   name="time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time</FormLabel>
+                      <FormLabel>Time of Incident</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="time"
-                          {...field}
-                          required
-                          className="w-full"
+                        <TimePicker
+                          date={field.value}
+                          setDate={(newTime: string) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-                  
-                <FormField
-                  name="incident"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nature of Incident</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Nature of Incident"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-            <div className="overflow-y-auto max-h-[430px] mb-1">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-
                 <FormField
                   name="quantity"
                   render={({ field }) => (
@@ -167,7 +147,28 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="grid grid-cols-1 gap-3 mb-4">
+                <FormField
+                  name="incident"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nature of Incident</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nature of Incident"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="materials"
                   render={({ field }) => (
@@ -185,7 +186,6 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   name="brand"
                   render={({ field }) => (
@@ -204,7 +204,7 @@ const IncidentForm = () => {
                   )}
                 />
               </div>
-
+              <div className="grid grid-cols-1 gap-3 mb-4">
                 <FormField
                   name="remarks"
                   render={({ field }) => (
@@ -230,7 +230,7 @@ const IncidentForm = () => {
                       <FormLabel>Involved Individuals</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="individuals"
+                          placeholder="Individuals"
                           {...field}
                           required
                           className="w-full"
@@ -240,7 +240,7 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
-  
+
                 <FormField
                   name="document"
                   render={({ field }) => (
@@ -248,9 +248,14 @@ const IncidentForm = () => {
                       <FormLabel>Attached Documentations</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter document here"
-                          {...field}
-                          required
+                          type="file"
+                          accept=".pdf,.doc,.docx,.png,.jpg"
+                          onChange={(e) => {
+                            const files = e.target.files
+                              ? Array.from(e.target.files)
+                              : [];
+                            field.onChange(files);
+                          }}
                           className="w-full"
                         />
                       </FormControl>
@@ -258,14 +263,11 @@ const IncidentForm = () => {
                     </FormItem>
                   )}
                 />
-                
               </div>
-
               <div className="flex justify-center mt-8">
                 <Button
                   type="submit"
-                  onClick={form.handleSubmit(handleSubmit)}
-                  className="bg-sky-500 text-white w-full hover:bg-sky-700 transition-colors duration-300 ease-in-out"
+                  className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
                 >
                   Submit Form
                 </Button>
