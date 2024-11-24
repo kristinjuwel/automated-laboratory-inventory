@@ -156,8 +156,9 @@ const BorrowForm = () => {
                       <FormLabel>Time Borrowed</FormLabel>
                       <FormControl>
                         <TimePicker
-                          date={field.value}
-                          setDate={(newTime) => field.onChange(newTime)}
+                          label="Time Borrowed"
+                          value={field.value}
+                          onChange={(newTime) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -190,8 +191,9 @@ const BorrowForm = () => {
                       <FormLabel>Time Returned</FormLabel>
                       <FormControl>
                         <TimePicker
-                          date={field.value}
-                          setDate={(newTime) => field.onChange(newTime)}
+                          label="Time Returned"
+                          value={field.value}
+                          onChange={(newTime) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />

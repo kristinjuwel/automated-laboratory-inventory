@@ -1,26 +1,22 @@
 import React, { useState } from "react";
 
 interface TimePickerProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
+  date: string;
+  setDate: (newTime: string) => void;
   required?: boolean;
 }
 
-const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, required }) => {
-  const [time, setTime] = useState(value || "");
+const TimePicker: React.FC<TimePickerProps> = ({ date, setDate, required }) => {
+  const [time, setTime] = useState(date || "");
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = e.target.value;
+    const newTime: string = e.target.value;
     setTime(newTime);
-    onChange(newTime);
+    setDate(newTime);
   };
 
   return (
     <div className="flex flex-col">
-      <label className="mb-1 text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
       <div className="relative flex items-center w-full">
         <input
           type="time"
