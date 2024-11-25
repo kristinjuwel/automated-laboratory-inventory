@@ -76,6 +76,8 @@ interface ReagentsFormValues {
   supplier: number;
   cost: number;
   notes: string;
+  reorderThreshold: number;
+  maxThreshold: number;
 }
 
 const ReagentsInventoryForm = () => {
@@ -107,25 +109,7 @@ const ReagentsInventoryForm = () => {
     number | null
   >(null);
 
-  const form = useForm<ReagentsFormValues>({
-    defaultValues: {
-      date: "",
-      labId: "",
-      personnel: 0,
-      itemName: "",
-      itemCode: "",
-      quantity: 0,
-      unit: "",
-      totalNoContainers: 0,
-      lotNo: "",
-      location: "",
-      expiryDate: "",
-      category: 1,
-      supplier: 1,
-      cost: 0,
-      notes: "",
-    },
-  });
+  const form = useForm<ReagentsFormValues>();
 
   const addFilteredSupplier = async () => {
     try {
@@ -229,6 +213,8 @@ const ReagentsInventoryForm = () => {
       lotNo: parsedValues.lotNo,
       notes: parsedValues.notes,
       quantityAvailable: 0,
+      reorderThreshold: parsedValues.reorderThreshold,
+      maxThreshold: parsedValues.maxThreshold,
     };
 
     const inventoryLogPayload = {
@@ -711,6 +697,42 @@ const ReagentsInventoryForm = () => {
                       <FormControl>
                         <Input
                           placeholder="Unit (e.g., liters, grams)"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="reorderThreshold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reorder Threshold</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Minimum quantity to reorder"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="maxThreshold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Threshold</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Maximum quantity allowed"
                           {...field}
                           required
                           className="w-full"

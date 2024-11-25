@@ -74,6 +74,8 @@ type FormValues = {
   totalNoContainers?: string;
   lotNo?: string;
   notes?: string;
+  reorderThreshold: string;
+  maxThreshold: string;
 };
 
 type EditProps = {
@@ -100,6 +102,8 @@ const EditInventory = ({
   lotNo,
   totalNoContainers,
   notes,
+  reorderThreshold,
+  maxThreshold,
 }: EditProps) => {
   const userRole = localStorage.getItem("userRole");
   const currentUserId = localStorage.getItem("authToken");
@@ -147,6 +151,8 @@ const EditInventory = ({
       totalNoContainers: totalNoContainers,
       lotNo: lotNo,
       notes: notes,
+      reorderThreshold: reorderThreshold,
+      maxThreshold: maxThreshold,
     },
   });
 
@@ -254,6 +260,8 @@ const EditInventory = ({
       lotNo: parsedValues.lotNo,
       notes: parsedValues.notes,
       quantityAvailable: parsedValues.quantity,
+      reorderThreshold: parsedValues.reorderThreshold,
+      maxThreshold: parsedValues.maxThreshold,
     };
 
     const inventoryLogPayload = {
@@ -698,6 +706,40 @@ const EditInventory = ({
                     <FormControl>
                       <EditInput
                         placeholder={unit}
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="reorderThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reorder Threshold</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder={reorderThreshold}
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="maxThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Threshold</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder={maxThreshold}
                         {...field}
                         className="w-full"
                       />

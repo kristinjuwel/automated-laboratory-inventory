@@ -50,6 +50,8 @@ interface Material {
   quantityAvailable: number;
   createdAt?: string;
   updatedAt?: string;
+  reorderThreshold: number;
+  maxThreshold: number;
 }
 
 interface Logs {
@@ -186,6 +188,9 @@ const Reagent = () => {
               <TableHead>Item Code</TableHead>
               <TableHead>Quantity</TableHead>
               <TableHead>Unit</TableHead>
+              <TableHead>Min</TableHead>
+              <TableHead>Max</TableHead>
+              <TableHead>Excess</TableHead>
               <TableHead>Expiry Date</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Location</TableHead>
@@ -206,6 +211,11 @@ const Reagent = () => {
                   <TableCell>{material.itemCode}</TableCell>
                   <TableCell>{material.quantityAvailable}</TableCell>
                   <TableCell>{material.unit}</TableCell>
+                  <TableCell>{material.reorderThreshold}</TableCell>
+                  <TableCell>{material.maxThreshold}</TableCell>
+                  <TableCell>
+                    {material.maxThreshold - material.quantityAvailable}
+                  </TableCell>
                   <TableCell>
                     {new Date(material.expiryDate).toLocaleDateString("en-US", {
                       year: "numeric",
@@ -294,6 +304,8 @@ const Reagent = () => {
               itemCode={selectedMaterial.itemCode}
               quantity={selectedMaterial.quantityAvailable.toString()}
               unit={selectedMaterial.unit}
+              reorderThreshold={selectedMaterial.reorderThreshold.toString()}
+              maxThreshold={selectedMaterial.maxThreshold.toString()}
               location={selectedMaterial.location}
               expiryDate={selectedMaterial.expiryDate}
               supplier={selectedMaterial.supplierId}
