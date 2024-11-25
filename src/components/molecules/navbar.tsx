@@ -9,7 +9,8 @@ import {
   Box,
   LogOut,
   RotateCw,
-  UserPen
+  UserPen,
+  UserCog,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -22,62 +23,24 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, Toaster } from "sonner";
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
+import ChangePassword from "./change-password";
+import EditAccount from "./edit-user";
 
 const Navbar = () => {
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const [accountType, setAccountType] = useState(""); 
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-  
-    if (token) {
-      // Check if the token is in a valid JWT format (3 parts separated by ".")
-      const tokenParts = token.split(".");
-      if (tokenParts.length === 3) {
-        try {
-          const decoded = atob(tokenParts[1]);  // Decode the payload
-          const user = JSON.parse(decoded);  // Parse the decoded string into an object
-          setAccountType(user?.role || "user");  // Set account type (e.g., admin, superadmin, or user)
-        } catch (error) {
-          console.error("Invalid token format", error);
-          // Handle invalid token case (e.g., by logging out the user)
-        }
-      } else {
-        console.error("Token is not a valid JWT");
-        // Handle invalid token case (e.g., by logging out the user)
-      }
-    }
-  }, []);
-  
-
-  const handlePasswordReset = async () => {
-    try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL
-        }forgot-password?email=${encodeURIComponent(email)}`,
-        {
-          method: "PUT",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to reset password");
-      }
-
-      toast.success("Password reset email sent successfully.");
-      setShowResetDialog(false);
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Failed to reset password. Please try again.");
-    }
-  };
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const userRole = localStorage.getItem("userRole");
 
   const logoutUser = () => {
     const token = localStorage.getItem("authToken");
@@ -183,7 +146,9 @@ const Navbar = () => {
           </PopoverTrigger>
           <PopoverContent align="end" className="w-48 p-2 shadow-lg">
             <a
-              onClick={() => router.push("/profile")}
+              onClick={() => {
+                setShowEditDialog(true);
+              }}
               className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
             >
               <UserPen className="size-5 -mt-0.5" />
@@ -198,83 +163,52 @@ const Navbar = () => {
               <RotateCw className="size-5 -mt-0.5" />
               Reset Password
             </a>
-            <a
-              onClick={() => setIsLogoutDialogOpen(true)}
-              className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-              >
-                <LogOut className="size-5 -mt-0.5" />
-              Logout
-            </a>
-
-            {(accountType === "admin" || accountType === "superadmin") && (
+            {(userRole === "admin" || userRole === "superadmin") && (
               <>
                 <a
-                  onClick={() => router.push("/admin/manage-users")}
+                  onClick={() => router.push("/admin-dashboard")}
                   className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
                 >
-                  <UserPen className="size-5 -mt-0.5" />
+                  <UserCog className="size-5 -mt-0.5" />
                   Manage Users
-                </a>
-                <a
-                  onClick={() => router.push("/admin/view-users")}
-                  className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                >
-                  <UserPen className="size-5 -mt-0.5" />
-                  View Users
                 </a>
               </>
             )}
+            <a
+              onClick={() => setIsLogoutDialogOpen(true)}
+              className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+            >
+              <LogOut className="size-5 -mt-0.5" />
+              Logout
+            </a>
           </PopoverContent>
         </Popover>
 
         <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
-              <RotateCw className="text-teal-900 size-5 -mt-0.5" />
-              Reset Password
-            </DialogTitle>
-          </DialogHeader>
-          <div className="pt-2">
-            <label
-              htmlFor="email"
-              className="text-xs font-medium text-gray-500"
-            >
-              Email Address
-            </label>
-            <Input
-              type="email"
-              id="email"
-              className="mt-1 w-full p-2 border border-gray-300 rounded-md"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
-            />
-          </div>
-          <p className="text-left ml-1 -mt-2 relative text-sm mb-3">
-            By clicking, a temporary password will be emailed to you.
-          </p>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+                <RotateCw className="text-teal-900 size-5 -mt-0.5" />
+                Reset Password
+              </DialogTitle>
+              <DialogDescription />
+            </DialogHeader>
+            <ChangePassword closeDialog={() => setShowResetDialog(false)} />
+          </DialogContent>
+        </Dialog>
 
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setShowResetDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="ghost"
-              className="bg-teal-500 text-white hover:bg-teal-700 hover:text-white transition-colors duration-300 ease-in-out"
-              onClick={() => {
-                handlePasswordReset();
-              }}
-            >
-              Send
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+                <UserPen className="text-teal-900 size-5 -mt-0.5" />
+                Edit Account Details
+              </DialogTitle>
+              <DialogDescription />
+            </DialogHeader>
+            <EditAccount closeDialog={() => setShowEditDialog(false)} />
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
           <DialogContent className="bg-white">
@@ -283,6 +217,7 @@ const Navbar = () => {
                 <LogOut className="text-red-500 size-5 -mt-0.5" />
                 Confirm Logout
               </DialogTitle>
+              <DialogDescription />
             </DialogHeader>
             <p className="text-left pt-2 text-sm">
               Are you sure you want to log out of your account?
