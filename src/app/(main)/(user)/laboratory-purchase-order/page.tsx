@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,36 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
+import { Supplier } from "@/packages/api/lab";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Archive,
+  ArchiveRestore,
+  Check,
+  ChevronsUpDown,
+  PlusCircle,
+} from "lucide-react";
+import AddSupplier from "@/components/molecules/supplier";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 interface LabPurchaseValues {
   purchaseOrderNo: string;
@@ -51,6 +81,31 @@ interface LabPurchaseValues {
 }
 
 const LabPurchaseOrder = () => {
+  const [openSupplier, setOpenSupplier] = React.useState(false);
+  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
+  const userRole = localStorage.getItem("userRole");
+  const currentUserId = localStorage.getItem("authToken");
+  const [hideDialogOpen, setHideDialogOpen] = useState(false);
+  const [users, setUsers] = useState<
+    { userId: number; fullName: string; email: string; phoneNumber: number }[]
+  >([]);
+
+  const [selectedSupplierId, setSelectedSupplierId] = React.useState<
+    number | null
+  >(null);
+  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+    null
+  );
+  const [suppliers, setSuppliers] = useState<
+    {
+      supplierId: number;
+      companyName: string;
+      email: string;
+      address: string;
+      phoneNumber: string;
+      contactPerson: string;
+    }[]
+  >([]);
   const form = useForm<LabPurchaseValues>({
     defaultValues: {
       purchaseOrderNo: "",
@@ -167,6 +222,119 @@ const LabPurchaseOrder = () => {
       toast.error("Submission failed. Please try again.");
     }
   };
+  const addFilteredSupplier = async () => {
+    if (!selectedUserId) {
+      toast.error("Please select a user first.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}filtered-suppliers/${selectedUserId}`
+      );
+
+      let filteredSuppliers: number[] = [];
+
+      if (response.ok) {
+        const data = await response.text();
+        filteredSuppliers = data
+          ? data
+              .split(",")
+              .filter((id: string) => id.trim() !== "")
+              .map((id: string) => parseInt(id, 10))
+          : [];
+      }
+
+      if (selectedSupplierId) {
+        if (!filteredSuppliers.includes(selectedSupplierId)) {
+          filteredSuppliers.push(selectedSupplierId);
+
+          const updateResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}update-user/${selectedUserId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                filteredSuppliers: filteredSuppliers.join(","),
+              }),
+            }
+          );
+
+          if (updateResponse.ok) {
+            toast.success("Supplier successfully hidden!");
+          } else {
+            const errorData = await updateResponse.json();
+            toast.error(errorData.message || "Archiving supplier failed!");
+          }
+        } else {
+          toast.info("Supplier is already in the filtered list.");
+        }
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+    setSelectedSupplierId(1);
+  };
+
+  const clearFilter = useCallback(async () => {
+    try {
+      const userId = selectedUserId ?? currentUserId;
+      const updateResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}update-user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filteredSuppliers: "",
+          }),
+        }
+      );
+
+      if (updateResponse.ok) {
+        toast.success("Hidden supplier successfully unarchived!");
+      } else {
+        const errorData = await updateResponse.json();
+        toast.error(errorData.message || "Unarchiving supplier failed!");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+  }, [selectedUserId, currentUserId]);
+
+  useEffect(() => {
+    if (!openSupplier) {
+      const fetchSuppliers = async () => {
+        try {
+          const userId = selectedUserId ?? currentUserId;
+
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}supplier/unfiltered/${userId}`
+          );
+          if (!response.ok) throw new Error("Failed to fetch suppliers");
+
+          const data: Supplier[] = await response.json();
+          const mappedSuppliers = data.map((supplier) => ({
+            supplierId: supplier.supplierId ?? 0,
+            companyName: supplier.companyName,
+            contactPerson: supplier.contactPerson,
+            email: supplier.email,
+            address: supplier.address,
+            phoneNumber: supplier.phoneNumber,
+          }));
+
+          setSuppliers(mappedSuppliers);
+        } catch (error) {
+          console.error("Error fetching suppliers:", error);
+        }
+      };
+
+      fetchSuppliers();
+    }
+  }, [openSupplier, selectedUserId, currentUserId, clearFilter]);
 
   return (
     <div className="flex justify-center items-center bg-gray-100 overflow-hidden">
@@ -220,21 +388,6 @@ const LabPurchaseOrder = () => {
                   )}
                 />
                 <FormField
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date</FormLabel>
-                      <FormControl>
-                        <DatePickerWithPresets
-                          date={field.value}
-                          setDate={(newDate) => field.onChange(newDate)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
                   name="status"
                   render={({ field }) => (
                     <FormItem>
@@ -273,6 +426,21 @@ const LabPurchaseOrder = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <DatePickerWithPresets
+                          date={field.value}
+                          setDate={(newDate) => field.onChange(newDate)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -287,17 +455,122 @@ const LabPurchaseOrder = () => {
                 </div>
 
                 <FormField
-                  name="supplierName"
+                  name="supplier"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Supplier Name</FormLabel>
+                      <FormLabel>Supplier</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Supplier Name"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
+                        <Popover
+                          open={openSupplier}
+                          onOpenChange={setOpenSupplier}
+                        >
+                          <PopoverTrigger
+                            asChild
+                            className={cn(
+                              selectedSupplierId === null
+                                ? "text-gray-500"
+                                : "text-black"
+                            )}
+                          >
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {selectedSupplierId
+                                ? suppliers.find(
+                                    (supplier) =>
+                                      supplier.supplierId === selectedSupplierId
+                                  )?.companyName
+                                : "Select supplier..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="flex p-0">
+                            <Command>
+                              <CommandInput placeholder="Search supplier..." />
+                              <CommandList>
+                                <CommandEmpty>No supplier found.</CommandEmpty>
+                                <CommandGroup>
+                                  <div className="max-h-36 overflow-y-auto">
+                                    {suppliers.map((supplier) => (
+                                      <CommandItem
+                                        className="group"
+                                        key={supplier.companyName}
+                                        value={supplier.companyName}
+                                        onSelect={() => {
+                                          setSelectedSupplierId(
+                                            selectedSupplierId ===
+                                              supplier.supplierId
+                                              ? null
+                                              : supplier.supplierId
+                                          );
+                                          field.onChange(supplier.supplierId);
+                                          setOpenSupplier(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={
+                                            selectedSupplierId ===
+                                            supplier.supplierId
+                                              ? "mr-2 h-4 w-4 opacity-100"
+                                              : "mr-2 h-4 w-4 opacity-0"
+                                          }
+                                        />
+
+                                        <div className="flex right-0 justify-between w-full">
+                                          {supplier.companyName}
+                                          <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                              setSelectedSupplierId(
+                                                supplier.supplierId
+                                              );
+                                              setHideDialogOpen(true);
+                                            }}
+                                            className="h-6 p-0 hidden group-hover:block hover:bg-red-200"
+                                          >
+                                            <Archive className="h-6 w-6 text-red-600" />
+                                          </Button>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </div>
+                                  <CommandItem
+                                    value="AddSupplier"
+                                    onSelect={() => {
+                                      setOpenSupplier(false);
+                                    }}
+                                    className="px-0 pb-1"
+                                  >
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="rounded-lg bg-red-600 hover:bg-red-900 text-white w-full text-left justify-start"
+                                      onClick={() => {
+                                        clearFilter();
+                                      }}
+                                    >
+                                      <ArchiveRestore />
+                                      Remove filters
+                                    </Button>
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="rounded-lg bg-teal-600 hover:bg-teal-900 text-white w-full text-left justify-start"
+                                      onClick={() => {
+                                        setSupplierDialogOpen(true);
+                                      }}
+                                    >
+                                      <PlusCircle className="" />
+                                      Add Supplier
+                                    </Button>
+                                  </CommandItem>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -348,8 +621,15 @@ const LabPurchaseOrder = () => {
                       <FormControl>
                         <Input
                           placeholder="Supplier Address"
-                          {...field}
-                          required
+                          value={
+                            selectedSupplierId
+                              ? suppliers.find(
+                                  (supplier) =>
+                                    supplier.supplierId === selectedSupplierId
+                                )?.address || ""
+                              : ""
+                          }
+                          readOnly
                           className="w-full"
                         />
                       </FormControl>
@@ -384,8 +664,15 @@ const LabPurchaseOrder = () => {
                       <FormControl>
                         <Input
                           placeholder="Phone Number"
-                          {...field}
-                          required
+                          value={
+                            selectedSupplierId
+                              ? suppliers.find(
+                                  (supplier) =>
+                                    supplier.supplierId === selectedSupplierId
+                                )?.phoneNumber || ""
+                              : ""
+                          }
+                          readOnly
                           className="w-full"
                         />
                       </FormControl>
@@ -420,8 +707,15 @@ const LabPurchaseOrder = () => {
                       <FormControl>
                         <Input
                           placeholder="Email Address"
-                          {...field}
-                          required
+                          value={
+                            selectedSupplierId
+                              ? suppliers.find(
+                                  (supplier) =>
+                                    supplier.supplierId === selectedSupplierId
+                                )?.email || ""
+                              : ""
+                          }
+                          readOnly
                           className="w-full"
                         />
                       </FormControl>
@@ -455,8 +749,15 @@ const LabPurchaseOrder = () => {
                       <FormControl>
                         <Input
                           placeholder="Contact Person"
-                          {...field}
-                          required
+                          value={
+                            selectedSupplierId
+                              ? suppliers.find(
+                                  (supplier) =>
+                                    supplier.supplierId === selectedSupplierId
+                                )?.contactPerson || ""
+                              : ""
+                          }
+                          readOnly
                           className="w-full"
                         />
                       </FormControl>
@@ -488,9 +789,6 @@ const LabPurchaseOrder = () => {
                 <table className="min-w-full border border-gray-300">
                   <thead>
                     <tr className="bg-gray-200">
-                      <th className="text-sm px-2 py-1 border">
-                        Purchase Order No.
-                      </th>
                       <th className="text-sm px-2 py-1 border">Laboratory</th>
                       <th className="text-sm px-2 py-1 border">Item Code</th>
                       <th className="text-sm px-2 py-1 border">Item Name</th>
@@ -508,19 +806,6 @@ const LabPurchaseOrder = () => {
                   <tbody>
                     {items.map((item, index) => (
                       <tr key={index}>
-                        <td className="border px-4 py-2">
-                          <Input
-                            value={item.purchaseOrderNumber}
-                            onChange={(e) =>
-                              handleChange(
-                                index,
-                                "purchaseOrderNumber",
-                                e.target.value
-                              )
-                            }
-                            placeholder="PO Number"
-                          />
-                        </td>
                         <td className="border px-4 py-2">
                           <Input
                             value={item.labName}
@@ -663,6 +948,20 @@ const LabPurchaseOrder = () => {
           </Form>
         </div>
       </Card>
+      <Dialog open={supplierDialogOpen} onOpenChange={setSupplierDialogOpen}>
+        <DialogContent className="bg-white w-96">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight pb-2">
+              <PlusCircle className="text-teal-500 size-5 -mt-0.5" />
+              Add Supplier
+            </DialogTitle>
+            <DialogDescription>
+              Fill out the form below to add a new supplier.
+            </DialogDescription>
+          </DialogHeader>
+          <AddSupplier closeDialog={() => setSupplierDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -22,8 +22,6 @@ export const supplierSchema = z.object({
   email: z.string().email(),
   address: z.string().min(1),
   phoneNumber: z.string().min(1),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
 });
 
 export type Supplier = z.infer<typeof supplierSchema>;
