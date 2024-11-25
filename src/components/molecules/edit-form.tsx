@@ -706,10 +706,8 @@ const EditInventory = ({
                   </FormItem>
                 )}
               />
-              {selectedCategoryId &&
-              categories.find((category) => category.categoryId === selectedCategoryId)
-                ?.subcategory1 === "reagent" && (
-                  <>
+              {shortName === "Reagent" && (
+                <>
                   <FormField
                     name="totalNoContainers"
                     render={({ field }) => (
@@ -745,7 +743,6 @@ const EditInventory = ({
                   />
                 </>
               )}
-
 
               <FormField
                 name="location"
