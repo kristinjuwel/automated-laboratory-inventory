@@ -73,6 +73,8 @@ interface GenFormValues {
   supplier: number;
   cost: number;
   notes: string;
+  reorderThreshold: number;
+  maxThreshold: number;
 }
 
 const GenLabSuppliesInventoryForm = () => {
@@ -208,6 +210,8 @@ const GenLabSuppliesInventoryForm = () => {
       cost: parsedValues.cost,
       notes: parsedValues.notes,
       quantityAvailable: 0,
+      reorderThreshold: parsedValues.reorderThreshold,
+      maxThreshold: parsedValues.maxThreshold,
     };
 
     const inventoryLogPayload = {
@@ -690,6 +694,42 @@ const GenLabSuppliesInventoryForm = () => {
                       <FormControl>
                         <Input
                           placeholder="Unit (e.g., liters, grams)"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="reorderThreshold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reorder Threshold</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Minimum quantity to reorder"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="maxThreshold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Threshold</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Maximum quantity allowed"
                           {...field}
                           required
                           className="w-full"

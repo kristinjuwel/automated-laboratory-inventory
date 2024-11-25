@@ -48,6 +48,8 @@ interface Material {
   quantityAvailable: number;
   createdAt?: string;
   updatedAt?: string;
+  reorderThreshold: number;
+  maxThreshold: number;
 }
 
 interface Logs {
@@ -182,6 +184,9 @@ const GeneralSupplies = () => {
               <TableHead>Item Code</TableHead>
               <TableHead>Quantity</TableHead>
               <TableHead>Unit</TableHead>
+              <TableHead>Min</TableHead>
+              <TableHead>Max</TableHead>
+              <TableHead>Excess</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Supplier</TableHead>
@@ -199,6 +204,11 @@ const GeneralSupplies = () => {
                   <TableCell>{material.itemCode}</TableCell>
                   <TableCell>{material.quantityAvailable}</TableCell>
                   <TableCell>{material.unit}</TableCell>
+                  <TableCell>{material.reorderThreshold}</TableCell>
+                  <TableCell>{material.maxThreshold}</TableCell>
+                  <TableCell>
+                    {material.maxThreshold - material.quantityAvailable}
+                  </TableCell>
                   <TableCell>{material.category.subcategory1}</TableCell>
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
@@ -278,6 +288,8 @@ const GeneralSupplies = () => {
               itemCode={selectedMaterial.itemCode}
               quantity={selectedMaterial.quantityAvailable.toString()}
               unit={selectedMaterial.unit}
+              reorderThreshold={selectedMaterial.reorderThreshold.toString()}
+              maxThreshold={selectedMaterial.maxThreshold.toString()}
               location={selectedMaterial.location}
               expiryDate={selectedMaterial.expiryDate}
               supplier={selectedMaterial.supplierId}
