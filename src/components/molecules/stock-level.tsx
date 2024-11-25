@@ -11,6 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Edit, Search, TriangleAlert, Trash, Printer } from "lucide-react";
 import {
   Dialog,
@@ -40,6 +46,7 @@ const StockLevel = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPrintDialogOpen, setisPrintDialogOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState<StockLevelValues | null>(null);
+  const [pageSize, setPageSize] = useState('a4');
 
   useEffect(() => {
     const fetchData = [
@@ -87,7 +94,20 @@ const StockLevel = () => {
   };
 
   const handlePrint = () => {
-    const doc = new jsPDF();
+    const pageSizes = {
+      a4: { format: 'a4', dimensions: [210, 297] }, // A4 in mm
+      short: { format: [215.9, 279.4] },           // Short (Letter) size in mm
+      long: { format: [215.9, 355.6] },            // Long (Legal) size in mm
+    };
+
+    const selectedPage = pageSizes[pageSize]; //type error ata
+
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: selectedPage.format,
+    });
+
     const baseUrl = window.location.origin; // Get the base URL for the images
   
     // Load images first, and once they are loaded, generate the PDF
@@ -415,33 +435,69 @@ const StockLevel = () => {
 
       <Dialog open={isPrintDialogOpen} onOpenChange={setisPrintDialogOpen}>
       <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Stock Level Report
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this report?
-          </p>
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setIsDeleteDialogOpen(false)}
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 tracking-tight">
+            Print Stock Level Report
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-left pt-2 text-m">Select page size for the report:</p>
+        <div className="flex flex-col gap-2 ">
+        <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full flex justify-between items-center"
+          >
+            <span
+              className={pageSize ? "text-black" : "text-gray-500"}
             >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                handlePrint(); // Invoke the function here
-                setisPrintDialogOpen(false); // Close the dialog after printing
-              }}
+              {pageSize === 'a4'
+                ? 'A4 (210 x 297 mm)'
+                : pageSize === 'short'
+                ? 'Short (Letter, 215.9 x 279.4 mm)'
+                : pageSize === 'long'
+                ? 'Long (Legal, 215.9 x 355.6 mm)'
+                : 'Select Page Size'}
+            </span>
+            <span className="ml-auto">▼</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent >
+          {[
+            { label: "A4 (210 x 297 mm)", value: "a4" },
+            { label: "Short (Letter, 215.9 x 279.4 mm)", value: "short" },
+            { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+          ].map((option) => (
+            <DropdownMenuCheckboxItem
+              key={option.value}
+              checked={pageSize === option.value}
+              onCheckedChange={(checked) => setPageSize(checked ? option.value : "a4")}
             >
-              Confirm
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              {option.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button
+            variant="ghost"
+            className="bg-gray-100"
+            onClick={() => setisPrintDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              handlePrint();
+              setisPrintDialogOpen(false);
+            }}
+          >
+            Confirm
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 };
