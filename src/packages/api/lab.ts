@@ -10,11 +10,9 @@ export const laboratorySchema = z.object({
 
 export const categorySchema = z.object({
   categoryId: z.number().optional(),
-  labId: z.number(),
   shortName: z.string().min(1),
-  subcategory: z.string().min(1),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  subcategory1: z.string().min(1),
+  subcategory2: z.string().optional(),
 });
 
 export const supplierSchema = z.object({

@@ -123,33 +123,30 @@ const Navbar = () => {
       <NavigationMenu className="ml-36 hidden md:flex text-teal-950 justify-center space-x-2 text-sm">
         <NavigationMenuList>
           <NavigationMenuItem>
-            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl">
-              <a className="flex" onClick={() => router.push("/lab/pathology")}>
-                <Microscope className="size-5 pr-1" />
-                Pathology
-              </a>
+            <NavigationMenuLink
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl"
+              onClick={() => router.push("/lab/pathology")}
+            >
+              <Microscope className="size-5 pr-1" />
+              Pathology
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl">
-              <a
-                className="flex"
-                onClick={() => router.push("/lab/immunology")}
-              >
-                <Syringe className="size-5 pr-1" />
-                Immunology
-              </a>
+            <NavigationMenuLink
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl"
+              onClick={() => router.push("/lab/immunology")}
+            >
+              <Syringe className="size-5 pr-1" />
+              Immunology
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl">
-              <a
-                className="flex"
-                onClick={() => router.push("/lab/microbiology")}
-              >
-                <Dna className="size-5 pr-1" />
-                Microbiology
-              </a>
+            <NavigationMenuLink
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl"
+              onClick={() => router.push("/lab/microbiology")}
+            >
+              <Dna className="size-5 pr-1" />
+              Microbiology
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>

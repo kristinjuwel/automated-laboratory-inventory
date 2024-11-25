@@ -317,14 +317,7 @@ const AdminView = () => {
           <TableBody>
             {filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
-                <TableRow
-                  key={user.userId}
-                  className={cn(
-                    `capitalize ${
-                      user.status === "Deleted" ? "text-red-500 rounded-md" : ""
-                    }`
-                  )}
-                >
+                <TableRow key={user.userId} className={"text-gray-900"}>
                   <TableCell>{user.userId}</TableCell>
                   <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
                   <TableCell className="capitalize">
@@ -333,7 +326,25 @@ const AdminView = () => {
                   <TableCell className="capitalize">
                     {user.laboratory}
                   </TableCell>
-                  <TableCell className="capitalize">{user.status}</TableCell>
+                  <TableCell
+                    className={cn(
+                      `capitalize ${
+                        user.status?.toLowerCase() === "deleted"
+                          ? "text-red-500"
+                          : user.status?.toLowerCase() === "active"
+                          ? "text-teal-500"
+                          : user.status?.toLowerCase() === "inactive"
+                          ? "text-gray-500"
+                          : user.status?.toLowerCase() === "to be approved"
+                          ? "text-yellow-500"
+                          : user.status?.toLowerCase() === "to be otp-verified"
+                          ? "text-blue-500"
+                          : "text-black"
+                      }`
+                    )}
+                  >
+                    {user.status}
+                  </TableCell>
                   <TableCell className="text-center">{user.username}</TableCell>
                   <TableCell className="text-center lowercase">
                     {user.email}
@@ -508,7 +519,7 @@ const AdminView = () => {
                     onValueChange={(value) =>
                       setFormData((prev) => ({
                         ...prev,
-                        labId: parseInt(value, 10), // Convert the selected value back to a number
+                        labId: parseInt(value, 10),
                       }))
                     }
                   >
