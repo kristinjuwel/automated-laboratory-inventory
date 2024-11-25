@@ -14,13 +14,15 @@ export const materialSchema = z.object({
   itemName: z.string().min(1),
   unit: z.string().min(1),
   location: z.string().min(1),
-  expiryDate: z.string().datetime(),
+  expiryDate: z.string().datetime().optional(),
   cost: z.number().positive(),
   description: z.string().optional(),
   notes: z.string().optional(),
   quantityAvailable: z.number().int().nonnegative().optional(),
   reorderThreshold: z.number().int().nonnegative().optional(),
   maxThreshold: z.number().int().nonnegative().optional(),
+  lotNo: z.string().optional(),
+  totalNoContainers: z.number().optional(),
 });
 
 export const inventoryLogSchema = z.object({

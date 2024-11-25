@@ -58,6 +58,7 @@ import AddSupplier from "@/components/molecules/supplier";
 import { Category, Supplier } from "@/packages/api/lab";
 import AddCategory from "@/components/molecules/category";
 import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ReagentsFormValues {
   date: string;
@@ -68,8 +69,8 @@ interface ReagentsFormValues {
   itemCode: string;
   quantity: number;
   unit: string;
-  total_no_containers: number;
-  lot_no: string;
+  totalNoContainers: number;
+  lotNo: string;
   location: string;
   expiryDate: string;
   supplier: number;
@@ -115,8 +116,8 @@ const ReagentsInventoryForm = () => {
       itemCode: "",
       quantity: 0,
       unit: "",
-      total_no_containers: undefined,
-      lot_no: "",
+      totalNoContainers: 0,
+      lotNo: "",
       location: "",
       expiryDate: "",
       category: 1,
@@ -207,6 +208,7 @@ const ReagentsInventoryForm = () => {
   const handleSubmit = async (values: ReagentsFormValues) => {
     const parsedValues = {
       ...values,
+      totalNoContainers: Number(values.totalNoContainers),
       quantity: Number(values.quantity),
       cost: Number(values.cost),
       date: format(new Date(values.date), "yyyy-MM-dd"),
@@ -223,6 +225,8 @@ const ReagentsInventoryForm = () => {
       location: parsedValues.location,
       expiryDate: parsedValues.expiryDate,
       cost: parsedValues.cost,
+      totalNoContainers: parsedValues.totalNoContainers,
+      lotNo: parsedValues.lotNo,
       notes: parsedValues.notes,
       quantityAvailable: 0,
     };
@@ -377,11 +381,11 @@ const ReagentsInventoryForm = () => {
   }, [categoryDialogOpen]);
 
   return (
-    <div className="flex justify-center items-center bg-gray-100 w-full h-screen">
-      <Card className="my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-[610px] shadow-lg md:rounded-lg rounded-none">
+    <div className="flex justify-center bg-gray-100">
+      <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
@@ -391,7 +395,7 @@ const ReagentsInventoryForm = () => {
                 sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
-            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
@@ -401,16 +405,18 @@ const ReagentsInventoryForm = () => {
               />
             </div>
           </div>
-          <h1 className="text-lg sm:text-xl font-bold py-1 text-center">Reagents Inventory Form</h1>
+          <h1 className="text-lg sm:text-xl font-bold py-1 text-center">
+            Reagents Inventory Form
+          </h1>
           <hr className="w-full border-t-1 border-gray-300 my-1" />
         </div>
 
         <Toaster />
 
-        <div className="overflow-y-auto max-h-[400px] mb-1">
+        <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -716,7 +722,7 @@ const ReagentsInventoryForm = () => {
                 />
 
                 <FormField
-                  name="total_no_containers"
+                  name="totalNoContainers"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Total Number of Containers</FormLabel>
@@ -734,7 +740,7 @@ const ReagentsInventoryForm = () => {
                   )}
                 />
                 <FormField
-                  name="lot_no"
+                  name="lotNo"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Lot Number</FormLabel>
@@ -751,7 +757,6 @@ const ReagentsInventoryForm = () => {
                   )}
                 />
 
-                  
                 <FormField
                   name="location"
                   render={({ field }) => (
@@ -933,7 +938,7 @@ const ReagentsInventoryForm = () => {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Input
+                      <Textarea
                         placeholder="Any relevant information..."
                         {...field}
                         className="w-full"

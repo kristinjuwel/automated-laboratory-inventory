@@ -56,42 +56,47 @@ import { Category, Supplier } from "@/packages/api/lab";
 import AddCategory from "@/components/molecules/category";
 import { format } from "date-fns";
 import { EditInput } from "../ui/edit-input";
+import { Textarea } from "../ui/textarea";
 
-type BiologicalFormValues = {
+type FormValues = {
   date: string;
   labId?: number;
   category?: number;
   personnel: number;
   itemName: string;
   itemCode: string;
-  quantity: number;
+  quantity: string;
   unit: string;
   location: string;
   expiryDate: string;
   supplier: number;
   cost: string;
-  notes: string;
+  notes?: string;
 };
 
-type EditBioProps = {
+type EditProps = {
   closeDialog: () => void;
   materialId: number;
-} & BiologicalFormValues;
+  shortName: string;
+} & FormValues;
 
-const EditBiological = ({
+const EditInventory = ({
   labId,
   category,
+  shortName,
   personnel,
   itemName,
   itemCode,
   unit,
+  quantity,
   location,
   expiryDate,
   supplier,
   cost,
   closeDialog,
   materialId,
-}: EditBioProps) => {
+  notes,
+}: EditProps) => {
   const userRole = localStorage.getItem("userRole");
   const currentUserId = localStorage.getItem("authToken");
   const [open, setOpen] = React.useState(false);
@@ -122,7 +127,7 @@ const EditBiological = ({
     labId || null
   );
 
-  const form = useForm<BiologicalFormValues>({
+  const form = useForm<FormValues>({
     defaultValues: {
       labId: labId,
       personnel: 0,
@@ -134,11 +139,17 @@ const EditBiological = ({
       category: category,
       supplier: selectedSupplierId,
       cost: cost,
-      notes: "",
+      quantity: quantity,
+      notes: notes,
     },
   });
 
   const addFilteredSupplier = async () => {
+    if (!selectedUserId) {
+      toast.error("Please select a user first.");
+      return;
+    }
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}filtered-suppliers/${selectedUserId}`
@@ -186,7 +197,6 @@ const EditBiological = ({
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
     }
-    setSelectedSupplierId(1);
   };
 
   const clearFilter = useCallback(async () => {
@@ -216,12 +226,12 @@ const EditBiological = ({
     }
   }, [selectedUserId, currentUserId]);
 
-  const handleSubmit = async (values: BiologicalFormValues) => {
+  const handleSubmit = async (values: FormValues) => {
     const parsedValues = {
       ...values,
       quantity: Number(values.quantity),
       cost: Number(values.cost),
-      date: format(new Date(values.date), "yyyy-MM-dd"),
+      date: values.date ? format(new Date(values.date), "yyyy-MM-dd") : "",
       expiryDate: format(new Date(values.expiryDate), "yyyy-MM-dd'T'HH:mm:ss"),
     };
     const materialPayload = {
@@ -235,7 +245,7 @@ const EditBiological = ({
       expiryDate: parsedValues.expiryDate,
       cost: parsedValues.cost,
       notes: parsedValues.notes,
-      quantityAvailable: 0,
+      quantityAvailable: parsedValues.quantity,
     };
 
     const inventoryLogPayload = {
@@ -280,7 +290,7 @@ const EditBiological = ({
 
       toast.success("Material and inventory log updated successfully!");
       form.reset();
-      window.location.reload();
+      closeDialog();
     } catch (error) {
       toast.error("Submission failed. Please try again.");
     }
@@ -354,42 +364,42 @@ const EditBiological = ({
     }
   }, [openSupplier, selectedUserId, currentUserId, clearFilter]);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}category/categories`
-      );
-      if (!response.ok) throw new Error("Failed to fetch categories");
-
-      const data: Category[] = await response.json();
-      const mappedCategories = data
-        .filter((category) => category.shortName?.includes("Biological"))
-        .map((category) => ({
-          categoryId: category.categoryId ?? 0,
-          shortName: category.shortName,
-          subcategory1: category.subcategory1,
-        }));
-
-      setCategories(mappedCategories);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
-
   useEffect(() => {
-    if (!categoryDialogOpen) {
+    if (!openCategory) {
+      const fetchCategories = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}category/categories`
+          );
+          if (!response.ok) throw new Error("Failed to fetch categories");
+
+          const data: Category[] = await response.json();
+          const mappedCategories = data
+            .filter((category) => category.shortName?.includes(shortName))
+            .map((category) => ({
+              categoryId: category.categoryId ?? 0,
+              shortName: category.shortName,
+              subcategory1: category.subcategory1,
+            }));
+
+          setCategories(mappedCategories);
+        } catch (error) {
+          console.error("Error fetching categories:", error);
+        }
+      };
+
       fetchCategories();
     }
-  }, [categoryDialogOpen]);
+  }, [openCategory, shortName]);
 
   return (
     <div className="flex flex-col justify-center">
       <Toaster />
 
-      <div className="overflow-y-auto max-h-[400px] mb-1">
+      <div className="overflow-y-auto max-h-[400px]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-            <div className="grid grid-cols-2 gap-3 mb-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="date"
                 render={({ field }) => (
@@ -410,7 +420,7 @@ const EditBiological = ({
                 name="personnel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Editor</FormLabel>
+                    <FormLabel htmlFor="personnel">Editor</FormLabel>
                     <FormControl>
                       <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger
@@ -476,7 +486,7 @@ const EditBiological = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="labId"
                 render={({}) => (
@@ -622,17 +632,15 @@ const EditBiological = ({
                 )}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="itemName"
-                defaultValue={itemName}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Item Name</FormLabel>
                     <FormControl>
                       <EditInput
                         placeholder={itemName}
-                        defaultValue={itemName}
                         {...field}
                         className="w-full placeholder-black"
                       />
@@ -648,8 +656,24 @@ const EditBiological = ({
                     <FormLabel>Item Code</FormLabel>
                     <FormControl>
                       <EditInput
-                        defaultValue={itemCode}
                         placeholder={itemCode}
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantity</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder={quantity}
                         {...field}
                         className="w-full"
                       />
@@ -665,7 +689,6 @@ const EditBiological = ({
                     <FormLabel>Unit</FormLabel>
                     <FormControl>
                       <EditInput
-                        defaultValue={unit}
                         placeholder={unit}
                         {...field}
                         className="w-full"
@@ -683,7 +706,6 @@ const EditBiological = ({
                     <FormLabel>Location</FormLabel>
                     <FormControl>
                       <EditInput
-                        defaultValue={location}
                         placeholder={location}
                         {...field}
                         className="w-full"
@@ -693,8 +715,24 @@ const EditBiological = ({
                   </FormItem>
                 )}
               />
+              <FormField
+                name="expiryDate"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="expiryDate">Expiry Date</FormLabel>
+                    <FormControl>
+                      <DatePickerWithPresets
+                        date={new Date(field.value)}
+                        setDate={(newDate) => field.onChange(newDate)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="supplier"
                 render={({ field }) => (
@@ -824,28 +862,10 @@ const EditBiological = ({
                     <FormLabel>Cost</FormLabel>
                     <FormControl>
                       <EditInput
-                        defaultValue={cost}
                         type="number"
                         placeholder={cost}
                         {...field}
                         className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-4 mb-4">
-              <FormField
-                name="expiryDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expiry Date</FormLabel>
-                    <FormControl>
-                      <DatePickerWithPresets
-                        date={field.value}
-                        setDate={(newDate) => field.onChange(newDate)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -859,8 +879,8 @@ const EditBiological = ({
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Any relevant information..."
+                    <Textarea
+                      placeholder={notes}
                       {...field}
                       className="w-full"
                     />
@@ -871,6 +891,7 @@ const EditBiological = ({
             />
             <div className="flex justify-end gap-2 pt-6">
               <Button
+                type="button"
                 variant="ghost"
                 className="bg-gray-100"
                 onClick={closeDialog}
@@ -915,7 +936,7 @@ const EditBiological = ({
           </DialogHeader>
           <AddCategory
             closeDialog={() => setCategoryDialogOpen(false)}
-            shortName={"Biological"}
+            shortName={shortName}
           />
         </DialogContent>
       </Dialog>
@@ -961,4 +982,4 @@ const EditBiological = ({
   );
 };
 
-export default EditBiological;
+export default EditInventory;
