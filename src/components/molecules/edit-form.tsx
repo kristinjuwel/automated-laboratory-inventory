@@ -71,6 +71,8 @@ type FormValues = {
   expiryDate: string;
   supplier: number;
   cost: string;
+  totalNoContainers?: string;
+  lotNo?: string;
   notes?: string;
 };
 
@@ -95,6 +97,8 @@ const EditInventory = ({
   cost,
   closeDialog,
   materialId,
+  lotNo,
+  totalNoContainers,
   notes,
 }: EditProps) => {
   const userRole = localStorage.getItem("userRole");
@@ -140,6 +144,8 @@ const EditInventory = ({
       supplier: selectedSupplierId,
       cost: cost,
       quantity: quantity,
+      totalNoContainers: totalNoContainers,
+      lotNo: lotNo,
       notes: notes,
     },
   });
@@ -244,6 +250,8 @@ const EditInventory = ({
       location: parsedValues.location,
       expiryDate: parsedValues.expiryDate,
       cost: parsedValues.cost,
+      totalNoContainers: parsedValues.totalNoContainers,
+      lotNo: parsedValues.lotNo,
       notes: parsedValues.notes,
       quantityAvailable: parsedValues.quantity,
     };
@@ -399,7 +407,7 @@ const EditInventory = ({
       <div className="overflow-y-auto max-h-[400px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <FormField
                 name="date"
                 render={({ field }) => (
@@ -486,7 +494,7 @@ const EditInventory = ({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <FormField
                 name="labId"
                 render={({}) => (
@@ -632,7 +640,7 @@ const EditInventory = ({
                 )}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <FormField
                 name="itemName"
                 render={({ field }) => (
@@ -698,6 +706,46 @@ const EditInventory = ({
                   </FormItem>
                 )}
               />
+              {selectedCategoryId &&
+              categories.find((category) => category.categoryId === selectedCategoryId)
+                ?.subcategory1 === "reagent" && (
+                  <>
+                  <FormField
+                    name="totalNoContainers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Containers</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder={totalNoContainers}
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="lotNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lot Number</FormLabel>
+                        <FormControl>
+                          <EditInput
+                            placeholder={lotNo}
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
 
               <FormField
                 name="location"
@@ -732,7 +780,7 @@ const EditInventory = ({
                 )}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <FormField
                 name="supplier"
                 render={({ field }) => (
