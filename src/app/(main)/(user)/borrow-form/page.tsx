@@ -33,41 +33,6 @@ interface BorrowFormValues {
   damageMaterials: string;
 }
 
-const InputField = ({
-  label,
-  placeholder,
-  name,
-  type = "text",
-  required = false,
-  field,
-}: {
-  label: string;
-  placeholder: string;
-  name: string;
-  type?: string;
-  required?: boolean;
-  field: any;
-}) => (
-  <FormField
-    name={name}
-    render={() => (
-      <FormItem>
-        <FormLabel>{label}</FormLabel>
-        <FormControl>
-          <Input
-            type={type}
-            placeholder={placeholder}
-            {...field}
-            required={required}
-            className="w-full"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-);
-
 const BorrowForm = () => {
   const form = useForm<BorrowFormValues>({
     defaultValues: {
@@ -98,11 +63,11 @@ const BorrowForm = () => {
   };
 
   return (
-    <div className="flex justify-center items-center bg-gray-100 w-full h-screen">
-      <Card className="my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-[610px] shadow-lg md:rounded-lg rounded-none">
+    <div className="flex justify-center bg-gray-100">
+      <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
         <div className="flex flex-col items-center mb-4">
           <div className="flex space-x-4 mb-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/mrl-logo.png"
                 alt="Logo 1"
@@ -110,7 +75,7 @@ const BorrowForm = () => {
                 style={{ objectFit: "contain" }}
               />
             </div>
-            <div className="w-20 h-20 sm:w-24 sm:h-24 relative">
+            <div className="size-16 md:w-24 md:h-24 relative">
               <Image
                 src="/images/pgh-logo.png"
                 alt="Logo 2"
@@ -131,7 +96,6 @@ const BorrowForm = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
               <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                {/* Date Borrowed */}
                 <FormField
                   name="dateBorrowed"
                   render={({ field }) => (
@@ -148,7 +112,6 @@ const BorrowForm = () => {
                   )}
                 />
 
-                {/* Time Borrowed */}
                 <FormField
                   name="timeBorrowed"
                   render={({ field }) => (
@@ -156,9 +119,8 @@ const BorrowForm = () => {
                       <FormLabel>Time Borrowed</FormLabel>
                       <FormControl>
                         <TimePicker
-                          label="Time Borrowed"
-                          value={field.value}
-                          onChange={(newTime) => field.onChange(newTime)}
+                          date={field.value}
+                          setDate={(newTime: string) => field.onChange(newTime)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -166,7 +128,6 @@ const BorrowForm = () => {
                   )}
                 />
 
-                {/* Date Returned */}
                 <FormField
                   name="dateReturned"
                   render={({ field }) => (
@@ -183,7 +144,6 @@ const BorrowForm = () => {
                   )}
                 />
 
-                {/* Time Returned */}
                 <FormField
                   name="timeReturned"
                   render={({ field }) => (
@@ -191,9 +151,9 @@ const BorrowForm = () => {
                       <FormLabel>Time Returned</FormLabel>
                       <FormControl>
                         <TimePicker
-                          label="Time Returned"
-                          value={field.value}
-                          onChange={(newTime) => field.onChange(newTime)}
+                          date={field.value}
+                          setDate={(newDate) => field.onChange(newDate)}
+                          required
                         />
                       </FormControl>
                       <FormMessage />
@@ -202,75 +162,146 @@ const BorrowForm = () => {
                 />
               </div>
 
-              {/* Details of Borrowed */}
               <div className="mb-6">
-                <InputField
-                  label="Details of Borrowed Equipment"
-                  placeholder="Enter details"
+                <FormField
                   name="detailsOfBorrowed"
-                  required
-                  field={form.register("detailsOfBorrowed")}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Details of Borrowed Equipment</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          placeholder="Details of Borrowed Equipment"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-
-              {/* Quantity and Unit */}
               <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <InputField
-                  label="Quantity"
-                  placeholder="Quantity"
+              <FormField
                   name="qty"
-                  type="number"
-                  required
-                  field={form.register("qty", { valueAsNumber: true, min: 1 })}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantity</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Quantity"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <InputField
-                  label="Unit"
-                  placeholder="Unit (e.g., liters, grams)"
-                  name="unit"
-                  required
-                  field={form.register("unit")}
+                <FormField
+                  name="Unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          placeholder="Unit (e.g., liters, grams)"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              {/* Borrower Details */}
               <div className="mb-6">
-                <InputField
-                  label="Borrower Details"
-                  placeholder="Details of Borrower"
+              <FormField
                   name="borrowerDetail"
-                  required
-                  field={form.register("borrowerDetail")}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Borrower Details</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          placeholder="Details of Borrower"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              {/* Department */}
               <div className="mb-6">
-                <InputField
-                  label="Department"
-                  placeholder="Department"
+              <FormField
                   name="department"
-                  required
-                  field={form.register("department")}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Department</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          placeholder="Department"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              {/* Remarks */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <InputField
-                  label="Remarks"
-                  placeholder="Remarks"
+              <FormField
                   name="remarks"
-                  field={form.register("remarks")}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Remarks</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          placeholder="Remarks"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <InputField
-                  label="Damage Materials"
-                  placeholder="Damage Materials"
+                <FormField
                   name="damageMaterials"
-                  field={form.register("damageMaterials")}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Damage Materials</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="string"
+                          placeholder="Damage Materials"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              {/* Submit Button */}
               <div className="flex justify-center mt-8">
                 <Button
                   type="submit"
