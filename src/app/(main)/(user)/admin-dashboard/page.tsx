@@ -131,7 +131,6 @@ const AdminView = () => {
 
         setUsers(mappedUsers);
         setFilteredUsers(mappedUsers);
-        console.log(mappedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }

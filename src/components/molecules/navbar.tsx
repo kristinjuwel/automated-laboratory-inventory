@@ -8,6 +8,9 @@ import {
   Dna,
   Box,
   LogOut,
+  RotateCw,
+  UserPen,
+  UserCog,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -21,12 +24,23 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, Toaster } from "sonner";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
+import ChangePassword from "./change-password";
+import EditAccount from "./edit-user";
 
 const Navbar = () => {
   const router = useRouter();
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const userRole = localStorage.getItem("userRole");
 
   const logoutUser = () => {
     const token = localStorage.getItem("authToken");
@@ -132,25 +146,69 @@ const Navbar = () => {
           </PopoverTrigger>
           <PopoverContent align="end" className="w-48 p-2 shadow-lg">
             <a
-              onClick={() => router.push("/profile")}
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+              onClick={() => {
+                setShowEditDialog(true);
+              }}
+              className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
             >
-              Profile
+              <UserPen className="size-5 -mt-0.5" />
+              Edit Profile
             </a>
             <a
-              onClick={() => router.push("/settings")}
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+              onClick={() => {
+                setShowResetDialog(true);
+              }}
+              className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
             >
-              Settings
+              <RotateCw className="size-5 -mt-0.5" />
+              Reset Password
             </a>
+            {(userRole === "admin" || userRole === "superadmin") && (
+              <>
+                <a
+                  onClick={() => router.push("/admin-dashboard")}
+                  className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                >
+                  <UserCog className="size-5 -mt-0.5" />
+                  Manage Users
+                </a>
+              </>
+            )}
             <a
               onClick={() => setIsLogoutDialogOpen(true)}
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition"
+              className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
             >
+              <LogOut className="size-5 -mt-0.5" />
               Logout
             </a>
           </PopoverContent>
         </Popover>
+
+        <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+                <RotateCw className="text-teal-900 size-5 -mt-0.5" />
+                Reset Password
+              </DialogTitle>
+              <DialogDescription />
+            </DialogHeader>
+            <ChangePassword closeDialog={() => setShowResetDialog(false)} />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+                <UserPen className="text-teal-900 size-5 -mt-0.5" />
+                Edit Account Details
+              </DialogTitle>
+              <DialogDescription />
+            </DialogHeader>
+            <EditAccount closeDialog={() => setShowEditDialog(false)} />
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
           <DialogContent className="bg-white">
@@ -159,6 +217,7 @@ const Navbar = () => {
                 <LogOut className="text-red-500 size-5 -mt-0.5" />
                 Confirm Logout
               </DialogTitle>
+              <DialogDescription />
             </DialogHeader>
             <p className="text-left pt-2 text-sm">
               Are you sure you want to log out of your account?
