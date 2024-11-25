@@ -43,8 +43,8 @@ interface Material {
   location: string;
   expiryDate: string;
   cost: number;
-  total_no_containers: number;
-  lot_no: string;
+  totalNoContainers: number;
+  lotNo: string;
   description?: string;
   notes?: string;
   quantityAvailable: number;
@@ -60,8 +60,8 @@ interface Logs {
   material: { itemName: string };
   date: string;
   quantity: number;
-  total_no_containers: number;
-  lot_no: string;
+  totalNoContainers: number;
+  lotNo: string;
   source?: string;
   remarks?: string;
 }
@@ -217,8 +217,8 @@ const Reagent = () => {
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
                   <TableCell>{material.cost}</TableCell>
-                  <TableCell>{material.total_no_containers}</TableCell>
-                  <TableCell>{material.lot_no}</TableCell>
+                  <TableCell>{material.totalNoContainers}</TableCell>
+                  <TableCell>{material.lotNo}</TableCell>
                   <TableCell className="relative max-w-8 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -298,8 +298,8 @@ const Reagent = () => {
               expiryDate={selectedMaterial.expiryDate}
               supplier={selectedMaterial.supplierId}
               cost={selectedMaterial.cost.toString()}
-              total_no_containers={selectedMaterial.total_no_containers.toString()}
-              lot_no={selectedMaterial.lot_no}
+              totalNoContainers={selectedMaterial.totalNoContainers.toString()}
+              lotNo={selectedMaterial.lotNo}
               notes={selectedMaterial.notes}
               date={""}
               closeDialog={() => setIsEditDialogOpen(false)}
