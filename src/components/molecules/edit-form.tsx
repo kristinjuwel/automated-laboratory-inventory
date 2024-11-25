@@ -71,6 +71,8 @@ type FormValues = {
   expiryDate: string;
   supplier: number;
   cost: string;
+  totalNoContainers?: string;
+  lotNo?: string;
   notes?: string;
 };
 
@@ -95,6 +97,8 @@ const EditInventory = ({
   cost,
   closeDialog,
   materialId,
+  lotNo,
+  totalNoContainers,
   notes,
 }: EditProps) => {
   const userRole = localStorage.getItem("userRole");
@@ -140,6 +144,8 @@ const EditInventory = ({
       supplier: selectedSupplierId,
       cost: cost,
       quantity: quantity,
+      totalNoContainers: totalNoContainers,
+      lotNo: lotNo,
       notes: notes,
     },
   });
@@ -244,6 +250,8 @@ const EditInventory = ({
       location: parsedValues.location,
       expiryDate: parsedValues.expiryDate,
       cost: parsedValues.cost,
+      totalNoContainers: parsedValues.totalNoContainers,
+      lotNo: parsedValues.lotNo,
       notes: parsedValues.notes,
       quantityAvailable: parsedValues.quantity,
     };
@@ -698,6 +706,43 @@ const EditInventory = ({
                   </FormItem>
                 )}
               />
+              {shortName === "Reagent" && (
+                <>
+                  <FormField
+                    name="totalNoContainers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Containers</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder={totalNoContainers}
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="lotNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lot Number</FormLabel>
+                        <FormControl>
+                          <EditInput
+                            placeholder={lotNo}
+                            {...field}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
 
               <FormField
                 name="location"
