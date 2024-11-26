@@ -158,6 +158,7 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       });
 
       doc.save(`${pdfTitle}.pdf`);
+      closeDialog();
     });
   };
 

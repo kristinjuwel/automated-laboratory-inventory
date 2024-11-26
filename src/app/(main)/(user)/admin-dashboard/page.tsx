@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import CreateAccount from "@/components/molecules/create-account";
+import CreateAccount from "@/components/dialogs/create-account";
 import { userSchema, UserSchema } from "@/packages/api/user";
 import { z } from "zod";
 import {
