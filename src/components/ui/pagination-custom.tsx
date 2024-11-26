@@ -23,7 +23,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   onPageChange,
 }) => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  if (totalPages === 1) return null;
+  if (totalPages === 1 || totalItems === 0) return null;
 
   const generatePageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];

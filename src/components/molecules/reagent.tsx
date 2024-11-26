@@ -267,7 +267,7 @@ const Reagent = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-gray-500">
+                <TableCell colSpan={17} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
