@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,40 @@ import {
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
 import TimePicker from "@/components/ui/timepicker";
+import { MaterialSchema } from "@/packages/api/inventory";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Textarea } from "@/components/ui/textarea";
+import { UserSchema } from "@/packages/api/user";
+import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BorrowFormValues {
   dateBorrowed: string;
+  materialId: number;
   detailsOfBorrowed: string;
-  equipment: string;
   qty: number;
   unit: string;
+  userId: number;
   borrowerDetail: string;
   department: string;
   timeBorrowed: string;
@@ -31,33 +58,170 @@ interface BorrowFormValues {
   timeReturned: string;
   remarks: string;
   damageMaterials: string;
+  status: string;
 }
 
 const BorrowForm = () => {
-  const form = useForm<BorrowFormValues>({
-    defaultValues: {
-      dateBorrowed: "",
-      detailsOfBorrowed: "",
-      equipment: "",
-      qty: 0,
-      unit: "",
-      borrowerDetail: "",
-      department: "",
-      timeBorrowed: "",
-      dateReturned: "",
-      timeReturned: "",
-      remarks: "",
-      damageMaterials: "",
-    },
-  });
+  const [open, setOpen] = useState(false);
+  const [openMaterial, setOpenMaterial] = useState(false);
+  const userRole = localStorage.getItem("userRole");
+  const currentUserId = localStorage.getItem("authToken");
+  const [users, setUsers] = useState<
+    { userId: number; fullName: string; laboratory: string }[]
+  >([]);
+  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+    currentUserId ? Number(currentUserId) : null
+  );
+  const [selectedMaterialId, setSelectedMaterialId] = React.useState<
+    number | null
+  >(null);
+  const [materials, setMaterials] = useState<
+    {
+      materialId: number;
+      itemName: string;
+      quantityAvailable: number;
+      unit: string;
+    }[]
+  >([]);
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+        );
+        if (!response.ok) throw new Error("Failed to fetch materials");
 
+        const data: MaterialSchema[] = await response.json();
+        const mappedMaterials = data.map((material) => ({
+          materialId: material.materialId ?? 0,
+          itemName: material.itemName,
+          quantityAvailable: material.quantityAvailable ?? 0,
+          unit: material.unit,
+        }));
+
+        setMaterials(mappedMaterials);
+      } catch (error) {
+        console.error("Error fetching materials:", error);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}all-users`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        const data: UserSchema[] = await response.json();
+        const filteredData = (() => {
+          if (userRole === "admin") {
+            return data.filter(
+              (user) =>
+                user.designation !== "admin" &&
+                user.designation !== "superadmin"
+            );
+          } else if (userRole === "superadmin") {
+            return data;
+          } else {
+            return data.filter(
+              (user) => user.userId.toString() === currentUserId
+            );
+          }
+        })();
+
+        const mappedUsers = filteredData.map((user) => ({
+          userId: user.userId,
+          fullName: `${user.firstName} ${
+            user.middleName ? user.middleName + " " : ""
+          }${user.lastName}`,
+          laboratory: user.laboratory.labName,
+        }));
+
+        setUsers(mappedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchAllUsers();
+  }, [currentUserId, userRole]);
+  const [quantity, setQuantity] = useState<number>(0);
+
+  const defaultValues: BorrowFormValues = {
+    dateBorrowed: "",
+    materialId: selectedMaterialId ?? 1,
+    detailsOfBorrowed: "",
+    qty: quantity,
+    unit: "",
+    userId: selectedUserId ?? Number(currentUserId),
+    borrowerDetail: "",
+    department: "",
+    timeBorrowed: "",
+    dateReturned: "",
+    timeReturned: "",
+    remarks: "",
+    damageMaterials: "",
+    status: "Borrowed",
+  };
+
+  const form = useForm<BorrowFormValues>({
+    defaultValues,
+  });
+  const getMaxQuantity = (): number => {
+    if (!selectedMaterialId) return 0;
+    const material = materials.find(
+      (material) => material.materialId === selectedMaterialId
+    );
+    return material ? material.quantityAvailable : 0;
+  };
+
+  const maxQuantity = getMaxQuantity();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.min(Number(e.target.value), maxQuantity);
+    setQuantity(value);
+  };
   const handleSubmit = async (values: BorrowFormValues) => {
+    const parsedValues = {
+      ...values,
+      qty: quantity,
+      equipment: selectedMaterialId
+        ? materials.find(
+            (material) => material.materialId === selectedMaterialId
+          )?.itemName || ""
+        : "",
+      dateBorrowed: format(new Date(values.dateBorrowed), "yyyy-MM-dd"),
+      dateReturned: format(new Date(values.dateReturned), "yyyy-MM-dd"),
+      unit: selectedMaterialId
+        ? materials.find(
+            (material) => material.materialId === selectedMaterialId
+          )?.unit || ""
+        : "",
+      department: selectedUserId
+        ? users.find((user) => user.userId === selectedUserId)?.laboratory || ""
+        : "",
+    };
     try {
-      console.log("Submitted Values:", values);
-      toast.success("Submission successful!");
-      form.reset();
+      const borrowResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}borrow`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(parsedValues),
+        }
+      );
+
+      if (!borrowResponse.ok) {
+        throw new Error("Failed to file borrow form");
+      }
+
+      toast.success("Borrow form filed successfully!");
     } catch (error) {
-      console.error("Error submitting form:", error);
       toast.error("Submission failed. Please try again.");
     }
   };
@@ -73,6 +237,8 @@ const BorrowForm = () => {
                 alt="Logo 1"
                 fill
                 style={{ objectFit: "contain" }}
+                priority
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
             <div className="size-16 md:w-24 md:h-24 relative">
@@ -81,6 +247,7 @@ const BorrowForm = () => {
                 alt="Logo 2"
                 fill
                 style={{ objectFit: "contain" }}
+                sizes="(max-width: 768px) 100vw, 24px"
               />
             </div>
           </div>
@@ -95,7 +262,7 @@ const BorrowForm = () => {
         <div className="overflow-y-auto max-h-[400px] mb-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="dateBorrowed"
                   render={({ field }) => (
@@ -132,7 +299,7 @@ const BorrowForm = () => {
                   name="dateReturned"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date Returned</FormLabel>
+                      <FormLabel>Date of Return</FormLabel>
                       <FormControl>
                         <DatePickerWithPresets
                           date={field.value}
@@ -148,7 +315,7 @@ const BorrowForm = () => {
                   name="timeReturned"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time Returned</FormLabel>
+                      <FormLabel>Time of Return</FormLabel>
                       <FormControl>
                         <TimePicker
                           date={field.value}
@@ -161,29 +328,108 @@ const BorrowForm = () => {
                   )}
                 />
               </div>
-
-              <div className="mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
-                  name="detailsOfBorrowed"
+                  name="materialId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Details of Borrowed Equipment</FormLabel>
+                      <FormLabel>Equipment</FormLabel>
                       <FormControl>
-                        <Input
-                          type="string"
-                          placeholder="Details of Borrowed Equipment"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
+                        <Popover
+                          open={openMaterial}
+                          onOpenChange={setOpenMaterial}
+                        >
+                          <PopoverTrigger
+                            asChild
+                            className={cn(
+                              selectedMaterialId === null
+                                ? "text-gray-500"
+                                : "text-black"
+                            )}
+                          >
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {selectedMaterialId
+                                ? materials.find(
+                                    (material) =>
+                                      material.materialId === selectedMaterialId
+                                  )?.itemName
+                                : "Select equipment..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="flex p-0">
+                            <Command>
+                              <CommandInput placeholder="Search equipment..." />
+                              <CommandList>
+                                <CommandEmpty>No equipment found.</CommandEmpty>
+                                <CommandGroup>
+                                  <div className="max-h-36 overflow-y-auto">
+                                    {materials.map((material) => (
+                                      <CommandItem
+                                        key={material.materialId}
+                                        value={material.itemName}
+                                        onSelect={() => {
+                                          setSelectedMaterialId(
+                                            selectedMaterialId ===
+                                              material.materialId
+                                              ? null
+                                              : material.materialId
+                                          );
+                                          field.onChange(material.materialId);
+                                        }}
+                                      >
+                                        <Check
+                                          className={
+                                            selectedMaterialId ===
+                                            material.materialId
+                                              ? "mr-2 h-4 w-4 opacity-100"
+                                              : "mr-2 h-4 w-4 opacity-0"
+                                          }
+                                        />
+                                        {material.itemName}
+                                      </CommandItem>
+                                    ))}
+                                  </div>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select status..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Borrowed">Borrowed</SelectItem>
+                            <SelectItem value="Returned">Returned</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <FormField
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <FormField
                   name="qty"
                   render={({ field }) => (
                     <FormItem>
@@ -193,8 +439,12 @@ const BorrowForm = () => {
                           type="number"
                           placeholder="Quantity"
                           {...field}
+                          value={quantity}
                           required
                           className="w-full"
+                          max={maxQuantity}
+                          min={0}
+                          onChange={handleInputChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -202,16 +452,22 @@ const BorrowForm = () => {
                   )}
                 />
                 <FormField
-                  name="Unit"
-                  render={({ field }) => (
+                  name="unit"
+                  render={({}) => (
                     <FormItem>
                       <FormLabel>Unit</FormLabel>
                       <FormControl>
                         <Input
                           type="string"
-                          placeholder="Unit (e.g., liters, grams)"
-                          {...field}
-                          required
+                          value={
+                            selectedMaterialId
+                              ? materials.find(
+                                  (material) =>
+                                    material.materialId === selectedMaterialId
+                                )?.unit || ""
+                              : ""
+                          }
+                          readOnly
                           className="w-full"
                         />
                       </FormControl>
@@ -220,59 +476,15 @@ const BorrowForm = () => {
                   )}
                 />
               </div>
-
-              <div className="mb-6">
-              <FormField
-                  name="borrowerDetail"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <FormField
+                  name="detailsOfBorrowed"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Borrower Details</FormLabel>
+                      <FormLabel>Details of Borrowed Equipment</FormLabel>
                       <FormControl>
-                        <Input
-                          type="string"
-                          placeholder="Details of Borrower"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="mb-6">
-              <FormField
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="string"
-                          placeholder="Department"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-              <FormField
-                  name="remarks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Remarks</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="string"
-                          placeholder="Remarks"
+                        <Textarea
+                          placeholder="Details of Borrowed Equipment"
                           {...field}
                           required
                           className="w-full"
@@ -288,9 +500,141 @@ const BorrowForm = () => {
                     <FormItem>
                       <FormLabel>Damage Materials</FormLabel>
                       <FormControl>
-                        <Input
-                          type="string"
+                        <Textarea
                           placeholder="Damage Materials"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <FormField
+                  name="userId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Borrower</FormLabel>
+                      <FormControl>
+                        <Popover open={open} onOpenChange={setOpen}>
+                          <PopoverTrigger
+                            asChild
+                            className={cn(
+                              selectedUserId === null
+                                ? "text-gray-500"
+                                : "text-black"
+                            )}
+                          >
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {selectedUserId
+                                ? users.find(
+                                    (user) => user.userId === selectedUserId
+                                  )?.fullName
+                                : "Select personnel..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search personnel..." />
+                              <CommandList>
+                                <CommandEmpty>No personnel found.</CommandEmpty>
+                                <CommandGroup>
+                                  {users.map((user) => (
+                                    <CommandItem
+                                      key={user.fullName}
+                                      value={user.fullName.toString()}
+                                      onSelect={() => {
+                                        setSelectedUserId(
+                                          selectedUserId === user.userId
+                                            ? null
+                                            : user.userId
+                                        );
+                                        field.onChange(user.userId);
+                                        setOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={
+                                          selectedUserId === user.userId
+                                            ? "mr-2 h-4 w-4 opacity-100"
+                                            : "mr-2 h-4 w-4 opacity-0"
+                                        }
+                                      />
+                                      {user.fullName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="department"
+                  render={({}) => (
+                    <FormItem>
+                      <FormLabel>Department</FormLabel>
+                      <FormControl>
+                        <Input
+                          value={
+                            selectedMaterialId
+                              ? users.find(
+                                  (user) => user.userId === selectedUserId
+                                )?.laboratory || ""
+                              : ""
+                          }
+                          readOnly
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 mb-4">
+                <FormField
+                  name="borrowerDetail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Borrower Details</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Details of Borrower"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 mb-6">
+                <FormField
+                  name="remarks"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Remarks</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Remarks"
                           {...field}
                           required
                           className="w-full"
@@ -315,7 +659,6 @@ const BorrowForm = () => {
         </div>
       </Card>
     </div>
-
   );
 };
 

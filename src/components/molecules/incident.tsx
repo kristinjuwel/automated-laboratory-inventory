@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -42,8 +43,6 @@ interface Material {
   location: string;
   expiryDate: string;
   cost: number;
-  totalNoContainers: number;
-  lotNo: string;
   description?: string;
   notes?: string;
   quantityAvailable: number;
@@ -61,15 +60,13 @@ interface Logs {
   material: { itemName: string };
   date: string;
   quantity: number;
-  totalNoContainers: number;
-  lotNo: string;
   source?: string;
   remarks?: string;
 }
 
 const ITEMS_PER_PAGE = 4;
 
-const Reagent = () => {
+const Incident = () => {
   const router = useRouter();
   const pathname = usePathname();
   const labSlug = pathname?.split("/")[2];
@@ -86,29 +83,31 @@ const Reagent = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch materials");
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch materials");
+          }
+          const data = await response.json();
+          const biologicalMaterials = data.filter(
+            (material: Material) =>
+              material.category.shortName.toLowerCase() === "biological" &&
+              material.laboratory.labName.toLowerCase() === labSlug
+          );
+          setMaterials(biologicalMaterials);
+          setFilteredMaterials(biologicalMaterials);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
         }
-        const data = await response.json();
-        const reagentMaterials = data.filter(
-          (material: Material) =>
-            material.category.shortName.toLowerCase() === "reagent" &&
-            material.laboratory.labName.toLowerCase() === labSlug
-        );
-        setMaterials(reagentMaterials);
-        setFilteredMaterials(reagentMaterials);
-      } catch (error) {
-        console.error("Error fetching materials:", error);
-      }
-    };
+      };
 
-    fetchMaterials();
-  }, [labSlug]);
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const fetchInventoryLogs = async (materialId: number) => {
     try {
@@ -150,7 +149,7 @@ const Reagent = () => {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
-        Reagent Inventory
+        Incident Forms
       </h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
@@ -164,9 +163,11 @@ const Reagent = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
+            className={cn(
+              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
+            )}
             onClick={() => {
-              router.push("/reagents-inventory-form");
+              router.push("/incident-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
@@ -188,13 +189,11 @@ const Reagent = () => {
               <TableHead>Min</TableHead>
               <TableHead>Max</TableHead>
               <TableHead>Excess</TableHead>
-              <TableHead>Expiry Date</TableHead>
+              <TableHead>Expiration</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Cost</TableHead>
-              <TableHead>Total Containers</TableHead>
-              <TableHead>Lot Number</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -224,8 +223,6 @@ const Reagent = () => {
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
                   <TableCell>{material.cost}</TableCell>
-                  <TableCell>{material.totalNoContainers}</TableCell>
-                  <TableCell>{material.lotNo}</TableCell>
                   <TableCell className="relative max-w-8 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -267,7 +264,7 @@ const Reagent = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-gray-500">
+                <TableCell colSpan={12} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -307,16 +304,15 @@ const Reagent = () => {
               expiryDate={selectedMaterial.expiryDate}
               supplier={selectedMaterial.supplierId}
               cost={selectedMaterial.cost.toString()}
-              totalNoContainers={selectedMaterial.totalNoContainers.toString()}
-              lotNo={selectedMaterial.lotNo}
               notes={selectedMaterial.notes}
               date={""}
               closeDialog={() => setIsEditDialogOpen(false)}
-              shortName="Reagent"
+              shortName="Biological"
             />
           )}
         </DialogContent>
       </Dialog>
+
       <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
         <DialogContent className="bg-white max-h-4/5 h-auto max-w-1/2 w-2/3">
           <DialogHeader>
@@ -392,4 +388,4 @@ const Reagent = () => {
   );
 };
 
-export default Reagent;
+export default Incident;
