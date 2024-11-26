@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, History } from "lucide-react";
+import { Edit, Search, FilePlus, History, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,41 +27,27 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
-import EditInventory from "./edit-form";
+import { BorrowSchema } from "@/packages/api/inventory";
 
-interface Material {
-  materialId: number;
-  labId: number;
-  categoryId: number;
-  supplierId: number;
-  laboratory: { labName: string };
-  category: { shortName: string; subcategory1: string };
-  supplier: { companyName: string };
-  itemCode: string;
-  itemName: string;
-  unit: string;
-  location: string;
-  expiryDate: string;
-  cost: number;
-  description?: string;
-  notes?: string;
-  quantityAvailable: number;
-  createdAt?: string;
-  updatedAt?: string;
-  reorderThreshold: number;
-  maxThreshold: number;
-}
-
-interface Logs {
-  inventoryLogId: number;
+interface Borrow {
+  borrowId: number;
   userId: number;
-  user: { lastName: string; firstName: string; middleName?: string };
+  user: string;
   materialId: number;
-  material: { itemName: string };
-  date: string;
-  quantity: number;
-  source?: string;
-  remarks?: string;
+  material: { itemName: string; itemCode: string; quantityAvailable: number };
+  dateBorrowed: string;
+  detailsOfBorrowed: string;
+  equipment: string;
+  qty: number;
+  unit: string;
+  borrowerDetail: string;
+  department: string;
+  timeBorrowed: string;
+  dateReturned: string;
+  timeReturned: string;
+  remarks: string;
+  damageMaterials?: string;
+  status: string;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -70,36 +56,40 @@ const Borrow = () => {
   const router = useRouter();
   const pathname = usePathname();
   const labSlug = pathname?.split("/")[2];
-  const [materials, setMaterials] = useState<Material[]>([]);
-  const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
+  const [borrows, setBorrows] = useState<Borrow[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentLogPage, setCurrentLogPage] = useState(1);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
-    null
-  );
-  const [logs, setLogs] = useState<Logs[]>([]);
+  const [selectedBorrow, setSelectedBorrow] = useState<Borrow | null>(null);
+  const [filteredBorrows, setFilteredBorrows] = useState<Borrow[]>([]);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchMaterials = async () => {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}borrow`
           );
           if (!response.ok) {
-            throw new Error("Failed to fetch materials");
+            throw new Error("Failed to fetch borrow forms");
           }
           const data = await response.json();
-          const biologicalMaterials = data.filter(
-            (material: Material) =>
-              material.category.shortName.toLowerCase() === "biological" &&
-              material.laboratory.labName.toLowerCase() === labSlug
+          const borrowedMaterials = data.filter(
+            (borrow: Borrow) => borrow.department.toLowerCase() === labSlug
           );
-          setMaterials(biologicalMaterials);
-          setFilteredMaterials(biologicalMaterials);
+
+          const mappedBorrows = borrowedMaterials.map(
+            (borrow: BorrowSchema) => ({
+              ...borrow,
+              user: `${borrow.user.firstName} ${
+                borrow.user.middleName ? borrow.user.middleName + " " : ""
+              }${borrow.user.lastName}`,
+            })
+          );
+
+          setBorrows(mappedBorrows);
+          setFilteredBorrows(mappedBorrows);
         } catch (error) {
           console.error("Error fetching materials:", error);
         }
@@ -109,41 +99,21 @@ const Borrow = () => {
     }
   }, [labSlug, isEditDialogOpen]);
 
-  const fetchInventoryLogs = async (materialId: number) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}inventory-log/logs/${materialId}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch inventory logs");
-      }
-      const data = await response.json();
-      console.log(data);
-      setLogs(data);
-    } catch (error) {
-      console.error("Error fetching inventory logs:", error);
-    }
-  };
-
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearch(query);
-    setFilteredMaterials(
-      materials.filter((material) => {
-        const combinedString = `${material.itemName} ${material.itemCode} ${material.category.subcategory1} ${material.location} ${material.supplier.companyName}`;
+    setFilteredBorrows(
+      borrows.filter((borrow) => {
+        const combinedString = `${borrow.status} ${borrow.material.itemName} ${borrow.user}`;
         return combinedString.toLowerCase().includes(query);
       })
     );
     setCurrentPage(1);
   };
 
-  const paginatedMaterials = filteredMaterials.slice(
+  const paginatedMaterials = filteredBorrows.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
-  );
-  const paginatedLogs = logs.slice(
-    (currentLogPage - 1) * ITEMS_PER_PAGE,
-    currentLogPage * ITEMS_PER_PAGE
   );
 
   return (
@@ -154,7 +124,7 @@ const Borrow = () => {
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for a material"
+            placeholder="Search form"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -164,14 +134,25 @@ const Borrow = () => {
           </span>
           <Button
             className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
+              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
             )}
             onClick={() => {
               router.push("/borrow-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Add Material
+            Borrow Material
+          </Button>
+          <Button
+            className={cn(
+              `bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2`
+            )}
+            onClick={() => {
+              router.push("/borrow-form");
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
           </Button>
         </div>
       </div>
@@ -184,80 +165,93 @@ const Borrow = () => {
               <TableHead>ID</TableHead>
               <TableHead>Item Name</TableHead>
               <TableHead>Item Code</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Min</TableHead>
-              <TableHead>Max</TableHead>
-              <TableHead>Excess</TableHead>
-              <TableHead>Expiration</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead>Notes</TableHead>
+              <TableHead>Quantity Borrowed</TableHead>
+              <TableHead>Borrower</TableHead>
+              <TableHead>Borrower Details</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Date Borrowed</TableHead>
+              <TableHead>Time Borrowed</TableHead>
+              <TableHead>Date Returned</TableHead>
+              <TableHead>Time Returned</TableHead>
+              <TableHead>Remarks</TableHead>
+              <TableHead>Damage Materials</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedMaterials.length > 0 ? (
-              paginatedMaterials.map((material) => (
-                <TableRow key={material.materialId}>
-                  <TableCell>{material.materialId}</TableCell>
-                  <TableCell>{material.itemName}</TableCell>
-                  <TableCell>{material.itemCode}</TableCell>
-                  <TableCell>{material.quantityAvailable}</TableCell>
-                  <TableCell>{material.unit}</TableCell>
-                  <TableCell>{material.reorderThreshold}</TableCell>
-                  <TableCell>{material.maxThreshold}</TableCell>
+              paginatedMaterials.map((borrow) => (
+                <TableRow key={borrow.borrowId}>
+                  <TableCell>{borrow.materialId}</TableCell>
+                  <TableCell>{borrow.material.itemName}</TableCell>
+                  <TableCell>{borrow.material.itemCode}</TableCell>
+                  <TableCell>{borrow.qty}</TableCell>
+                  <TableCell>{borrow.user}</TableCell>
+                  <TableCell>{borrow.borrowerDetail}</TableCell>
+                  <TableCell>{borrow.department}</TableCell>
+                  <TableCell>{borrow.timeBorrowed}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(material.expiryDate).toLocaleDateString("en-US", {
+                    {new Date(borrow.dateBorrowed).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "2-digit",
                       day: "2-digit",
                     })}
                   </TableCell>
-                  <TableCell>{material.category.subcategory1}</TableCell>
-                  <TableCell>{material.location}</TableCell>
-                  <TableCell>{material.supplier.companyName}</TableCell>
-                  <TableCell>{material.cost}</TableCell>
+                  <TableCell>
+                    {new Date(borrow.dateReturned).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>{borrow.timeReturned}</TableCell>
                   <TableCell className="relative max-w-8 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="cursor-pointer truncate">
-                          {material.notes}
+                          {borrow.remarks}
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{material.notes}</p>
+                        <p>{borrow.remarks}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TableCell>
+                  <TableCell className="relative max-w-8 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer truncate">
+                          {borrow.damageMaterials}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{borrow.damageMaterials}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>{borrow.status}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-md text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50"
-                      onClick={() => {
-                        setSelectedMaterial(material);
-                        fetchInventoryLogs(material.materialId);
-                        setIsHistoryDialogOpen(true);
-                      }}
-                    >
-                      <History className="w-4 h-4 -mr-1" /> Logs
-                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
                       onClick={() => {
-                        setSelectedMaterial(material);
+                        setSelectedBorrow(borrow);
                         setIsEditDialogOpen(true);
                       }}
                     >
                       <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-md text-black-600 hover:text-black-900 hover:bg-black-50"
+                      onClick={() => {
+                        setIsPrintDialogOpen(true);
+                      }}
+                    >
+                      <Printer className="w-4 h-4 -mr-1" /> Print
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -273,7 +267,7 @@ const Borrow = () => {
         </Table>
       </TooltipProvider>
       <CustomPagination
-        totalItems={filteredMaterials.length}
+        totalItems={filteredBorrows.length}
         itemsPerPage={ITEMS_PER_PAGE}
         currentPage={currentPage}
         onPageChange={(page) => setCurrentPage(page)}
@@ -288,99 +282,28 @@ const Borrow = () => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          {selectedMaterial && (
-            <EditInventory
-              materialId={selectedMaterial.materialId}
-              labId={selectedMaterial.labId}
-              category={selectedMaterial.categoryId}
-              personnel={0}
-              itemName={selectedMaterial.itemName}
-              itemCode={selectedMaterial.itemCode}
-              quantity={selectedMaterial.quantityAvailable.toString()}
-              unit={selectedMaterial.unit}
-              reorderThreshold={selectedMaterial.reorderThreshold.toString()}
-              maxThreshold={selectedMaterial.maxThreshold.toString()}
-              location={selectedMaterial.location}
-              expiryDate={selectedMaterial.expiryDate}
-              supplier={selectedMaterial.supplierId}
-              cost={selectedMaterial.cost.toString()}
-              notes={selectedMaterial.notes}
-              date={""}
-              closeDialog={() => setIsEditDialogOpen(false)}
-              shortName="Biological"
-            />
-          )}
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 h-auto max-w-1/2 w-2/3">
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <History className="text-yellow-600 size-5 -mt-0.5" />
-              Inventory Logs
+              <Printer className="text-black size-5 -mt-0.5" />
+              Print Borrow Form
             </DialogTitle>
-            <DialogDescription></DialogDescription>
           </DialogHeader>
-          <div className="p-2">
-            <Table className="items-center justify-center w-full overflow-x-auto">
-              <TableHeader className="text-center justify-center bg-teal-50">
-                <TableRow>
-                  <TableHead>Log ID</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Remarks</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedLogs.length > 0 ? (
-                  paginatedLogs.map((log) => (
-                    <TableRow className="bg-white" key={log.inventoryLogId}>
-                      <TableCell>{log.inventoryLogId}</TableCell>
-                      <TableCell>{`${log.user.firstName} ${log.user.lastName}`}</TableCell>
-                      <TableCell>
-                        {new Date(log.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })}
-                      </TableCell>
-                      <TableCell>{log.quantity}</TableCell>
-                      <TableCell>{log.source || "N/A"}</TableCell>
-                      <TableCell>{log.remarks || "N/A"}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center text-gray-500"
-                    >
-                      No logs found for this material.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <CustomPagination
-              totalItems={logs.length}
-              itemsPerPage={ITEMS_PER_PAGE}
-              currentPage={currentLogPage}
-              onPageChange={(page) => setCurrentLogPage(page)}
-            />
-          </div>
-          <div className="flex justify-end">
+          <p className="text-left pt-2 text-sm">
+            Are you sure you want to print this form?
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => {
-                setIsHistoryDialogOpen(false);
-              }}
+              onClick={() => setIsPrintDialogOpen(false)}
             >
-              Close
+              Cancel
             </Button>
+            <Button onClick={() => setIsPrintDialogOpen(false)}>Confirm</Button>
           </div>
         </DialogContent>
       </Dialog>

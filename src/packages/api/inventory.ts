@@ -37,5 +37,27 @@ export const inventoryLogSchema = z.object({
   remarks: z.string().optional(),
 });
 
+export const borrowSchema = z.object({
+  borrowId: z.number().optional(),
+  userId: z.number(),
+  user: userSchema,
+  materialId: z.number(),
+  material: materialSchema.optional(),
+  dateBorrowed: z.string().optional(),
+  detailsOfBorrowed: z.string().optional(),
+  equipment: z.string().optional(),
+  qty: z.number().optional(),
+  unit: z.string().optional(),
+  borrowerDetail: z.string().optional(),
+  department: z.string().optional(),
+  timeBorrowed: z.string().optional(),
+  dateReturned: z.string().optional(),
+  timeReturned: z.string().optional(),
+  remarks: z.string().optional(),
+  damageMaterials: z.string().optional(),
+  status: z.string().optional(),
+});
+
+export type BorrowSchema = z.infer<typeof borrowSchema>;
 export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
 export type MaterialSchema = z.infer<typeof materialSchema>;
