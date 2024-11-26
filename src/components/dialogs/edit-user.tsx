@@ -26,8 +26,6 @@ interface EditProps {
 
 const EditAccount: React.FC<EditProps> = ({ closeDialog }) => {
   const currentUserId = localStorage.getItem("authToken");
-  const [user, setUser] = useState<AccountDetails[]>([]);
-
   const form = useForm<AccountDetails>({
     defaultValues: {
       email: "",
@@ -97,8 +95,6 @@ const EditAccount: React.FC<EditProps> = ({ closeDialog }) => {
           firstName: userData.firstName,
           middleName: userData.middleName || "",
         });
-
-        setUser(userData);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -215,6 +211,7 @@ const EditAccount: React.FC<EditProps> = ({ closeDialog }) => {
           </div>
           <div className="flex justify-end gap-2 pt-6">
             <Button
+              type="button"
               variant="ghost"
               className="bg-gray-100"
               onClick={closeDialog}

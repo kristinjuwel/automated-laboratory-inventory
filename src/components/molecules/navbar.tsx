@@ -32,8 +32,8 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import ChangePassword from "./change-password";
-import EditAccount from "./edit-user";
+import ChangePassword from "../dialogs/change-password";
+import EditAccount from "../dialogs/edit-user";
 
 const Navbar = () => {
   const router = useRouter();

@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, EyeOff } from "lucide-react";
-import OTPVerification from "@/components/molecules/verification";
+import OTPVerification from "@/components/dialogs/verification";
 import { cn } from "@/lib/utils";
 
 interface RegisterFormValues {

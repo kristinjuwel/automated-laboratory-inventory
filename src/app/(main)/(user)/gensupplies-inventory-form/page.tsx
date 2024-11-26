@@ -54,9 +54,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import AddSupplier from "@/components/molecules/supplier";
+import AddSupplier from "@/components/dialogs/supplier";
 import { Category, Supplier } from "@/packages/api/lab";
-import AddCategory from "@/components/molecules/category";
+import AddCategory from "@/components/dialogs/category";
 import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 
