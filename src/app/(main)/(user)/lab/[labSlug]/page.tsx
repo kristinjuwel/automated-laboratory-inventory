@@ -22,8 +22,8 @@ import {
   FileMinus,
   FlaskConicalOff,
 } from "lucide-react";
-import { useState } from "react";
-import { usePathname } from "next/navigation"; // Import usePathname to get the current path
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Incident from "@/components/molecules/incident";
 import Borrow from "@/components/molecules/borrow";
 import StockLevel from "@/components/molecules/stock-level";
@@ -31,8 +31,19 @@ import StockLevel from "@/components/molecules/stock-level";
 const DashboardPage = () => {
   const pathname = usePathname();
   const labSlug = pathname?.split("/")[2];
+  const savedInventoryTab = localStorage.getItem("activeInventoryTab");
+  const savedActiveTab = localStorage.getItem("activeTab");
 
-  const [activeInventoryTab, setActiveInventoryTab] = useState("biological");
+  const [activeInventoryTab, setActiveInventoryTab] = useState(
+    savedInventoryTab || "biological"
+  );
+  const [activeTab, setActiveTab] = useState(savedActiveTab || "inventory");
+
+  useEffect(() => {
+    localStorage.setItem("activeInventoryTab", activeInventoryTab);
+    localStorage.setItem("activeTab", activeTab);
+  }, [labSlug, activeInventoryTab, activeTab]);
+
   const getIconByLab = (labSlug: string) => {
     switch (labSlug) {
       case "pathology":
@@ -59,6 +70,7 @@ const DashboardPage = () => {
         );
     }
   };
+
   return (
     <div className="h-full w-full max-w-screen flex">
       <div className="flex-grow">
@@ -70,12 +82,14 @@ const DashboardPage = () => {
         </div>
 
         <Tabs
-          defaultValue="inventory"
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value)}
           className="rounded-xl overflow-auto max-w-screen bg-white border-2 border-teal-100 lg:w-[1445px] max-w-[1445px] place-self-center"
         >
           <TabsList className="flex justify-around bg-teal-50 text-black rounded-b-none py-6">
             <TabsTrigger
               value="inventory"
+              onClick={() => setActiveTab("inventory")}
               className="flex items-center space-x-2"
             >
               <Package size={20} />
@@ -83,6 +97,7 @@ const DashboardPage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="purchaseOrder"
+              onClick={() => setActiveTab("purchaseOrder")}
               className="flex items-center space-x-2"
             >
               <ShoppingBag size={20} />
@@ -90,17 +105,23 @@ const DashboardPage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="stockLevel"
+              onClick={() => setActiveTab("stockLevel")}
               className="flex items-center space-x-2"
             >
               <FileMinus size={20} />
               <span className="font-medium">Stock Level</span>
             </TabsTrigger>
-            <TabsTrigger value="borrow" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="borrow"
+              onClick={() => setActiveTab("borrow")}
+              className="flex items-center space-x-2"
+            >
               <FileMinus size={20} />
               <span className="font-medium">Borrow Forms</span>
             </TabsTrigger>
             <TabsTrigger
               value="incident"
+              onClick={() => setActiveTab("incident")}
               className="flex items-center space-x-2"
             >
               <FlaskConicalOff size={20} />
@@ -108,6 +129,7 @@ const DashboardPage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="disposition"
+              onClick={() => setActiveTab("disposition")}
               className="flex items-center space-x-2"
             >
               <LogOut size={20} />
@@ -115,6 +137,7 @@ const DashboardPage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="calibrationLogs"
+              onClick={() => setActiveTab("calibrationLogs")}
               className="flex items-center space-x-2"
             >
               <Sliders size={20} />
@@ -122,6 +145,7 @@ const DashboardPage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="reagentsDispense"
+              onClick={() => setActiveTab("reagentsDispense")}
               className="flex items-center space-x-2"
             >
               <Thermometer size={20} />
@@ -130,7 +154,7 @@ const DashboardPage = () => {
           </TabsList>
 
           <TabsContent value="inventory">
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-hidden">
               <div className="w-1/12 border-teal-100 border-r-2 px-4">
                 <ul className="space-y-2 py-4">
                   <li
@@ -191,7 +215,7 @@ const DashboardPage = () => {
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="purchaseOrder" className="h-full">
+          <TabsContent value="purchaseOrder">
             <PurchaseOrder />
           </TabsContent>
           <TabsContent value="stockLevel">

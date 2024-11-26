@@ -251,7 +251,7 @@ const GeneralSupplies = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={14} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

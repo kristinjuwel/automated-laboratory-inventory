@@ -261,7 +261,7 @@ const Biological = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={15} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
