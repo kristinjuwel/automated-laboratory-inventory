@@ -7,12 +7,10 @@ import GeneralSupplies from "@/components/molecules/general";
 import PurchaseOrder from "@/components/molecules/purchase-order";
 import Reagent from "@/components/molecules/reagent";
 import ReagentDispense from "@/components/molecules/reagent-dispense";
-import StockLevel from "@/components/molecules/stock-level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   Package,
-  Box,
   ShoppingBag,
   Sliders,
   Thermometer,
@@ -21,9 +19,13 @@ import {
   Syringe,
   Dna,
   Microscope,
+  FileMinus,
+  FlaskConicalOff,
 } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation"; // Import usePathname to get the current path
+import Incident from "@/components/molecules/incident";
+import Borrow from "@/components/molecules/borrow";
 
 const DashboardPage = () => {
   const pathname = usePathname();
@@ -85,12 +87,16 @@ const DashboardPage = () => {
               <ShoppingBag size={20} />
               <span className="font-medium">Purchase Order</span>
             </TabsTrigger>
+            <TabsTrigger value="borrow" className="flex items-center space-x-2">
+              <FileMinus size={20} />
+              <span className="font-medium">Borrow Forms</span>
+            </TabsTrigger>
             <TabsTrigger
-              value="stockLevel"
+              value="incident"
               className="flex items-center space-x-2"
             >
-              <Box size={20} />
-              <span className="font-medium">Stock Level</span>
+              <FlaskConicalOff size={20} />
+              <span className="font-medium">Incident Forms</span>
             </TabsTrigger>
             <TabsTrigger
               value="disposition"
@@ -180,8 +186,11 @@ const DashboardPage = () => {
           <TabsContent value="purchaseOrder" className="h-full">
             <PurchaseOrder />
           </TabsContent>
-          <TabsContent value="stockLevel">
-            <StockLevel />
+          <TabsContent value="borrow">
+            <Borrow />
+          </TabsContent>
+          <TabsContent value="incident">
+            <Incident />
           </TabsContent>
           <TabsContent value="disposition">
             <Disposition />
