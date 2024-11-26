@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -165,9 +164,7 @@ const Reagent = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
-            )}
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
             onClick={() => {
               router.push("/reagents-inventory-form");
             }}

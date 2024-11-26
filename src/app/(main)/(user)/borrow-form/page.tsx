@@ -36,6 +36,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UserSchema } from "@/packages/api/user";
 import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BorrowFormValues {
   dateBorrowed: string;
@@ -51,6 +58,7 @@ interface BorrowFormValues {
   timeReturned: string;
   remarks: string;
   damageMaterials: string;
+  status: string;
 }
 
 const BorrowForm = () => {
@@ -157,6 +165,7 @@ const BorrowForm = () => {
     timeReturned: "",
     remarks: "",
     damageMaterials: "",
+    status: "Borrowed",
   };
 
   const form = useForm<BorrowFormValues>({
@@ -319,7 +328,7 @@ const BorrowForm = () => {
                   )}
                 />
               </div>
-              <div className="grid grid-cols1 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="materialId"
                   render={({ field }) => (
@@ -390,6 +399,29 @@ const BorrowForm = () => {
                             </Command>
                           </PopoverContent>
                         </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select status..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Borrowed">Borrowed</SelectItem>
+                            <SelectItem value="Returned">Returned</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -558,7 +590,7 @@ const BorrowForm = () => {
                       <FormControl>
                         <Input
                           value={
-                            selectedUserId
+                            selectedMaterialId
                               ? users.find(
                                   (user) => user.userId === selectedUserId
                                 )?.laboratory || ""

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, History, Printer } from "lucide-react";
+import { Edit, Search, FilePlus, Printer, SquarePen } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,14 @@ import {
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
 import { BorrowSchema } from "@/packages/api/inventory";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import EditBorrow from "../dialogs/borrow-edit";
 
 interface Borrow {
   borrowId: number;
@@ -46,7 +54,7 @@ interface Borrow {
   dateReturned: string;
   timeReturned: string;
   remarks: string;
-  damageMaterials?: string;
+  damageMaterials: string;
   status: string;
 }
 
@@ -63,6 +71,8 @@ const Borrow = () => {
   const [selectedBorrow, setSelectedBorrow] = useState<Borrow | null>(null);
   const [filteredBorrows, setFilteredBorrows] = useState<Borrow[]>([]);
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -116,11 +126,49 @@ const Borrow = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const handleReturn = async () => {
+    if (selectedBorrow) {
+      try {
+        const currentDate = new Date();
+        const dateString = currentDate.toISOString().split("T")[0];
+        const timeString = currentDate.toTimeString().split(" ")[0];
+        const bodyData = {
+          status: status,
+          dateReturned:
+            status === "Returned" ? dateString : selectedBorrow.dateReturned,
+          timeReturned:
+            status === "Returned" ? timeString : selectedBorrow.timeReturned,
+        };
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}borrow/${selectedBorrow.borrowId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(bodyData),
+          }
+        );
+
+        if (response.ok) {
+          toast.success("Status updated successfully!");
+          window.location.reload();
+        } else {
+          throw new Error("Failed to change status");
+        }
+      } catch (error) {
+        toast.error("Failed to update status");
+      }
+    }
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
         Borrow Forms
       </h1>
+      <Toaster />
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
@@ -188,14 +236,33 @@ const Borrow = () => {
                   <TableCell>{borrow.material.itemCode}</TableCell>
                   <TableCell>{borrow.qty}</TableCell>
                   <TableCell>{borrow.user}</TableCell>
-                  <TableCell>{borrow.borrowerDetail}</TableCell>
+                  <TableCell className="relative max-w-8 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer truncate">
+                          {borrow.borrowerDetail}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{borrow.borrowerDetail}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
                   <TableCell>{borrow.department}</TableCell>
-                  <TableCell>{borrow.timeBorrowed}</TableCell>
                   <TableCell>
                     {new Date(borrow.dateBorrowed).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "2-digit",
                       day: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(
+                      `1970-01-01T${borrow.timeBorrowed}`
+                    ).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
                     })}
                   </TableCell>
                   <TableCell>
@@ -205,7 +272,15 @@ const Borrow = () => {
                       day: "2-digit",
                     })}
                   </TableCell>
-                  <TableCell>{borrow.timeReturned}</TableCell>
+                  <TableCell>
+                    {new Date(
+                      `1970-01-01T${borrow.timeReturned}`
+                    ).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </TableCell>
                   <TableCell className="relative max-w-8 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -230,19 +305,52 @@ const Borrow = () => {
                       </TooltipContent>
                     </Tooltip>
                   </TableCell>
-                  <TableCell>{borrow.status}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
-                      onClick={() => {
-                        setSelectedBorrow(borrow);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                    </Button>
+                    {borrow.status === "Returned" ? (
+                      <div className="w-full px-4 py-2 rounded-md bg-green-300 font-semibold text-green-950">
+                        Returned
+                      </div>
+                    ) : (
+                      <Select
+                        disabled={borrow.status === "Returned"}
+                        value={borrow.status}
+                        onValueChange={(newStatus) => {
+                          setSelectedBorrow(borrow);
+                          setStatus(newStatus);
+                          setIsReturnDialogOpen(true);
+                        }}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "w-full",
+                            borrow.status === "Borrowed"
+                              ? "bg-red-300 text-red-950"
+                              : "bg-emerald-300 text-emerald-950"
+                          )}
+                        >
+                          <SelectValue placeholder="Select status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Borrowed">Borrowed</SelectItem>
+                          <SelectItem value="Returned">Returned</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {borrow.status !== "Returned" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-emerald-50"
+                        onClick={() => {
+                          setSelectedBorrow(borrow);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -278,10 +386,30 @@ const Borrow = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               <Edit className="text-teal-500 size-5 -mt-0.5" />
-              Edit Material
+              Edit Borrow Form
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
+          {selectedBorrow && (
+            <EditBorrow
+              closeDialog={() => setIsEditDialogOpen(false)}
+              borrowId={selectedBorrow.borrowId}
+              dateBorrowed={selectedBorrow.dateBorrowed}
+              materialId={selectedBorrow.materialId}
+              detailsOfBorrowed={selectedBorrow.detailsOfBorrowed}
+              qty={selectedBorrow.qty}
+              unit={selectedBorrow.unit}
+              userId={selectedBorrow.userId}
+              borrowerDetail={selectedBorrow.borrowerDetail}
+              department={selectedBorrow.department}
+              timeBorrowed={selectedBorrow.timeBorrowed}
+              dateReturned={selectedBorrow.dateReturned}
+              timeReturned={selectedBorrow.timeReturned}
+              remarks={selectedBorrow.remarks}
+              damageMaterials={selectedBorrow.damageMaterials}
+              status={selectedBorrow.status}
+            />
+          )}
         </DialogContent>
       </Dialog>
       <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
@@ -304,6 +432,37 @@ const Borrow = () => {
               Cancel
             </Button>
             <Button onClick={() => setIsPrintDialogOpen(false)}>Confirm</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <SquarePen className="text-emerald-600 size-5 -mt-0.5" />
+              Change Status
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-left pt-2 text-sm">
+            Are you sure this item has been returned?
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setIsReturnDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setIsReturnDialogOpen(false);
+                handleReturn();
+              }}
+              className="bg-emerald-500 hover:bg-emerald-700 text-white justify-center transition-colors duration-300 ease-in-out"
+            >
+              Confirm
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
