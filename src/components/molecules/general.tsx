@@ -204,8 +204,12 @@ const GeneralSupplies = () => {
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
+                    {Math.max(
+                      0,
+                      material.quantityAvailable - material.maxThreshold
+                    )}
                   </TableCell>
+
                   <TableCell>{material.category.subcategory1}</TableCell>
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>

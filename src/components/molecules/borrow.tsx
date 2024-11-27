@@ -181,9 +181,7 @@ const Borrow = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-            )}
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
               router.push("/borrow-form");
             }}
@@ -192,11 +190,9 @@ const Borrow = () => {
             Borrow Material
           </Button>
           <Button
-            className={cn(
-              `bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2`
-            )}
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
             onClick={() => {
-              router.push("/borrow-form");
+              setIsPrintDialogOpen(true);
             }}
           >
             <Printer className="w-4 h-4" strokeWidth={1.5} />
@@ -419,6 +415,7 @@ const Borrow = () => {
               <Printer className="text-black size-5 -mt-0.5" />
               Print Borrow Form
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure you want to print this form?
@@ -442,6 +439,7 @@ const Borrow = () => {
               <SquarePen className="text-emerald-600 size-5 -mt-0.5" />
               Change Status
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure this item has been returned?
