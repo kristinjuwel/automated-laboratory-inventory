@@ -58,6 +58,22 @@ export const borrowSchema = z.object({
   status: z.string().optional(),
 });
 
+export const dispositionSchema = z.object({
+  dispositionId: z.number().optional(),
+  userId: z.number(),
+  user: userSchema,
+  materialId: z.number(),
+  material: materialSchema,
+  itemDescription: z.string().optional(),
+  qty: z.number().optional(),
+  reasonForDisposal: z.string().optional(),
+  disposalMethod: z.string().optional(),
+  disposedBy: z.string().optional(),
+  dateDisposed: z.string().optional(),
+  comments: z.string().optional(),
+});
+
+export type DispositionSchema = z.infer<typeof dispositionSchema>;
 export type BorrowSchema = z.infer<typeof borrowSchema>;
 export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
 export type MaterialSchema = z.infer<typeof materialSchema>;

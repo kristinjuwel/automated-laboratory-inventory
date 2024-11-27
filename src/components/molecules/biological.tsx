@@ -207,7 +207,10 @@ const Biological = () => {
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
+                    {Math.max(
+                      0,
+                      material.quantityAvailable - material.maxThreshold
+                    )}
                   </TableCell>
                   <TableCell>
                     {new Date(material.expiryDate).toLocaleDateString("en-US", {
