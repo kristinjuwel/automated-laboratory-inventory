@@ -35,6 +35,7 @@ import {
 import { UserSchema } from "@/packages/api/user";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface DispositionReportValues {
   userId: number;
@@ -49,6 +50,7 @@ interface DispositionReportValues {
 }
 
 const DispositionReportForm = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [openMaterial, setOpenMaterial] = useState(false);
   const userRole = localStorage.getItem("userRole");
@@ -67,6 +69,7 @@ const DispositionReportForm = () => {
       materialId: number;
       itemName: string;
       quantityAvailable: number;
+      laboratory: string;
     }[]
   >([]);
   const [quantity, setQuantity] = useState<number>(0);
@@ -106,13 +109,29 @@ const DispositionReportForm = () => {
         ? users.find((user) => user.userId === selectedUserId)?.fullName || ""
         : "",
     };
-
+    const laboratory = selectedMaterialId
+      ? materials.find((material) => material.materialId === selectedMaterialId)
+          ?.laboratory || ""
+      : "";
     try {
-      console.log("Submitted Values:", parsedValues);
-      toast.success("Submission successful!");
-      form.reset();
+      const dispositionResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}disposal/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(parsedValues),
+        }
+      );
+
+      if (!dispositionResponse.ok) {
+        throw new Error("Failed to file disposition report!");
+      }
+
+      toast.success("Disposition report filed successfully!");
+      router.push(`lab/${laboratory}`);
     } catch (error) {
-      console.error("Error submitting form:", error);
       toast.error("Submission failed. Please try again.");
     }
   };
@@ -129,6 +148,7 @@ const DispositionReportForm = () => {
           materialId: material.materialId ?? 0,
           itemName: material.itemName,
           quantityAvailable: material.quantityAvailable ?? 0,
+          laboratory: material.laboratory.labName,
         }));
 
         setMaterials(mappedMaterials);
