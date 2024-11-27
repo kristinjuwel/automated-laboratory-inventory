@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,36 +16,95 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
+import { Textarea } from "@/components/ui/textarea";
+import { MaterialSchema } from "@/packages/api/inventory";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { UserSchema } from "@/packages/api/user";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface DispositionReportValues {
-  description: string;
-  quantity: number;
-  reason: string;
-  method: string;
-  date: string;
-  dispositionedBy: string;
+  userId: number;
+  materialId: number;
+  itemDescription: string;
+  qty: number;
+  reasonForDisposal: string;
+  disposalMethod: string;
+  dateDisposed: string;
+  disposedBy: string;
   comments: string;
-  personnel: number;
 }
 
 const DispositionReportForm = () => {
+  const [open, setOpen] = useState(false);
+  const [openMaterial, setOpenMaterial] = useState(false);
+  const userRole = localStorage.getItem("userRole");
+  const currentUserId = localStorage.getItem("authToken");
+  const [users, setUsers] = useState<
+    { userId: number; fullName: string; laboratory: string }[]
+  >([]);
+  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+    currentUserId ? Number(currentUserId) : null
+  );
+  const [selectedMaterialId, setSelectedMaterialId] = React.useState<
+    number | null
+  >(null);
+  const [materials, setMaterials] = useState<
+    {
+      materialId: number;
+      itemName: string;
+      quantityAvailable: number;
+    }[]
+  >([]);
+  const [quantity, setQuantity] = useState<number>(0);
+  const getMaxQuantity = (): number => {
+    if (!selectedMaterialId) return 0;
+    const material = materials.find(
+      (material) => material.materialId === selectedMaterialId
+    );
+    return material ? material.quantityAvailable : 0;
+  };
+
+  const maxQuantity = getMaxQuantity();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.min(Number(e.target.value), maxQuantity);
+    setQuantity(value);
+  };
   const form = useForm<DispositionReportValues>({
     defaultValues: {
-      description: "",
-      quantity: undefined,
-      reason: "",
-      method: "",
-      date: "",
-      dispositionedBy: "",
+      userId: selectedUserId ?? Number(currentUserId),
+      materialId: selectedMaterialId ?? 1,
+      itemDescription: "",
+      qty: quantity,
+      reasonForDisposal: "",
+      disposalMethod: "",
+      dateDisposed: "",
+      disposedBy: "",
       comments: "",
-      personnel: undefined,
     },
   });
 
   const handleSubmit = async (values: DispositionReportValues) => {
     const parsedValues = {
       ...values,
-      quantity: Number(values.quantity),
+      qty: quantity,
+      dateDisposed: format(new Date(values.dateDisposed), "yyyy-MM-dd"),
+      disposedBy: selectedUserId
+        ? users.find((user) => user.userId === selectedUserId)?.fullName || ""
+        : "",
     };
 
     try {
@@ -57,7 +116,71 @@ const DispositionReportForm = () => {
       toast.error("Submission failed. Please try again.");
     }
   };
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+        );
+        if (!response.ok) throw new Error("Failed to fetch materials");
 
+        const data: MaterialSchema[] = await response.json();
+        const mappedMaterials = data.map((material) => ({
+          materialId: material.materialId ?? 0,
+          itemName: material.itemName,
+          quantityAvailable: material.quantityAvailable ?? 0,
+        }));
+
+        setMaterials(mappedMaterials);
+      } catch (error) {
+        console.error("Error fetching materials:", error);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}all-users`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        const data: UserSchema[] = await response.json();
+        const filteredData = (() => {
+          if (userRole === "admin") {
+            return data.filter(
+              (user) =>
+                user.designation !== "admin" &&
+                user.designation !== "superadmin"
+            );
+          } else if (userRole === "superadmin") {
+            return data;
+          } else {
+            return data.filter(
+              (user) => user.userId.toString() === currentUserId
+            );
+          }
+        })();
+
+        const mappedUsers = filteredData.map((user) => ({
+          userId: user.userId,
+          fullName: `${user.firstName} ${
+            user.middleName ? user.middleName + " " : ""
+          }${user.lastName}`,
+          laboratory: user.laboratory.labName,
+        }));
+
+        setUsers(mappedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchAllUsers();
+  }, [currentUserId, userRole]);
   return (
     <div className="flex justify-center bg-gray-100">
       <Card className="md:my-3 pt-8 px-8 pb-4 lg:w-3/5 md:w-4/5 w-full h-full md:h-[610px] md:shadow-lg md:rounded-lg rounded-none">
@@ -94,7 +217,7 @@ const DispositionReportForm = () => {
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
-                  name="date"
+                  name="dateDisposed"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Disposition Date</FormLabel>
@@ -109,16 +232,68 @@ const DispositionReportForm = () => {
                   )}
                 />
                 <FormField
-                  name="dispositionedBy"
+                  name="userId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Dispositioned By</FormLabel>
+                      <FormLabel>Disposed By</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Name"
-                          {...field}
-                          className="w-full"
-                        />
+                        <Popover open={open} onOpenChange={setOpen}>
+                          <PopoverTrigger
+                            asChild
+                            className={cn(
+                              selectedUserId === null
+                                ? "text-gray-500"
+                                : "text-black"
+                            )}
+                          >
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {selectedUserId
+                                ? users.find(
+                                    (user) => user.userId === selectedUserId
+                                  )?.fullName
+                                : "Select personnel..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search personnel..." />
+                              <CommandList>
+                                <CommandEmpty>No personnel found.</CommandEmpty>
+                                <CommandGroup>
+                                  {users.map((user) => (
+                                    <CommandItem
+                                      key={user.fullName}
+                                      value={user.fullName.toString()}
+                                      onSelect={() => {
+                                        setSelectedUserId(
+                                          selectedUserId === user.userId
+                                            ? null
+                                            : user.userId
+                                        );
+                                        field.onChange(user.userId);
+                                        setOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={
+                                          selectedUserId === user.userId
+                                            ? "mr-2 h-4 w-4 opacity-100"
+                                            : "mr-2 h-4 w-4 opacity-0"
+                                        }
+                                      />
+                                      {user.fullName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -126,24 +301,82 @@ const DispositionReportForm = () => {
                 />
 
                 <FormField
-                  name="material"
+                  name="materialId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Material</FormLabel>
+                      <FormLabel>Item</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Material"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
+                        <Popover
+                          open={openMaterial}
+                          onOpenChange={setOpenMaterial}
+                        >
+                          <PopoverTrigger
+                            asChild
+                            className={cn(
+                              selectedMaterialId === null
+                                ? "text-gray-500"
+                                : "text-black"
+                            )}
+                          >
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {selectedMaterialId
+                                ? materials.find(
+                                    (material) =>
+                                      material.materialId === selectedMaterialId
+                                  )?.itemName
+                                : "Select equipment..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="flex p-0">
+                            <Command>
+                              <CommandInput placeholder="Search equipment..." />
+                              <CommandList>
+                                <CommandEmpty>No item found.</CommandEmpty>
+                                <CommandGroup>
+                                  <div className="max-h-36 overflow-y-auto">
+                                    {materials.map((material) => (
+                                      <CommandItem
+                                        key={material.materialId}
+                                        value={material.itemName}
+                                        onSelect={() => {
+                                          setSelectedMaterialId(
+                                            selectedMaterialId ===
+                                              material.materialId
+                                              ? null
+                                              : material.materialId
+                                          );
+                                          field.onChange(material.materialId);
+                                        }}
+                                      >
+                                        <Check
+                                          className={
+                                            selectedMaterialId ===
+                                            material.materialId
+                                              ? "mr-2 h-4 w-4 opacity-100"
+                                              : "mr-2 h-4 w-4 opacity-0"
+                                          }
+                                        />
+                                        {material.itemName}
+                                      </CommandItem>
+                                    ))}
+                                  </div>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
-                  name="quantity"
+                  name="qty"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Quantity</FormLabel>
@@ -152,8 +385,12 @@ const DispositionReportForm = () => {
                           type="number"
                           placeholder="Quantity"
                           {...field}
+                          value={quantity}
                           required
                           className="w-full"
+                          max={maxQuantity}
+                          min={0}
+                          onChange={handleInputChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -161,12 +398,12 @@ const DispositionReportForm = () => {
                   )}
                 />
                 <FormField
-                  name="description"
+                  name="itemDescription"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>Item Description</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           placeholder="Item Description"
                           {...field}
                           required
@@ -178,12 +415,12 @@ const DispositionReportForm = () => {
                   )}
                 />
                 <FormField
-                  name="reason"
+                  name="reasonForDisposal"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Reason for Disposition</FormLabel>
+                      <FormLabel>Reason for Disposal</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           placeholder="Why it was disposed..."
                           {...field}
                           required
@@ -196,12 +433,12 @@ const DispositionReportForm = () => {
                 />
 
                 <FormField
-                  name="method"
+                  name="disposalMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Disposition Method</FormLabel>
+                      <FormLabel>Disposal Method</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           placeholder="How it was disposed?"
                           {...field}
                           required
@@ -218,7 +455,7 @@ const DispositionReportForm = () => {
                     <FormItem>
                       <FormLabel>Comments</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           placeholder="Any relevant information..."
                           {...field}
                           className="w-full"
