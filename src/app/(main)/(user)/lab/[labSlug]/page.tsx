@@ -72,7 +72,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="h-full w-full max-w-screen flex">
+    <div className="h-full w-full max-w-screen overflow-auto flex">
       <div className="flex-grow">
         <div className="flex items-center justify-center mb-8 pt-8">
           {getIconByLab(labSlug)}

@@ -11,6 +11,8 @@ import {
   RotateCw,
   UserPen,
   UserCog,
+  Menu,
+  X
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -42,6 +44,10 @@ const Navbar = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const userRole = localStorage.getItem("userRole");
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen(!menuOpen);
+
   const logoutUser = () => {
     const token = localStorage.getItem("authToken");
 
@@ -72,7 +78,7 @@ const Navbar = () => {
 
   return (
     <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50">
-      <div className="flex items-center px-2 space-x-1">
+      <div className="flex items-center px-2 space-x-2">
         <Image
           src="/images/logo.png"
           alt="Logo"
@@ -126,8 +132,11 @@ const Navbar = () => {
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
+
+      
+
       <div className="flex mr-1">
-        <div className="relative flex items-center max-w-xs mr-4">
+        <div className="relative hidden md:flex items-center max-w-xs">
           <Input
             type="text"
             placeholder="Search..."
@@ -140,6 +149,68 @@ const Navbar = () => {
             <Search className="w-4 h-4" />
           </button>
         </div>
+        <Popover>
+          <PopoverTrigger className="md:hidden p-2 text-teal-900 rounded-full transition">
+            <Menu className="w-6 h-6" />
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            side="right"
+            sideOffset={10}
+            className="bg-white shadow-lg rounded-md p-4"
+          >
+            <div className="relative p-4">
+              <Input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-5 pr-10 bg-white rounded-full shadow-sm focus:outline-none focus:ring-1 focus:ring-teal-600"
+              />
+              <button
+                className="absolute top-1/2 transform -translate-y-1/2 right-5 bg-teal-500 text-white p-2 rounded-full hover:bg-teal-600 transition"
+                aria-label="Search"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-col space-y-2 border-t border-teal-500">
+              <a
+                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                onClick={() => router.push("/lab/pathology")}
+              >
+                <Microscope className="w-5 h-5" />
+                Pathology
+              </a>
+              <a
+                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                onClick={() => router.push("/lab/immunology")}
+              >
+                <Syringe className="w-5 h-5" />
+                Immunology
+              </a>
+              <a
+                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                onClick={() => router.push("/lab/microbiology")}
+              >
+                <Dna className="w-5 h-5" />
+                Microbiology
+              </a>
+              <a
+                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                onClick={() => router.push("/lab/pathology")}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Purchase Order
+              </a>
+              <a
+                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                onClick={() => router.push("/lab/pathology")}
+              >
+                <Box className="w-5 h-5" />
+                Stock Level
+              </a>
+            </div>
+          </PopoverContent>
+        </Popover>
         <Popover>
           <PopoverTrigger className="flex items-center text-white p-0.5 transition">
             <UserRound className="w-6 h-6 text-teal-900 transition hover:scale-110" />
@@ -164,15 +235,13 @@ const Navbar = () => {
               Reset Password
             </a>
             {(userRole === "admin" || userRole === "superadmin") && (
-              <>
-                <a
-                  onClick={() => router.push("/admin-dashboard")}
-                  className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                >
-                  <UserCog className="size-5 -mt-0.5" />
-                  Manage Users
-                </a>
-              </>
+              <a
+                onClick={() => router.push("/admin-dashboard")}
+                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+              >
+                <UserCog className="size-5 -mt-0.5" />
+                Manage Users
+              </a>
             )}
             <a
               onClick={() => setIsLogoutDialogOpen(true)}
@@ -202,48 +271,13 @@ const Navbar = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
                 <UserPen className="text-teal-900 size-5 -mt-0.5" />
-                Edit Account Details
+                Edit Profile
               </DialogTitle>
               <DialogDescription />
             </DialogHeader>
             <EditAccount closeDialog={() => setShowEditDialog(false)} />
           </DialogContent>
         </Dialog>
-
-        <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
-          <DialogContent className="bg-white">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 tracking-tight">
-                <LogOut className="text-red-500 size-5 -mt-0.5" />
-                Confirm Logout
-              </DialogTitle>
-              <DialogDescription />
-            </DialogHeader>
-            <p className="text-left pt-2 text-sm">
-              Are you sure you want to log out of your account?
-            </p>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="ghost"
-                className="bg-gray-100"
-                onClick={() => setIsLogoutDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setIsLogoutDialogOpen(false);
-                  logoutUser();
-                }}
-              >
-                Confirm
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Toaster />
       </div>
     </div>
   );
