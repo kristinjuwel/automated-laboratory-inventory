@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -44,8 +45,7 @@ const LoginPage = () => {
       });
 
       if (response.ok) {
-        const data = await response.text(); // Get the response data
-
+        const data = await response.text();
         const userIdMatch = data.match(/userId:(\d+)/);
         const roleMatch = data.match(/role:(\w+)/);
 
@@ -53,14 +53,13 @@ const LoginPage = () => {
           const userId = userIdMatch[1];
           const role = roleMatch[1];
 
-          localStorage.setItem("authToken", userId); // Example of storing userId
-          localStorage.setItem("userRole", role); // Store the role
+          localStorage.setItem("authToken", userId);
+          localStorage.setItem("userRole", role);
 
-          // Check if role matches 'admin' or 'superadmin'
           if (role === "admin" || role === "superadmin") {
             router.push("/admin-dashboard");
           } else {
-            router.push("/lab/pathological");
+            router.push("/lab/pathology");
           }
           toast.success("Login successful!");
         }
@@ -96,35 +95,31 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex w-screen h-screen items-center justify-center bg-gray-100 overflow-x-hidden">
-      <Card className="lg:w-3/5 md:w-4/5 md:flex-row flex max-w-screen-2xl h-auto md:h-2/3 
-       shadow-lg rounded-3xl overflow-x-hidden overflow-y-auto">
-        <div className="hidden w-1/2  bg-teal-100 rounded-3xl rounded-r-none md:flex 
-         flex-col items-center overflow-hidden size-full">
-          <div className="flex flex-col items-center content-center size-full h-screen ">
+    <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
+      <Card className="lg:w-3/5 md:w-4/5 md:flex-row flex max-w-screen-2xl h-auto md:h-2/3 shadow-lg rounded-3xl">
+        <div className="hidden w-1/2 p-8 bg-teal-100 h-full rounded-3xl rounded-r-none md:flex flex-col items-center">
           <Image
             src="/images/logo.png"
             alt="Logo"
-            className="transition duration-500 hover:scale-105 mt-3 lg:h-48 lg:w-48 
-             max-h-min "
+            className="transition duration-500 hover:scale-105 mt-3"
             height={300}
             width={300}
           />
-          <h1 className="text-lg px-5 pt-2 text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105 ">
-            Automated Laboratory Inventory Management System
-          </h1>
-
-          <h3 className="text-center p-5 text-teal-950 max-lg:overflow-hidden invisible lg:visible">
-            Project ALIMS is designed for PGH Medical Research Laboratory 
-            of Pathology, Immunology, and Microbiology. Providing assistance 
-            with report generation and inventory management.
-          </h3>
-          </div>
-
-          
-
+          <Popover>
+            <PopoverTrigger className="flex items-center text-white p-0.5 transition">
+              <h1 className="text-base md:text-xl text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+                Automated Laboratory Inventory Management System
+              </h1>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64 md:w-80 lg:w-96 p-4 shadow-lg">
+            <p className="text-[10px] md:text-[12px] text-center antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+              Project ALIMS is designed for PGH Medical Research Laboratory of Pathology, Immunology, and Microbiology. Providing assistance with report generation and inventory management.
+            </p>
+            </PopoverContent>
+          </Popover>
         </div>
-        <div className="sm:w-full md:w-1/2 flex flex-col h-full p-12 rounded-3xl rounded-l-none">
+        
+        <div className="sm:w-full md:w-1/2 flex flex-col h-full p-12 rounded-3xl rounded-l-none overflow-auto	">
           <div className="flex flex-col md:hidden items-center justify-center">
             <Image
               src="/images/logo.png"
@@ -133,13 +128,21 @@ const LoginPage = () => {
               height={45}
               width={45}
             />
-            <h1 className="text-base md:text-xl text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
-              Automated Laboratory Inventory Management System
-            </h1>
+            
+            <Popover>
+              <PopoverTrigger className="flex items-center text-white p-0.5 transition">
+                <h1 className="text-base md:text-xl text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+                  Automated Laboratory Inventory Management System
+                </h1>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 md:w-96 lg:w-112 p-4 shadow-lg">
+              <p className="text-[10px] md:text-[12px] text-center antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105">
+                Project ALIMS is designed for PGH Medical Research Laboratory of Pathology, Immunology, and Microbiology. Providing assistance with report generation and inventory management.
+                  </p>
+              </PopoverContent>
+            </Popover>
           </div>
-          <h1 className="text-base md:text-xl font-bold text-teal-700 text-center pb-8">
-            Login
-          </h1>
+          <hr className="my-4 border-t-2 border-teal-700 md:hidden" />
           <Toaster />
 
           <label className="pb-2 text-base text-gray-500">Email Address</label>
@@ -240,7 +243,6 @@ const LoginPage = () => {
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
