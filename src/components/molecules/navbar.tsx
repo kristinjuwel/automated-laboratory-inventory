@@ -278,6 +278,40 @@ const Navbar = () => {
             <EditAccount closeDialog={() => setShowEditDialog(false)} />
           </DialogContent>
         </Dialog>
+        <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight">
+                <LogOut className="text-red-500 size-5 -mt-0.5" />
+                Confirm Logout
+              </DialogTitle>
+              <DialogDescription />
+            </DialogHeader>
+            <p className="text-left pt-2 text-sm">
+              Are you sure you want to log out of your account?
+            </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="ghost"
+                className="bg-gray-100"
+                onClick={() => setIsLogoutDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setIsLogoutDialogOpen(false);
+                  logoutUser();
+                }}
+              >
+                Confirm
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Toaster />
       </div>
     </div>
   );
