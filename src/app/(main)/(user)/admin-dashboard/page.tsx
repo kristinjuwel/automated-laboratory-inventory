@@ -201,71 +201,77 @@ const AdminView = () => {
   };
 
   return (
-    <div className="p-12 w-screen h-screen bg-white">
-      <h1 className="text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex-grow">
+    <div className="p-4 sm:p-8 md:p-12 w-full min-h-screen bg-white">
+      <h1 className="text-lg sm:text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center">
         MANAGE USERS
       </h1>
-      <div className="flex text-right justify-between items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search for a user"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
+      <div className="flex flex-col sm:flex-row justify-between items-center w-full space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+  {/* Search Section */}
+  <div className="relative w-full sm:w-auto flex-grow">
+    <Input
+      placeholder="Search for a user"
+      value={search}
+      onChange={handleSearch}
+      className="w-full pr-10"
+    />
+    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+      <Search className="size-5 text-gray-500" />
+    </span>
+  </div>
 
-          <Button
-            className={cn(
-              `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 ${
-                viewMode === "card" ? "hidden" : ""
-              }`
-            )}
-            onClick={() => {
-              setIsCreateDialogOpen(true);
-            }}
-          >
-            <UserPlus className="w-4 h-4" strokeWidth={1.5} />
-            Add User
-          </Button>
-        </div>
+  {/* Add User Button */}
+  <Button
+    className={cn(
+      `bg-teal-500 text-white w-full sm:w-36 rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center justify-center space-x-2 ${
+        viewMode === "card" ? "hidden" : ""
+      }`
+    )}
+    onClick={() => {
+      setIsCreateDialogOpen(true);
+    }}
+  >
+    <UserPlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
+    <span>Add User</span>
+  </Button>
 
-        <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
-          <button
-            className={cn(
-              `px-4 py-2 ${
-                viewMode === "table"
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700"
-              }`
-            )}
-            onClick={() => handleViewModeChange("table")}
-          >
-            <List className="w-4 h-4 inline-block mr-1" /> Table View
-          </button>
-          <button
-            className={cn(
-              `px-4 py-2 ${
-                viewMode === "card"
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700"
-              }`
-            )}
-            onClick={() => handleViewModeChange("card")}
-          >
-            <Grid className="w-4 h-4 justify-center inline-block mr-1 items-center" />{" "}
-            Card View
-          </button>
-        </div>
-      </div>
+  {/* View Mode Toggle */}
+  <div className="flex space-x-2 border border-gray-300 rounded-xl overflow-hidden">
+    <button
+      className={cn(
+        `px-4 py-2 flex items-center justify-center ${
+          viewMode === "table"
+            ? "bg-teal-600 text-white"
+            : "bg-white text-gray-700"
+        }`
+      )}
+      onClick={() => handleViewModeChange("table")}
+    >
+      <List className="w-4 h-4 inline-block mr-1" />
+      <span>Table View</span>
+    </button>
+    <button
+      className={cn(
+        `px-4 py-2 flex items-center justify-center ${
+          viewMode === "card"
+            ? "bg-teal-600 text-white"
+            : "bg-white text-gray-700"
+        }`
+      )}
+      onClick={() => handleViewModeChange("card")}
+    >
+      <Grid className="w-4 h-4 inline-block mr-1" />
+      <span>Card View</span>
+    </button>
+  </div>
+</div>
+
 
       <Toaster />
 
       {viewMode === "table" ? (
         <>
-          <Table className="items-center justify-center">
+        <div className="overflow-x-hidden">
+          <Table className="min-w-full">
             <TableHeader className="text-center justify-center">
               <TableRow>
                 <TableHead>Id</TableHead>
@@ -389,6 +395,7 @@ const AdminView = () => {
             currentPage={currentPage}
             onPageChange={(page) => setCurrentPage(page)}
           />
+        </div>
         </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
