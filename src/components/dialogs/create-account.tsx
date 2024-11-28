@@ -29,11 +29,12 @@ interface RegisterFormValues {
   userName: string;
   lastName: string;
   firstName: string;
-  middleInitial: string;
+  middleName: string;
   laboratory: string | null;
   designation: string | null;
   password: string;
   rePassword: string;
+  phoneNumber: string;
 }
 
 interface CreateAccountProps {
@@ -46,6 +47,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
   const [passwordError, setPasswordError] = useState("");
   const [rePasswordError, setRePasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   const form = useForm<RegisterFormValues>();
 
@@ -55,6 +57,14 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
       setEmailError("Please enter a valid email address");
     } else {
       setEmailError("");
+    }
+  };
+  const validatePhoneNumber = (value: string) => {
+    const phoneRegex = /^09\d{9}$/;
+    if (!phoneRegex.test(value)) {
+      setPhoneError("Number must be exactly 11 digits and start with '09'");
+    } else {
+      setPhoneError("");
     }
   };
 
@@ -96,8 +106,9 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
             email: values.email,
             password: values.password,
             firstName: values.firstName,
-            middleName: values.middleInitial,
+            middleName: values.middleName,
             lastName: values.lastName,
+            phoneNumber: values.phoneNumber,
             designation: values.designation || undefined,
             labId: values.laboratory ? parseInt(values.laboratory) : undefined,
           }),
@@ -117,12 +128,12 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="md:flex items-center justify-center">
       <Toaster />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleRegister)}>
-          <div className="grid md:grid-cols-2 grid-cols-1 gap-4 mb-5 text-sm">
+          <div className="grid md:grid-cols-3 grid-cols-1 gap-4 mb-5 text-sm">
             <FormField
               name="email"
               render={({ field }) => (
@@ -166,13 +177,36 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
                 </FormItem>
               )}
             />
+            <FormField
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Phone Number <span className="text-red-400">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      className="rounded-xl"
+                      placeholder="Phone Number"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        validatePhoneNumber(e.target.value);
+                      }}
+                      required
+                    />
+                  </FormControl>
+                  {phoneError && <FormMessage>{phoneError}</FormMessage>}{" "}
+                </FormItem>
+              )}
+            />
           </div>
 
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mb-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
             <FormField
               name="lastName"
               render={({ field }) => (
-                <FormItem className="col-span-3 md:col-span-2">
+                <FormItem className="col-span-1 md:col-span-2">
                   <FormLabel>
                     Last Name <span className="text-red-400">*</span>
                   </FormLabel>
@@ -191,7 +225,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
             <FormField
               name="firstName"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-1 lg:col-span-2">
                   <FormLabel>
                     First Name <span className="text-red-400">*</span>
                   </FormLabel>
@@ -208,14 +242,14 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
               )}
             />
             <FormField
-              name="middleInitial"
+              name="middleName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>M.I.</FormLabel>
+                <FormItem className="col-span-1 lg:col-span-1">
+                  <FormLabel>Middle Name</FormLabel>
                   <FormControl>
                     <Input
                       className="rounded-xl"
-                      placeholder="M.I."
+                      placeholder="Middle Name"
                       {...field}
                     />
                   </FormControl>
@@ -225,7 +259,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
             <FormField
               name="laboratory"
               render={({ field }) => (
@@ -290,7 +324,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full flex justify-between items-center"
+                        className="w-full rounded-xl flex justify-between items-center"
                       >
                         <span
                           className={cn(
@@ -311,6 +345,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ closeDialog }) => {
                         "Lab Manager",
                         "Student",
                         "Technician",
+                        "Admin",
                       ].map((option) => (
                         <DropdownMenuCheckboxItem
                           key={option}
