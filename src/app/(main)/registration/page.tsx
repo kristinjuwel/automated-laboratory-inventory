@@ -39,8 +39,9 @@ interface RegisterFormValues {
   userName: string;
   lastName: string;
   firstName: string;
-  middleInitial: string;
+  middleName: string;
   laboratory: string | null;
+  phoneNumber: string;
   designation: string | null;
   password: string;
   rePassword: string;
@@ -52,6 +53,8 @@ const RegisterPage = () => {
   const [passwordError, setPasswordError] = useState("");
   const [rePasswordError, setRePasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const router = useRouter();
 
@@ -66,6 +69,14 @@ const RegisterPage = () => {
     }
   };
 
+  const validatePhoneNumber = (value: string) => {
+    const phoneRegex = /^09\d{9}$/;
+    if (!phoneRegex.test(value)) {
+      setPhoneError("Number must be exactly 11 digits and start with '09'");
+    } else {
+      setPhoneError("");
+    }
+  };
   const validatePassword = (value: string) => {
     const passwordRegex =
       /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}$/;
@@ -103,8 +114,9 @@ const RegisterPage = () => {
             username: values.userName,
             email: values.email,
             password: values.password,
+            phoneNumber: values.phoneNumber,
             firstName: values.firstName,
-            middleName: values.middleInitial,
+            middleName: values.middleName,
             lastName: values.lastName,
             designation: values.designation || undefined,
             labId: values.laboratory ? parseInt(values.laboratory) : undefined,
@@ -147,7 +159,7 @@ const RegisterPage = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleRegister)} className="mb-4">
-            <div className="grid md:grid-cols-2 grid-cols-1 gap-4 mb-5">
+            <div className="grid md:grid-cols-3 grid-cols-1 gap-4 mb-5">
               <FormField
                 name="email"
                 render={({ field }) => (
@@ -191,9 +203,32 @@ const RegisterPage = () => {
                   </FormItem>
                 )}
               />
+              <FormField
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Phone Number <span className="text-red-400">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="rounded-xl"
+                        placeholder="Phone Number"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          validatePhoneNumber(e.target.value);
+                        }}
+                        required
+                      />
+                    </FormControl>
+                    {phoneError && <FormMessage>{phoneError}</FormMessage>}{" "}
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mb-5">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-5">
               <FormField
                 name="lastName"
                 render={({ field }) => (
@@ -233,16 +268,15 @@ const RegisterPage = () => {
                 )}
               />
               <FormField
-                name="middleInitial"
+                name="middleName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>M.I.</FormLabel>
+                    <FormLabel>Middle Name</FormLabel>
                     <FormControl>
                       <Input
                         className="rounded-xl"
-                        placeholder="M.I."
+                        placeholder="Middle Name"
                         {...field}
-                        required
                       />
                     </FormControl>
                     <FormMessage />

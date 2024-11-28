@@ -16,6 +16,7 @@ export const userSchema = z.object({
   updatedAt: z.string().optional(),
   otp: z.string().nullable(),
   labId: z.number().int(),
+  phoneNumber: z.string(),
   filteredSuppliers: z.string().optional().nullable(),
 });
 
