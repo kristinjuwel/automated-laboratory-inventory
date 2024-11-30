@@ -62,7 +62,7 @@ const PdfForm: React.FC<PdfFormProps> = ({
       new Promise((resolve) => (imgElement1.onload = resolve)),
       new Promise((resolve) => (imgElement2.onload = resolve)),
     ]).then(() => {
-      doc.addImage(imgElement1, "PNG", isLandscape ? (isLong ? 60 : 40): 25, 10, 30, 30);
+      doc.addImage(imgElement1, "PNG", isLandscape ? (isLong ? 60 : 40): 20, 10, 30, 30);
       doc.addImage(imgElement2, "PNG", isLandscape ? (isLong ? 250 : 200): 160, 10, 30, 30);
   
       doc.setFont("helvetica", "normal");
@@ -116,7 +116,7 @@ const PdfForm: React.FC<PdfFormProps> = ({
       doc.text("TUV-SUD, Asia Pacific, Ltd", isLandscape ? (isLong ? 175 : 143): 105, y, {
         align: "center",
       });
-      y += 15;
+      y += 20;
   
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
@@ -129,7 +129,7 @@ const PdfForm: React.FC<PdfFormProps> = ({
       ]);
 
       autoTable(doc, {
-        startY: 90,
+        startY: 105,
         body: preparedData,
         styles: {
           font: "helvetica",

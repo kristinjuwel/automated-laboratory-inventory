@@ -163,14 +163,30 @@ const Borrow = () => {
     borrow.user,
     borrow.borrowerDetail,
     borrow.department,
-    borrow.dateBorrowed,
-    borrow.timeBorrowed,
-    borrow.dateReturned,
-    borrow.timeReturned,
+    new Date(borrow.dateBorrowed).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    new Date(`1970-01-01T${borrow.timeBorrowed}`).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
+    new Date(borrow.dateReturned).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    new Date(`1970-01-01T${borrow.timeReturned}`).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
     borrow.remarks,
     borrow.damageMaterials,
-    borrow.status
-  ]);
+    borrow.status,
+  ]);  
 
   const handleReturn = async () => {
     if (selectedBorrow) {
