@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast, Toaster } from "sonner";
@@ -201,25 +201,26 @@ const AdminView = () => {
   };
 
   return (
-    <div className="p-12 w-screen h-screen bg-white">
-      <h1 className="text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex-grow">
+    <div className="p-4 sm:p-8 md:p-12 w-full min-h-screen bg-white">
+      <h1 className="text-lg sm:text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 justify-center hidden sm:flex">
         MANAGE USERS
       </h1>
-      <div className="flex text-right justify-between items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search for a user"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
-
+      <div className="flex sm:flex-row flex-col-reverse sm:justify-between items-end sm:items-center w-full mb-4 space-y-4 sm:space-y-0">
+        <div className="flex flex-row w-full sm:w-3/4 justify-between sm:justify-start space-x-2">
+          <div className="relative w-full">
+            <Input
+              placeholder="Search for a user"
+              value={search}
+              onChange={handleSearch}
+              className="w-full pr-10 rounded-lg"
+            />
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <Search className="size-5 text-gray-500" />
+            </span>
+          </div>
           <Button
             className={cn(
-              `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 ${
+              `bg-teal-500 text-white w-2/5 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out sm:mx-2 ${
                 viewMode === "card" ? "hidden" : ""
               }`
             )}
@@ -227,37 +228,42 @@ const AdminView = () => {
               setIsCreateDialogOpen(true);
             }}
           >
-            <UserPlus className="w-4 h-4" strokeWidth={1.5} />
-            Add User
+            <UserPlus className="w-4 h-4 md:mr-1" strokeWidth={1.5} />
+            <span className="lg:flex xs:flex sm:hidden">Add User</span>
           </Button>
         </div>
-
-        <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
-          <button
-            className={cn(
-              `px-4 py-2 ${
-                viewMode === "table"
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700"
-              }`
-            )}
-            onClick={() => handleViewModeChange("table")}
-          >
-            <List className="w-4 h-4 inline-block mr-1" /> Table View
-          </button>
-          <button
-            className={cn(
-              `px-4 py-2 ${
-                viewMode === "card"
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700"
-              }`
-            )}
-            onClick={() => handleViewModeChange("card")}
-          >
-            <Grid className="w-4 h-4 justify-center inline-block mr-1 items-center" />{" "}
-            Card View
-          </button>
+        <div className="w-full flex justify-between sm:justify-end">
+          <h1 className="ml-1 text-lg sm:text-xl w-3/4 font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex sm:hidden">
+            MANAGE USERS
+          </h1>
+          <div className="flex rounded-lg overflow-hidden border h-10 lg:w-2/5">
+            <button
+              className={cn(
+                `px-4 py-2 flex items-center w-1/2 justify-start h-10 space-x-1  ${
+                  viewMode === "table"
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700"
+                }`
+              )}
+              onClick={() => handleViewModeChange("table")}
+            >
+              <List className="w-4 h-4 inline-block mr-1" />
+              <span className="lg:flex hidden truncate">Table View</span>
+            </button>
+            <button
+              className={cn(
+                `px-4 py-2 flex items-center w-1/2 justify-start h-10 space-x-1 ${
+                  viewMode === "card"
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700"
+                }`
+              )}
+              onClick={() => handleViewModeChange("card")}
+            >
+              <Grid className="w-4 h-4 inline-block mr-1" />
+              <span className="lg:flex hidden truncate">Card View</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -265,130 +271,135 @@ const AdminView = () => {
 
       {viewMode === "table" ? (
         <>
-          <Table className="items-center justify-center">
-            <TableHeader className="text-center justify-center">
-              <TableRow>
-                <TableHead>Id</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Designation</TableHead>
-                <TableHead>Laboratory</TableHead>
-                <TableHead className="text-center">Username</TableHead>
-                <TableHead className="text-center">Email</TableHead>
-                <TableHead className="text-center">Phone Number</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedUsers.length > 0 ? (
-                paginatedUsers.map((user) => (
-                  <TableRow key={user.userId} className={"text-gray-900"}>
-                    <TableCell>{user.userId}</TableCell>
-                    <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
-                    <TableCell className="capitalize">
-                      {user.designation}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {user.laboratory}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {user.username}
-                    </TableCell>
-                    <TableCell className="text-center lowercase">
-                      {user.email}
-                    </TableCell>
-                    <TableCell className="text-center lowercase">
-                      {user.phoneNumber}
-                    </TableCell>
-                    <TableCell>
-                      {user.status.toLowerCase() === "deleted" ? (
-                        <div className="w-full px-4 py-2 rounded-md bg-green-300 font-semibold text-red-500">
-                          Deleted
-                        </div>
-                      ) : (
-                        <Select
-                          value={user.status}
-                          onValueChange={(newStatus) => {
-                            setSelectedUser(user);
-                            handleEditStatus(user.userId, newStatus);
-                          }}
-                        >
-                          <SelectTrigger
-                            className={cn(
-                              "w-32 inline-flex",
-                              user.status.toLowerCase() === "active"
-                                ? "bg-green-300 text-green-950 pl-6"
-                                : user.status.toLowerCase() === "inactive"
-                                ? "bg-gray-300 text-gray-950 pl-6"
-                                : user.status.toLowerCase() ===
-                                  "unverified email"
-                                ? "bg-indigo-300 text-indigo-950"
-                                : user.status.toLowerCase() ===
-                                  "unapproved account"
-                                ? "bg-yellow-300 text-yellow-950"
-                                : "bg-teal-300 text-teal-950"
-                            )}
-                          >
-                            <SelectValue placeholder="Select status..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Active">Active</SelectItem>
-                            <SelectItem value="Inactive">Inactive</SelectItem>
-                            <SelectItem value="Unverified Email">
-                              Unverified Email
-                            </SelectItem>
-                            <SelectItem value="Unapproved Account">
-                              Unapproved Account
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {user.status !== "Deleted" && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
-                            onClick={() => {
+          <div className="overflow-x-hidden">
+            <Table className="min-w-full">
+              <TableHeader className="text-center justify-center">
+                <TableRow>
+                  <TableHead>Id</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Designation</TableHead>
+                  <TableHead>Laboratory</TableHead>
+                  <TableHead className="text-center">Username</TableHead>
+                  <TableHead className="text-center">Email</TableHead>
+                  <TableHead className="text-center">Phone Number</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedUsers.length > 0 ? (
+                  paginatedUsers.map((user) => (
+                    <TableRow key={user.userId} className={"text-gray-900"}>
+                      <TableCell>{user.userId}</TableCell>
+                      <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
+                      <TableCell className="capitalize">
+                        {user.designation}
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {user.laboratory}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {user.username}
+                      </TableCell>
+                      <TableCell className="text-center lowercase">
+                        {user.email}
+                      </TableCell>
+                      <TableCell className="text-center lowercase">
+                        {user.phoneNumber}
+                      </TableCell>
+                      <TableCell>
+                        {user.status.toLowerCase() === "deleted" ? (
+                          <div className="w-full px-4 py-2 rounded-md bg-green-300 font-semibold text-red-500">
+                            Deleted
+                          </div>
+                        ) : (
+                          <Select
+                            value={user.status}
+                            onValueChange={(newStatus) => {
                               setSelectedUser(user);
-                              setIsEditDialogOpen(true);
+                              handleEditStatus(user.userId, newStatus);
                             }}
                           >
-                            <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setIsDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash className="w-4 h-4 -mr-1" /> Delete
-                          </Button>
-                        </>
-                      )}
+                            <SelectTrigger
+                              className={cn(
+                                "w-32 inline-flex",
+                                user.status.toLowerCase() === "active"
+                                  ? "bg-green-300 text-green-950 pl-6"
+                                  : user.status.toLowerCase() === "inactive"
+                                  ? "bg-gray-300 text-gray-950 pl-6"
+                                  : user.status.toLowerCase() ===
+                                    "unverified email"
+                                  ? "bg-indigo-300 text-indigo-950"
+                                  : user.status.toLowerCase() ===
+                                    "unapproved account"
+                                  ? "bg-yellow-300 text-yellow-950"
+                                  : "bg-teal-300 text-teal-950"
+                              )}
+                            >
+                              <SelectValue placeholder="Select status..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Active">Active</SelectItem>
+                              <SelectItem value="Inactive">Inactive</SelectItem>
+                              <SelectItem value="Unverified Email">
+                                Unverified Email
+                              </SelectItem>
+                              <SelectItem value="Unapproved Account">
+                                Unapproved Account
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {user.status !== "Deleted" && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash className="w-4 h-4 -mr-1" /> Delete
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={9}
+                      className="text-center text-gray-500"
+                    >
+                      No users found.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center text-gray-500">
-                    No users found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <CustomPagination
-            totalItems={filteredUsers.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            currentPage={currentPage}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
+                )}
+              </TableBody>
+            </Table>
+            <CustomPagination
+              totalItems={filteredUsers.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              currentPage={currentPage}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
         </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
