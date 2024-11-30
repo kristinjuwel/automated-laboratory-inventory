@@ -12,7 +12,6 @@ import {
   UserPen,
   UserCog,
   Menu,
-  X
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -43,10 +42,6 @@ const Navbar = () => {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const userRole = localStorage.getItem("userRole");
-
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const logoutUser = () => {
     const token = localStorage.getItem("authToken");
@@ -89,7 +84,7 @@ const Navbar = () => {
         <span className="text-base text-teal-900">ALIMS</span>
       </div>
 
-      <NavigationMenu className="ml-36 hidden md:flex text-teal-950 justify-center space-x-2 text-sm">
+      <NavigationMenu className="ml-36 hidden lg:flex text-teal-950 justify-center space-x-2 text-sm">
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink
@@ -133,8 +128,6 @@ const Navbar = () => {
         </NavigationMenuList>
       </NavigationMenu>
 
-      
-
       <div className="flex mr-1">
         <div className="relative hidden md:flex items-center max-w-xs">
           <Input
@@ -150,7 +143,7 @@ const Navbar = () => {
           </button>
         </div>
         <Popover>
-          <PopoverTrigger className="md:hidden p-2 text-teal-900 rounded-full transition">
+          <PopoverTrigger className="lg:hidden p-2 text-teal-900 rounded-full transition">
             <Menu className="w-6 h-6" />
           </PopoverTrigger>
           <PopoverContent
@@ -159,7 +152,7 @@ const Navbar = () => {
             sideOffset={10}
             className="bg-white shadow-lg rounded-md p-4"
           >
-            <div className="relative p-4">
+            <div className="relative p-4 md:hidden flex">
               <Input
                 type="text"
                 placeholder="Search..."
@@ -172,7 +165,7 @@ const Navbar = () => {
                 <Search className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex flex-col space-y-2 border-t border-teal-500">
+            <div className="flex flex-col space-y-2 xs:border-t xs:border-teal-500">
               <a
                 className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
                 onClick={() => router.push("/lab/pathology")}
