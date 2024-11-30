@@ -2,8 +2,9 @@ import React from "react";
 import { jsPDF } from "jspdf";
 import { Button } from "../ui/button";
 import autoTable from 'jspdf-autotable';
+import { Bold } from "lucide-react";
 
-interface PdfGeneratorProps {
+interface PdfFormProps {
   pdfTitle?: string;
   pageSize?: string;
   orientation?: "portrait" | "landscape";
@@ -12,7 +13,7 @@ interface PdfGeneratorProps {
   closeDialog: () => void;
 }
 
-const PdfGenerator: React.FC<PdfGeneratorProps> = ({
+const PdfForm: React.FC<PdfFormProps> = ({
   pdfTitle = "Stock Level Report",
   pageSize = "a4",
   orientation = "portrait",
@@ -61,7 +62,7 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       new Promise((resolve) => (imgElement1.onload = resolve)),
       new Promise((resolve) => (imgElement2.onload = resolve)),
     ]).then(() => {
-      doc.addImage(imgElement1, "PNG", isLandscape ? (isLong ? 60 : 40): 30, 10, 30, 30);
+      doc.addImage(imgElement1, "PNG", isLandscape ? (isLong ? 60 : 40): 25, 10, 30, 30);
       doc.addImage(imgElement2, "PNG", isLandscape ? (isLong ? 250 : 200): 160, 10, 30, 30);
   
       doc.setFont("helvetica", "normal");
@@ -122,27 +123,31 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       doc.text(pdfTitle, isLandscape ? (isLong ? 175 : 143): 105, y, { align: "center" });
       y += 10;
   
+      const preparedData = tableHeaders.map((header, index) => [
+        header,
+        tableData.map((row) => row[index] || "").join(", "),
+      ]);
+
       autoTable(doc, {
-        startY: y, 
-        head: [tableHeaders], 
-        body: tableData, 
+        startY: 90,
+        body: preparedData,
         styles: {
-          font: "helvetica",         
-          fontSize: 12,              
-          cellPadding: 2,           
-          overflow: "linebreak",    
-          valign: "middle",         
-          lineColor: [0, 0, 0],     
-          lineWidth: 0.2,            
-          fillColor: [255, 255, 255], 
-          textColor: [0, 0, 0],      
+          font: "helvetica",
+          fontSize: 12,
+          cellPadding: 2,
+          overflow: "linebreak",
+          valign: "middle",
+          lineColor: [0, 0, 0],
+          lineWidth: 0.2,
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
         },
         columnStyles: {
-          0: { cellWidth: 30 }, 
+          0: { cellWidth: 60 , fontStyle: "bold"}, 
+          1: { cellWidth: 120 }, 
         },
-        theme: "grid", 
-        tableWidth: 'auto', 
-      });      
+        theme: "grid",
+      });
   
       doc.save(`${pdfTitle}.pdf`);
     });
@@ -159,4 +164,4 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
   );
 };
 
-export default PdfGenerator;
+export default PdfForm;
