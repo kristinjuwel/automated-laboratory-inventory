@@ -167,12 +167,12 @@ const EditDisposal = ({
     fetchAllUsers();
   }, []);
   return (
-    <div className="flex justify-center">
+    <div className="justify-center">
       <Toaster />
 
       <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="dateDisposed"
@@ -313,13 +313,21 @@ const EditDisposal = ({
                 )}
               />
             </div>
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-end gap-2 pt-6">
+              <Button
+                type="button"
+                variant="ghost"
+                className="bg-gray-100"
+                onClick={closeDialog}
+              >
+                Cancel
+              </Button>
+
               <Button
                 type="submit"
-                onClick={form.handleSubmit(handleSubmit)}
-                className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+                className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
               >
-                Submit Form
+                Save
               </Button>
             </div>
           </form>

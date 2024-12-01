@@ -82,29 +82,31 @@ const Chemical = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch materials");
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch materials");
+          }
+          const data = await response.json();
+          const chemicalMaterials = data.filter(
+            (material: Material) =>
+              material.category.shortName.toLowerCase() === "chemical" &&
+              material.laboratory.labName.toLowerCase() === labSlug
+          );
+          setMaterials(chemicalMaterials);
+          setFilteredMaterials(chemicalMaterials);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
         }
-        const data = await response.json();
-        const chemicalMaterials = data.filter(
-          (material: Material) =>
-            material.category.shortName.toLowerCase() === "chemical" &&
-            material.laboratory.labName.toLowerCase() === labSlug
-        );
-        setMaterials(chemicalMaterials);
-        setFilteredMaterials(chemicalMaterials);
-      } catch (error) {
-        console.error("Error fetching materials:", error);
-      }
-    };
+      };
 
-    fetchMaterials();
-  }, [labSlug]);
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const fetchInventoryLogs = async (materialId: number) => {
     try {
@@ -279,7 +281,7 @@ const Chemical = () => {
       />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white max-h-4/5 sm:h-4/5 h-full overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               <Edit className="text-teal-500 size-5 -mt-0.5" />

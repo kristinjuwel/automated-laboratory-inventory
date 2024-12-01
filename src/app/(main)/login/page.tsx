@@ -103,25 +103,23 @@ const LoginPage = () => {
     <div className="flex w-screen h-screen items-center justify-center bg-gray-100">
       <Card className="lg:w-3/5 md:w-4/5 md:flex-row flex max-w-screen-2xl h-full w-full md:h-2/3 shadow-lg rounded-3xl">
         <div className="hidden w-1/2 p-8 bg-teal-100 h-full rounded-3xl rounded-r-none md:flex flex-col items-center justify-center overflow-hidden">
+          <Image
+            src="/images/logo.png"
+            alt="Logo"
+            className="transition duration-500 hover:scale-105 h-3/4 aspect-[1/1] object-contain justify-center w-full"
+            priority
+            height={300}
+            width={300}
+          />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <>
-                  <Image
-                    src="/images/logo.png"
-                    alt="Logo"
-                    className="transition duration-500 hover:scale-105 h-3/4 aspect-[1/1] object-contain justify-center w-full"
-                    priority
-                    height={300}
-                    width={300}
-                  />
-                  <h1 className="text-base lg:text-lg px-5 lg:pt-2 text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105 cursor-pointer break-words">
-                    Automated Laboratory Inventory Management System
-                  </h1>
-                </>
+                <h1 className="text-base lg:text-lg px-5 lg:pt-2 text-center font-bold antialiased tracking-tight text-teal-900 transition duration-500 hover:scale-105 cursor-pointer break-words">
+                  Automated Laboratory Inventory Management System
+                </h1>
               </TooltipTrigger>
               <TooltipContent side="top">
-                <p className="text-[10px] md:text-[12px] text-center antialiased tracking-tight text-teal-900 max-w-xs">
+                <p className="text-base text-center antialiased tracking-tight text-teal-900 max-w-xs">
                   Project ALIMS is designed for PGH Medical Research Laboratory
                   of Pathology, Immunology, and Microbiology. Providing
                   assistance with report generation and inventory management.

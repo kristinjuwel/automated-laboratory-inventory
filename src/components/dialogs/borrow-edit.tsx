@@ -227,12 +227,12 @@ const EditBorrow = ({
   };
 
   return (
-    <div className="flex justify-center">
+    <div className="justify-center">
       <Toaster />
 
-      <div className="overflow-y-auto max-h-[400px] mb-1">
+      <div className="overflow-y-auto max-h-[400px] h-auto mb-1">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="dateBorrowed"
@@ -520,7 +520,7 @@ const EditBorrow = ({
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-6">
+            <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="ghost"

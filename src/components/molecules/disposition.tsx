@@ -262,11 +262,11 @@ const Disposition = () => {
       />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white max-h-4/5 sm:h-4/5 h-full overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               <Edit className="text-teal-500 size-5 -mt-0.5" />
-              Edit Borrow Form
+              Edit Disposal Form
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -292,7 +292,7 @@ const Disposition = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               <Printer className="text-black size-5 -mt-0.5" />
-              Print Borrow Form
+              Print Disposal Form
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
