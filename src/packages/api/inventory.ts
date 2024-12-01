@@ -73,7 +73,22 @@ export const dispositionSchema = z.object({
   comments: z.string().optional(),
 });
 
+export const calibrationSchema = z.object({
+  calibrationId: z.number().optional(),
+  userId: z.number(),
+  user: userSchema,
+  materialId: z.number(),
+  material: materialSchema,
+  calibrationDate: z.string(),
+  nextCalibration: z.string(),
+  notes: z.string().optional(),
+  file: z.string(),
+  attachments: z.string(),
+  fileType: z.string().optional(),
+});
+
 export type DispositionSchema = z.infer<typeof dispositionSchema>;
 export type BorrowSchema = z.infer<typeof borrowSchema>;
 export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
 export type MaterialSchema = z.infer<typeof materialSchema>;
+export type CalibrationSchema = z.infer<typeof calibrationSchema>;

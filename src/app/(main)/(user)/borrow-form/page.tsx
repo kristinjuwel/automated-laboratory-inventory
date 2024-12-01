@@ -589,7 +589,7 @@ const BorrowForm = () => {
                   name="department"
                   render={({}) => (
                     <FormItem>
-                      <FormLabel>Department</FormLabel>
+                      <FormLabel>Borrower Department</FormLabel>
                       <FormControl>
                         <Input
                           value={
