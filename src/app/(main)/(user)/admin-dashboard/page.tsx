@@ -70,6 +70,8 @@ const AdminView = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortColumn, setSortColumn] = useState<keyof MappedUser | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const router = useRouter();
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
@@ -89,7 +91,7 @@ const AdminView = () => {
           throw new Error("Failed to fetch users");
         }
         const data: UserSchema[] = await response.json();
-
+  
         const parsedData = z.array(userSchema).parse(data);
         const userRole = localStorage.getItem("userRole");
         const filteredData =
@@ -100,8 +102,11 @@ const AdminView = () => {
                   user.designation !== "superadmin"
               )
             : parsedData;
-
-        const mappedUsers: MappedUser[] = filteredData.map((user) => ({
+          const sortedData = filteredData.sort((a, b) =>
+          a.lastName.localeCompare(b.lastName)
+        );
+  
+        const mappedUsers: MappedUser[] = sortedData.map((user) => ({
           userId: user.userId,
           lastName: user.lastName,
           firstName: user.firstName,
@@ -114,16 +119,50 @@ const AdminView = () => {
           status: user.status,
           phoneNumber: user.phoneNumber,
         }));
-
+  
         setUsers(mappedUsers);
         setFilteredUsers(mappedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
-
+  
     fetchAllUsers();
   }, []);
+
+  const sortUsers = (
+    users: MappedUser[],
+    key: keyof MappedUser,
+    order: "asc" | "desc"
+  ) => {
+    return [...users].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+  
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+  
+
+  const handleSort = (column: keyof MappedUser) => {
+    const newDirection = sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+  
+    setSortColumn(column);
+    setSortDirection(newDirection);
+  
+    const sorted = sortUsers(filteredUsers, column, newDirection);
+    setFilteredUsers(sorted);
+  };
+  
+  
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -201,83 +240,85 @@ const AdminView = () => {
   };
 
   return (
-    <div className="p-4 sm:p-8 md:p-12 w-full min-h-screen bg-white">
-      <h1 className="text-lg sm:text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center">
+    <div className="p-12 w-screen h-screen bg-white">
+      <h1 className="text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex-grow">
         MANAGE USERS
       </h1>
-      <div className="flex flex-col sm:flex-row justify-between items-center w-full space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
-  {/* Search Section */}
-  <div className="relative w-full sm:w-auto flex-grow">
-    <Input
-      placeholder="Search for a user"
-      value={search}
-      onChange={handleSearch}
-      className="w-full pr-10"
-    />
-    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-      <Search className="size-5 text-gray-500" />
-    </span>
-  </div>
+      <div className="flex text-right justify-between items-center mb-4">
+        <div className="flex items-center">
+          <Input
+            placeholder="Search for a user"
+            value={search}
+            onChange={handleSearch}
+            className="w-80 pr-8"
+          />
+          <span className="relative -ml-8">
+            <Search className="size-5 text-gray-500" />
+          </span>
 
-  {/* Add User Button */}
-  <Button
-    className={cn(
-      `bg-teal-500 text-white w-full sm:w-36 rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center justify-center space-x-2 ${
-        viewMode === "card" ? "hidden" : ""
-      }`
-    )}
-    onClick={() => {
-      setIsCreateDialogOpen(true);
-    }}
-  >
-    <UserPlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
-    <span>Add User</span>
-  </Button>
+          <Button
+            className={cn(
+              `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 ${
+                viewMode === "card" ? "hidden" : ""
+              }`
+            )}
+            onClick={() => {
+              setIsCreateDialogOpen(true);
+            }}
+          >
+            <UserPlus className="w-4 h-4" strokeWidth={1.5} />
+            Add User
+          </Button>
+        </div>
 
-  {/* View Mode Toggle */}
-  <div className="flex space-x-2 border border-gray-300 rounded-xl overflow-hidden">
-    <button
-      className={cn(
-        `px-4 py-2 flex items-center justify-center ${
-          viewMode === "table"
-            ? "bg-teal-600 text-white"
-            : "bg-white text-gray-700"
-        }`
-      )}
-      onClick={() => handleViewModeChange("table")}
-    >
-      <List className="w-4 h-4 inline-block mr-1" />
-      <span>Table View</span>
-    </button>
-    <button
-      className={cn(
-        `px-4 py-2 flex items-center justify-center ${
-          viewMode === "card"
-            ? "bg-teal-600 text-white"
-            : "bg-white text-gray-700"
-        }`
-      )}
-      onClick={() => handleViewModeChange("card")}
-    >
-      <Grid className="w-4 h-4 inline-block mr-1" />
-      <span>Card View</span>
-    </button>
-  </div>
-</div>
-
+        <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
+          <button
+            className={cn(
+              `px-4 py-2 ${
+                viewMode === "table"
+                  ? "bg-teal-600 text-white"
+                  : "bg-white text-gray-700"
+              }`
+            )}
+            onClick={() => handleViewModeChange("table")}
+          >
+            <List className="w-4 h-4 inline-block mr-1" /> Table View
+          </button>
+          <button
+            className={cn(
+              `px-4 py-2 ${
+                viewMode === "card"
+                  ? "bg-teal-600 text-white"
+                  : "bg-white text-gray-700"
+              }`
+            )}
+            onClick={() => handleViewModeChange("card")}
+          >
+            <Grid className="w-4 h-4 justify-center inline-block mr-1 items-center" />{" "}
+            Card View
+          </button>
+        </div>
+      </div>
 
       <Toaster />
 
       {viewMode === "table" ? (
         <>
-        <div className="overflow-x-hidden">
-          <Table className="min-w-full">
+          <Table className="items-center justify-center">
             <TableHeader className="text-center justify-center">
-              <TableRow>
-                <TableHead>Id</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Designation</TableHead>
-                <TableHead>Laboratory</TableHead>
+                <TableRow>
+                <TableHead onClick={() => handleSort("userId")}>
+                  Id {sortColumn === "userId" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead onClick={() => handleSort("firstName")}>
+                  Name {sortColumn === "firstName" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead onClick={() => handleSort("designation")}>
+                  Designation {sortColumn === "designation" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead onClick={() => handleSort("laboratory")}>
+                  Laboratory {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
                 <TableHead className="text-center">Username</TableHead>
                 <TableHead className="text-center">Email</TableHead>
                 <TableHead className="text-center">Phone Number</TableHead>
@@ -395,7 +436,6 @@ const AdminView = () => {
             currentPage={currentPage}
             onPageChange={(page) => setCurrentPage(page)}
           />
-        </div>
         </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
