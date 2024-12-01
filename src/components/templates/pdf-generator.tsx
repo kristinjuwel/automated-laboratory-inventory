@@ -124,6 +124,7 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
   
       autoTable(doc, {
         startY: y, 
+        margin: { right: 10, left: 10 },
         head: [tableHeaders], 
         body: tableData, 
         styles: {
@@ -138,7 +139,7 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
           textColor: [0, 0, 0],      
         },
         columnStyles: {
-          0: { cellWidth: 30 }, 
+          0: { cellWidth: 10 }, 
         },
         theme: "grid", 
         tableWidth: 'auto', 
