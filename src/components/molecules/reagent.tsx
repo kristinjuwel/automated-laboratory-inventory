@@ -51,6 +51,7 @@ interface Material {
   updatedAt?: string;
   reorderThreshold: number;
   maxThreshold: number;
+  qtyPerContainer: number;
 }
 
 interface Logs {
@@ -183,8 +184,11 @@ const Reagent = () => {
               <TableHead>ID</TableHead>
               <TableHead>Item Name</TableHead>
               <TableHead>Item Code</TableHead>
-              <TableHead>Quantity</TableHead>
+              <TableHead>Quantity Per Container</TableHead>
+              <TableHead>Total Quantity</TableHead>
+              <TableHead>Total Containers</TableHead>
               <TableHead>Unit</TableHead>
+              <TableHead>Lot Number</TableHead>
               <TableHead>Min</TableHead>
               <TableHead>Max</TableHead>
               <TableHead>Excess</TableHead>
@@ -193,8 +197,6 @@ const Reagent = () => {
               <TableHead>Location</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Cost</TableHead>
-              <TableHead>Total Containers</TableHead>
-              <TableHead>Lot Number</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -206,8 +208,11 @@ const Reagent = () => {
                   <TableCell>{material.materialId}</TableCell>
                   <TableCell>{material.itemName}</TableCell>
                   <TableCell>{material.itemCode}</TableCell>
+                  <TableCell>{material.qtyPerContainer}</TableCell>
                   <TableCell>{material.quantityAvailable}</TableCell>
+                  <TableCell>{material.totalNoContainers}</TableCell>
                   <TableCell>{material.unit}</TableCell>
+                  <TableCell>{material.lotNo}</TableCell>
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
@@ -227,8 +232,6 @@ const Reagent = () => {
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
                   <TableCell>{material.cost}</TableCell>
-                  <TableCell>{material.totalNoContainers}</TableCell>
-                  <TableCell>{material.lotNo}</TableCell>
                   <TableCell className="relative max-w-8 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -313,6 +316,7 @@ const Reagent = () => {
               totalNoContainers={selectedMaterial.totalNoContainers.toString()}
               lotNo={selectedMaterial.lotNo}
               notes={selectedMaterial.notes}
+              qtyPerContainer={selectedMaterial.qtyPerContainer.toString()}
               date={""}
               closeDialog={() => setIsEditDialogOpen(false)}
               shortName="Reagent"
