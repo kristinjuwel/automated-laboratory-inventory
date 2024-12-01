@@ -155,7 +155,7 @@ const Borrow = () => {
     "Damage Materials",
     "Status",
   ];
-  const tableData = paginatedMaterials.map((borrow) => [
+  const tableData = borrows.map((borrow) => [
     borrow.materialId,
     borrow.material.itemName,
     borrow.material.itemCode,
@@ -187,6 +187,47 @@ const Borrow = () => {
     borrow.damageMaterials,
     borrow.status,
   ]);
+
+  const singleTableData = selectedBorrow
+    ? [
+        [
+          selectedBorrow.materialId,
+          selectedBorrow.material.itemName,
+          selectedBorrow.material.itemCode,
+          selectedBorrow.qty,
+          selectedBorrow.user,
+          selectedBorrow.borrowerDetail,
+          selectedBorrow.department,
+          new Date(selectedBorrow.dateBorrowed).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }),
+          new Date(
+            `1970-01-01T${selectedBorrow.timeBorrowed}`
+          ).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
+          new Date(selectedBorrow.dateReturned).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }),
+          new Date(
+            `1970-01-01T${selectedBorrow.timeReturned}`
+          ).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
+          selectedBorrow.remarks,
+          selectedBorrow.damageMaterials,
+          selectedBorrow.status,
+        ],
+      ]
+    : [];
 
   const handleReturn = async () => {
     if (selectedBorrow) {
@@ -289,7 +330,7 @@ const Borrow = () => {
             {paginatedMaterials.length > 0 ? (
               paginatedMaterials.map((borrow) => (
                 <TableRow key={borrow.borrowId}>
-                  <TableCell>{borrow.materialId}</TableCell>
+                  <TableCell>{borrow.borrowId}</TableCell>
                   <TableCell>{borrow.material.itemName}</TableCell>
                   <TableCell>{borrow.material.itemCode}</TableCell>
                   <TableCell>{borrow.qty}</TableCell>
@@ -608,7 +649,7 @@ const Borrow = () => {
                 pageSize={pageSize}
                 orientation={orientation}
                 tableHeaders={tableHeaders}
-                tableData={tableData}
+                tableData={singleTableData}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
             )}
