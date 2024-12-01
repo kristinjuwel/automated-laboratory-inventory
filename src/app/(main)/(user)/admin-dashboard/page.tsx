@@ -353,7 +353,7 @@ const AdminView = () => {
               <div className="flex flex-col space-y-2">
                 <h3 className="font-semibold text-sm">Designation</h3>
                 <div className="space-y-1">
-                  {["Admin",  "Lab Manager", "Medical Technologist", "Researcher", "Student", "Technician"].map(
+                  {["Admin","Lab Manager",   "Medical Technologist", "Researcher", "Student", "Technician"].map(
                     (designation) => (
                       <label
                         key={designation}
