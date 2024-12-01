@@ -20,6 +20,7 @@ import {
   TriangleAlert,
   UserPlus,
   UserPen,
+  Filter,
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +44,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface MappedUser {
   userId: number;
@@ -73,10 +79,10 @@ const AdminView = () => {
   const [sortColumn, setSortColumn] = useState<keyof MappedUser | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const router = useRouter();
-  const [selectedDesignation, setSelectedDesignation] = useState("all");
-  const [selectedLab, setSelectedLab] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-
+  const [selectedDesignation, setSelectedDesignation] = useState<Set<string>>(new Set());
+  const [selectedLab, setSelectedLab] = useState<Set<string>>(new Set());
+  const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
+  
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
 
@@ -142,14 +148,10 @@ const AdminView = () => {
   const applyFilters = () => {
     const filtered = users.filter((user) => {
       const matchesDesignation =
-        selectedDesignation === "all" ||
-        user.designation.toLowerCase() === selectedDesignation.toLowerCase();
-      const matchesLab =
-        selectedLab === "all" ||
-        user.laboratory.toLowerCase() === selectedLab.toLowerCase();
-      const matchesStatus =
-        selectedStatus === "all" ||
-        user.status.toLowerCase() === selectedStatus.toLowerCase();
+        selectedDesignation.size === 0 ||
+        selectedDesignation.has(user.designation);
+      const matchesLab = selectedLab.size === 0 || selectedLab.has(user.laboratory);
+      const matchesStatus = selectedStatus.size === 0 || selectedStatus.has(user.status);
   
       return matchesDesignation && matchesLab && matchesStatus;
     });
@@ -157,6 +159,45 @@ const AdminView = () => {
     setFilteredUsers(filtered);
     setCurrentPage(1);
   };
+  
+  
+  
+  const handleDesignationChange = (value: string) => {
+    setSelectedDesignation((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+  
+  const handleLabChange = (value: string) => {
+    setSelectedLab((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+  
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+  
   
 
   const sortUsers = (
@@ -300,64 +341,80 @@ const AdminView = () => {
           </Button>
         </div>
 
-        <div className="flex space-x-4">
-        <Select
-          onValueChange={(value) => {
-            setSelectedDesignation(value);
-            applyFilters();
-          }}
-          defaultValue="all"
-        >
-          <SelectTrigger className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6">
-            <SelectValue placeholder="Filter by Designation" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Designations</SelectItem>
-            <SelectItem value="researcher">Researcher</SelectItem>
-            <SelectItem value="medical technologist">Medical Technologist</SelectItem>
-            <SelectItem value="lab manager">Lab Manager</SelectItem>
-            <SelectItem value="Student">Student</SelectItem>
-            <SelectItem value="technician">Technician</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          onValueChange={(value) => {
-            setSelectedLab(value);
-            applyFilters();
-          }}
-          defaultValue="all"
-        >
-          <SelectTrigger className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6">
-            <SelectValue placeholder="Filter by Laboratory" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Laboratories</SelectItem>
-            <SelectItem value="pathology">Pathology</SelectItem>
-            <SelectItem value="immunology">Immunology</SelectItem>
-            <SelectItem value="microbiology">Microbiology</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          onValueChange={(value) => {
-            setSelectedStatus(value);
-            applyFilters();
-          }}
-          defaultValue="all"
-        >
-          <SelectTrigger className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6">
-            <SelectValue placeholder="Filter by Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="unverified email">Unverified Email</SelectItem>
-            <SelectItem value="unapproved account">Unapproved Account </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button className={cn(`bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center space-x-2`)}>
+             <Filter /> <span>Filter</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg"
+          >
+            <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+              {/* Designation Section */}
+              <div className="flex flex-col space-y-2">
+                <h3 className="font-semibold text-sm">Designation</h3>
+                <div className="space-y-1">
+                  {["Admin",  "Lab Manager", "Medical Technologist", "Researcher", "Student", "Technician"].map(
+                    (designation) => (
+                      <label
+                        key={designation}
+                        className="flex items-center space-x-2 whitespace-nowrap"
+                      >
+                        <input
+                          type="checkbox"
+                          value={designation}
+                          checked={selectedDesignation.has(designation)}
+                          onChange={() => handleDesignationChange(designation)}
+                        />
+                        <span>{designation}</span>
+                      </label>
+                    )
+                  )}
+                </div>
+              </div>
+              {/* Laboratory Section */}
+              <div className="flex flex-col space-y-2">
+                <h3 className="font-semibold text-sm">Laboratory</h3>
+                <div className="space-y-1">
+                  {["Pathology", "Immunology", "Microbiology"].map((lab) => (
+                    <label key={lab} className="flex items-center space-x-2 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        value={lab}
+                        checked={selectedLab.has(lab)}
+                        onChange={() => handleLabChange(lab)}
+                      />
+                      <span>{lab}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {/* Status Section */}
+              <div className="flex flex-col space-y-2">
+                <h3 className="font-semibold text-sm">Status</h3>
+                <div className="space-y-1">
+                  {["Active", "Inactive", "Deleted", "Unverified Email", "Unapproved Account"].map(
+                    (status) => (
+                      <label
+                        key={status}
+                        className="flex items-center space-x-2 whitespace-nowrap"
+                      >
+                        <input
+                          type="checkbox"
+                          value={status}
+                          checked={selectedStatus.has(status)}
+                          onChange={() => handleStatusChange(status)}
+                        />
+                        <span>{status}</span>
+                      </label>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
 
         <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
