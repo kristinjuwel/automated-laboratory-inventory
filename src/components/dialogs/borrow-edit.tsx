@@ -16,21 +16,6 @@ import {
 import { DatePickerWithPresets } from "@/components/ui/datepicker";
 import TimePicker from "@/components/ui/timepicker";
 import { MaterialSchema } from "@/packages/api/inventory";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Textarea } from "@/components/ui/textarea";
 import { UserSchema } from "@/packages/api/user";
 import { format } from "date-fns";
@@ -81,8 +66,6 @@ const EditBorrow = ({
   status,
   closeDialog,
 }: EditBorrowProps) => {
-  const [open, setOpen] = useState(false);
-  const [openMaterial, setOpenMaterial] = useState(false);
   const userRole = localStorage.getItem("userRole");
   const currentUserId = userId;
   const [quantity, setQuantity] = useState<number>(qty);
@@ -90,12 +73,10 @@ const EditBorrow = ({
   const [users, setUsers] = useState<
     { userId: number; fullName: string; laboratory: string }[]
   >([]);
-  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+  const [selectedUserId] = React.useState<number | null>(
     currentUserId ? Number(currentUserId) : null
   );
-  const [selectedMaterialId, setSelectedMaterialId] = React.useState<
-    number | null
-  >(materialId);
+  const [selectedMaterialId] = React.useState<number | null>(materialId);
   const [materials, setMaterials] = useState<
     {
       materialId: number;
@@ -321,79 +302,28 @@ const EditBorrow = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="materialId"
-                render={({ field }) => (
+                render={({}) => (
                   <FormItem>
                     <FormLabel>Equipment</FormLabel>
                     <FormControl>
-                      <Popover
-                        open={openMaterial}
-                        onOpenChange={setOpenMaterial}
-                      >
-                        <PopoverTrigger
-                          asChild
-                          className={cn(
-                            selectedMaterialId === null
-                              ? "text-gray-500"
-                              : "text-black"
-                          )}
-                        >
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className="w-full justify-between"
-                          >
-                            {selectedMaterialId
-                              ? materials.find(
-                                  (material) =>
-                                    material.materialId === selectedMaterialId
-                                )?.itemName
-                              : "Select equipment..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="flex p-0">
-                          <Command>
-                            <CommandInput placeholder="Search equipment..." />
-                            <CommandList>
-                              <CommandEmpty>No equipment found.</CommandEmpty>
-                              <CommandGroup>
-                                <div className="max-h-36 overflow-y-auto">
-                                  {materials.map((material) => (
-                                    <CommandItem
-                                      key={material.materialId}
-                                      value={material.itemName}
-                                      onSelect={() => {
-                                        setSelectedMaterialId(
-                                          selectedMaterialId ===
-                                            material.materialId
-                                            ? null
-                                            : material.materialId
-                                        );
-                                        field.onChange(material.materialId);
-                                      }}
-                                    >
-                                      <Check
-                                        className={
-                                          selectedMaterialId ===
-                                          material.materialId
-                                            ? "mr-2 h-4 w-4 opacity-100"
-                                            : "mr-2 h-4 w-4 opacity-0"
-                                        }
-                                      />
-                                      {material.itemName}
-                                    </CommandItem>
-                                  ))}
-                                </div>
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        value={
+                          selectedMaterialId
+                            ? materials.find(
+                                (material) =>
+                                  material.materialId === selectedMaterialId
+                              )?.itemName || ""
+                            : ""
+                        }
+                        readOnly
+                        className="w-full"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 name="status"
                 render={({ field }) => (
@@ -506,67 +436,21 @@ const EditBorrow = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <FormField
                 name="userId"
-                render={({ field }) => (
+                render={({}) => (
                   <FormItem>
                     <FormLabel>Borrower</FormLabel>
                     <FormControl>
-                      <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger
-                          asChild
-                          className={cn(
-                            selectedUserId === null
-                              ? "text-gray-500"
-                              : "text-black"
-                          )}
-                        >
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className="w-full justify-between"
-                          >
-                            {selectedUserId
-                              ? users.find(
-                                  (user) => user.userId === selectedUserId
-                                )?.fullName
-                              : "Select personnel..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput placeholder="Search personnel..." />
-                            <CommandList>
-                              <CommandEmpty>No personnel found.</CommandEmpty>
-                              <CommandGroup>
-                                {users.map((user) => (
-                                  <CommandItem
-                                    key={user.fullName}
-                                    value={user.fullName.toString()}
-                                    onSelect={() => {
-                                      setSelectedUserId(
-                                        selectedUserId === user.userId
-                                          ? null
-                                          : user.userId
-                                      );
-                                      field.onChange(user.userId);
-                                      setOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={
-                                        selectedUserId === user.userId
-                                          ? "mr-2 h-4 w-4 opacity-100"
-                                          : "mr-2 h-4 w-4 opacity-0"
-                                      }
-                                    />
-                                    {user.fullName}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        value={
+                          selectedUserId
+                            ? users.find(
+                                (user) => user.userId === selectedUserId
+                              )?.fullName || ""
+                            : ""
+                        }
+                        readOnly
+                        className="w-full"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -580,7 +464,7 @@ const EditBorrow = ({
                     <FormControl>
                       <Input
                         value={
-                          selectedMaterialId
+                          selectedUserId
                             ? users.find(
                                 (user) => user.userId === selectedUserId
                               )?.laboratory || ""

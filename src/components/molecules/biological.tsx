@@ -26,7 +26,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
-import EditInventory from "./edit-form";
+import EditInventory from "../dialogs/edit-form";
 
 interface Material {
   materialId: number;
@@ -207,7 +207,10 @@ const Biological = () => {
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
+                    {Math.max(
+                      0,
+                      material.quantityAvailable - material.maxThreshold
+                    )}
                   </TableCell>
                   <TableCell>
                     {new Date(material.expiryDate).toLocaleDateString("en-US", {
@@ -261,7 +264,7 @@ const Biological = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={15} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

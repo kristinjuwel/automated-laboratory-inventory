@@ -43,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 
 interface BorrowFormValues {
   dateBorrowed: string;
@@ -62,6 +63,7 @@ interface BorrowFormValues {
 }
 
 const BorrowForm = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [openMaterial, setOpenMaterial] = useState(false);
   const userRole = localStorage.getItem("userRole");
@@ -221,6 +223,7 @@ const BorrowForm = () => {
       }
 
       toast.success("Borrow form filed successfully!");
+      router.push(`lab/${parsedValues.department.toLowerCase()}`);
     } catch (error) {
       toast.error("Submission failed. Please try again.");
     }
@@ -586,7 +589,7 @@ const BorrowForm = () => {
                   name="department"
                   render={({}) => (
                     <FormItem>
-                      <FormLabel>Department</FormLabel>
+                      <FormLabel>Borrower Department</FormLabel>
                       <FormControl>
                         <Input
                           value={

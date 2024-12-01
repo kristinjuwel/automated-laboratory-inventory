@@ -84,7 +84,7 @@ const Borrow = () => {
   const [status, setStatus] = useState("");
   const [pageSize, setPageSize] = useState("a4");
   const [orientation, setOrientation] = useState<
-  "portrait" | "landscape" | undefined
+    "portrait" | "landscape" | undefined
   >(undefined);
 
   useEffect(() => {
@@ -149,11 +149,11 @@ const Borrow = () => {
     "Department",
     "Date Borrowed",
     "Time Borrowed",
-    'Date Returned',
+    "Date Returned",
     "Time Returned",
     "Remarks",
     "Damage Materials",
-    "Status"
+    "Status",
   ];
   const tableData = paginatedMaterials.map((borrow) => [
     borrow.materialId,
@@ -186,7 +186,7 @@ const Borrow = () => {
     borrow.remarks,
     borrow.damageMaterials,
     borrow.status,
-  ]);  
+  ]);
 
   const handleReturn = async () => {
     if (selectedBorrow) {
@@ -243,9 +243,7 @@ const Borrow = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-            )}
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
               router.push("/borrow-form");
             }}
@@ -254,9 +252,7 @@ const Borrow = () => {
             Borrow Material
           </Button>
           <Button
-            className={cn(
-              `bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2`
-            )}
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}
@@ -429,7 +425,7 @@ const Borrow = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={15} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -482,6 +478,7 @@ const Borrow = () => {
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Stock Level Report
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure you want to print this form?
@@ -606,15 +603,15 @@ const Borrow = () => {
               Cancel
             </Button>
             {selectedBorrow && (
-            <PdfForm
-              pdfTitle="Borrow Form"
-              pageSize={pageSize}
-              orientation={orientation}
-              tableHeaders={tableHeaders}
-              tableData={tableData}
-              closeDialog={() => setIsPrintDialogOpen(false)}
-            />
-          )}
+              <PdfForm
+                pdfTitle="Borrow Form"
+                pageSize={pageSize}
+                orientation={orientation}
+                tableHeaders={tableHeaders}
+                tableData={tableData}
+                closeDialog={() => setIsPrintDialogOpen(false)}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -626,6 +623,7 @@ const Borrow = () => {
               <SquarePen className="text-emerald-600 size-5 -mt-0.5" />
               Change Status
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure this item has been returned?

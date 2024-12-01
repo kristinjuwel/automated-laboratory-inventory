@@ -27,7 +27,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
-import EditInventory from "./edit-form";
+import EditInventory from "../dialogs/edit-form";
 
 interface Material {
   materialId: number;

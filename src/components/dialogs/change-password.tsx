@@ -177,7 +177,7 @@ const ChangePassword: React.FC<ChangeProps> = ({ closeDialog }) => {
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
-                          validatePassword(e.target.value);
+                          validateRePassword(e.target.value);
                         }}
                         required
                       />
