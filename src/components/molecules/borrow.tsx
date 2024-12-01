@@ -482,9 +482,9 @@ const Borrow = () => {
       />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white max-h-4/5 h-fit max-w-2xl flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight">
+            <DialogTitle className="flex items-start gap-2 tracking-tight text-teal-900 mt-2">
               <Edit className="text-teal-500 size-5 -mt-0.5" />
               Edit Borrow Form
             </DialogTitle>

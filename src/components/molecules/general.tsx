@@ -82,29 +82,31 @@ const GeneralSupplies = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch materials");
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch materials");
+          }
+          const data = await response.json();
+          const generalMaterials = data.filter(
+            (material: Material) =>
+              material.category.shortName.toLowerCase() === "gensupply" &&
+              material.laboratory.labName.toLowerCase() === labSlug
+          );
+          setMaterials(generalMaterials);
+          setFilteredMaterials(generalMaterials);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
         }
-        const data = await response.json();
-        const generalMaterials = data.filter(
-          (material: Material) =>
-            material.category.shortName.toLowerCase() === "gensupply" &&
-            material.laboratory.labName.toLowerCase() === labSlug
-        );
-        setMaterials(generalMaterials);
-        setFilteredMaterials(generalMaterials);
-      } catch (error) {
-        console.error("Error fetching materials:", error);
-      }
-    };
+      };
 
-    fetchMaterials();
-  }, [labSlug]);
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const fetchInventoryLogs = async (materialId: number) => {
     try {

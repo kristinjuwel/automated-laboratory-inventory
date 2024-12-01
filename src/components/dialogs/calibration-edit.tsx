@@ -441,13 +441,21 @@ const EditCalibration = ({
                 )}
               />
             </div>
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-end gap-2 pt-6">
+              <Button
+                type="button"
+                variant="ghost"
+                className="bg-gray-100"
+                onClick={closeDialog}
+              >
+                Cancel
+              </Button>
+
               <Button
                 type="submit"
-                onClick={form.handleSubmit(handleSubmit)}
-                className="bg-teal-500 text-white w-full hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+                className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
               >
-                Submit Form
+                Save
               </Button>
             </div>
           </form>

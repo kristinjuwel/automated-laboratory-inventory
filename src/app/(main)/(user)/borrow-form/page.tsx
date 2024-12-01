@@ -593,7 +593,7 @@ const BorrowForm = () => {
                       <FormControl>
                         <Input
                           value={
-                            selectedMaterialId
+                            selectedUserId
                               ? users.find(
                                   (user) => user.userId === selectedUserId
                                 )?.laboratory || ""
