@@ -73,6 +73,10 @@ const AdminView = () => {
   const [sortColumn, setSortColumn] = useState<keyof MappedUser | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const router = useRouter();
+  const [selectedDesignation, setSelectedDesignation] = useState("all");
+  const [selectedLab, setSelectedLab] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
 
@@ -129,6 +133,31 @@ const AdminView = () => {
   
     fetchAllUsers();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [selectedDesignation, selectedLab, selectedStatus]);
+  
+
+  const applyFilters = () => {
+    const filtered = users.filter((user) => {
+      const matchesDesignation =
+        selectedDesignation === "all" ||
+        user.designation.toLowerCase() === selectedDesignation.toLowerCase();
+      const matchesLab =
+        selectedLab === "all" ||
+        user.laboratory.toLowerCase() === selectedLab.toLowerCase();
+      const matchesStatus =
+        selectedStatus === "all" ||
+        user.status.toLowerCase() === selectedStatus.toLowerCase();
+  
+      return matchesDesignation && matchesLab && matchesStatus;
+    });
+  
+    setFilteredUsers(filtered);
+    setCurrentPage(1);
+  };
+  
 
   const sortUsers = (
     users: MappedUser[],
@@ -271,6 +300,66 @@ const AdminView = () => {
           </Button>
         </div>
 
+        <div className="flex space-x-4">
+        <Select
+          onValueChange={(value) => {
+            setSelectedDesignation(value);
+            applyFilters();
+          }}
+          defaultValue="all"
+        >
+          <SelectTrigger className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6">
+            <SelectValue placeholder="Filter by Designation" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Designations</SelectItem>
+            <SelectItem value="researcher">Researcher</SelectItem>
+            <SelectItem value="medical technologist">Medical Technologist</SelectItem>
+            <SelectItem value="lab manager">Lab Manager</SelectItem>
+            <SelectItem value="Student">Student</SelectItem>
+            <SelectItem value="technician">Technician</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          onValueChange={(value) => {
+            setSelectedLab(value);
+            applyFilters();
+          }}
+          defaultValue="all"
+        >
+          <SelectTrigger className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6">
+            <SelectValue placeholder="Filter by Laboratory" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Laboratories</SelectItem>
+            <SelectItem value="pathology">Pathology</SelectItem>
+            <SelectItem value="immunology">Immunology</SelectItem>
+            <SelectItem value="microbiology">Microbiology</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          onValueChange={(value) => {
+            setSelectedStatus(value);
+            applyFilters();
+          }}
+          defaultValue="all"
+        >
+          <SelectTrigger className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6">
+            <SelectValue placeholder="Filter by Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="unverified email">Unverified Email</SelectItem>
+            <SelectItem value="unapproved account">Unapproved Account </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+
         <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
           <button
             className={cn(
@@ -319,8 +408,8 @@ const AdminView = () => {
                 <TableHead onClick={() => handleSort("laboratory")}>
                   Laboratory {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}
                 </TableHead>
-                <TableHead className="text-center">Username</TableHead>
-                <TableHead className="text-center">Email</TableHead>
+                <TableHead onClick={() => handleSort("username")}>Username {sortColumn === "username" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+                <TableHead onClick={() => handleSort("email")}>Email {sortColumn === "email" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
                 <TableHead className="text-center">Phone Number</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
