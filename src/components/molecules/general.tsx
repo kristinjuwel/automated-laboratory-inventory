@@ -26,7 +26,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
-import EditInventory from "./edit-form";
+import EditInventory from "../dialogs/edit-form";
 
 interface Material {
   materialId: number;
@@ -204,8 +204,12 @@ const GeneralSupplies = () => {
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
+                    {Math.max(
+                      0,
+                      material.quantityAvailable - material.maxThreshold
+                    )}
                   </TableCell>
+
                   <TableCell>{material.category.subcategory1}</TableCell>
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
@@ -251,7 +255,7 @@ const GeneralSupplies = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={14} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
