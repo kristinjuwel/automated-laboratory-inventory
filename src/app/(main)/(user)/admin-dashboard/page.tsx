@@ -82,6 +82,9 @@ const AdminView = () => {
   const [selectedDesignation, setSelectedDesignation] = useState<Set<string>>(new Set());
   const [selectedLab, setSelectedLab] = useState<Set<string>>(new Set());
   const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
+  const [isDesignationOpen, setIsDesignationOpen] = useState(false);
+  const [isLaboratoryOpen, setIsLaboratoryOpen] = useState(false);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
   
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
@@ -341,76 +344,102 @@ const AdminView = () => {
             <span className="lg:flex xs:flex sm:hidden">Add User</span>
           </Button>
           <Popover>
-          <PopoverTrigger asChild>
-            <Button className={cn(`bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center space-x-2`)}>
-             <Filter /> <span>Filter</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg"
-          >
-            <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-semibold text-sm">Designation</h3>
-                <div className="space-y-1">
-                  {["Admin","Lab Manager",   "Medical Technologist", "Researcher", "Student", "Technician"].map(
-                    (designation) => (
-                      <label
-                        key={designation}
-                        className="flex items-center space-x-2 whitespace-nowrap"
-                      >
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center space-x-2`
+                )}
+              >
+                <Filter /> <span>Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg">
+              <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                <div className="flex flex-col space-y-2">
+                  <h3
+                    className="font-semibold text-sm cursor-pointer"
+                    onClick={() => setIsDesignationOpen(!isDesignationOpen)}
+                    aria-expanded={isDesignationOpen}
+                  >
+                    Designation
+                  </h3>
+                  <div
+                    className={`space-y-1 transition-all ${isDesignationOpen ? "block" : "hidden sm:block"}`}
+                  >
+                    {["Admin", "Lab Manager", "Medical Technologist", "Researcher", "Student", "Technician"].map(
+                      (designation) => (
+                        <label
+                          key={designation}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <input
+                            type="checkbox"
+                            value={designation}
+                            checked={selectedDesignation.has(designation)}
+                            onChange={() => handleDesignationChange(designation)}
+                          />
+                          <span>{designation}</span>
+                        </label>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <h3
+                    className="font-semibold text-sm cursor-pointer"
+                    onClick={() => setIsLaboratoryOpen(!isLaboratoryOpen)}
+                    aria-expanded={isLaboratoryOpen}
+                  >
+                    Laboratory
+                  </h3>
+                  <div
+                    className={`space-y-1 transition-all ${isLaboratoryOpen ? "block" : "hidden sm:block"}`}
+                  >
+                    {["Pathology", "Immunology", "Microbiology"].map((lab) => (
+                      <label key={lab} className="flex items-center space-x-2 whitespace-nowrap">
                         <input
                           type="checkbox"
-                          value={designation}
-                          checked={selectedDesignation.has(designation)}
-                          onChange={() => handleDesignationChange(designation)}
+                          value={lab}
+                          checked={selectedLab.has(lab)}
+                          onChange={() => handleLabChange(lab)}
                         />
-                        <span>{designation}</span>
+                        <span>{lab}</span>
                       </label>
-                    )
-                  )}
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-2">
+                <h3
+                    className="font-semibold text-sm cursor-pointer"
+                    onClick={() => setIsStatusOpen(!isStatusOpen)}
+                    aria-expanded={isStatusOpen}
+                  >
+                    Status
+                  </h3>
+                  <div
+                    className={`space-y-1 transition-all ${isStatusOpen ? "block" : "hidden sm:block"}`}
+                  >
+                    {["Active", "Inactive", "Deleted", "Unverified Email", "Unapproved Account"].map(
+                      (status) => (
+                        <label
+                          key={status}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <input
+                            type="checkbox"
+                            value={status}
+                            checked={selectedStatus.has(status)}
+                            onChange={() => handleStatusChange(status)}
+                          />
+                          <span>{status}</span>
+                        </label>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-semibold text-sm">Laboratory</h3>
-                <div className="space-y-1">
-                  {["Pathology", "Immunology", "Microbiology"].map((lab) => (
-                    <label key={lab} className="flex items-center space-x-2 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        value={lab}
-                        checked={selectedLab.has(lab)}
-                        onChange={() => handleLabChange(lab)}
-                      />
-                      <span>{lab}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-semibold text-sm">Status</h3>
-                <div className="space-y-1">
-                  {["Active", "Inactive", "Deleted", "Unverified Email", "Unapproved Account"].map(
-                    (status) => (
-                      <label
-                        key={status}
-                        className="flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <input
-                          type="checkbox"
-                          value={status}
-                          checked={selectedStatus.has(status)}
-                          onChange={() => handleStatusChange(status)}
-                        />
-                        <span>{status}</span>
-                      </label>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="w-full flex justify-between sm:justify-end">
