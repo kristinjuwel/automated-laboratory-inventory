@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -27,7 +26,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
-import EditInventory from "./edit-form";
+import EditInventory from "../dialogs/edit-form";
 
 interface Material {
   materialId: number;
@@ -83,29 +82,31 @@ const GeneralSupplies = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch materials");
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch materials");
+          }
+          const data = await response.json();
+          const generalMaterials = data.filter(
+            (material: Material) =>
+              material.category.shortName.toLowerCase() === "gensupply" &&
+              material.laboratory.labName.toLowerCase() === labSlug
+          );
+          setMaterials(generalMaterials);
+          setFilteredMaterials(generalMaterials);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
         }
-        const data = await response.json();
-        const generalMaterials = data.filter(
-          (material: Material) =>
-            material.category.shortName.toLowerCase() === "gensupply" &&
-            material.laboratory.labName.toLowerCase() === labSlug
-        );
-        setMaterials(generalMaterials);
-        setFilteredMaterials(generalMaterials);
-      } catch (error) {
-        console.error("Error fetching materials:", error);
-      }
-    };
+      };
 
-    fetchMaterials();
-  }, [labSlug]);
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const fetchInventoryLogs = async (materialId: number) => {
     try {
@@ -161,9 +162,7 @@ const GeneralSupplies = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
-            )}
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
             onClick={() => {
               router.push("/gensupplies-inventory-form");
             }}
@@ -207,8 +206,12 @@ const GeneralSupplies = () => {
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
+                    {Math.max(
+                      0,
+                      material.quantityAvailable - material.maxThreshold
+                    )}
                   </TableCell>
+
                   <TableCell>{material.category.subcategory1}</TableCell>
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
@@ -254,7 +257,7 @@ const GeneralSupplies = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={14} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

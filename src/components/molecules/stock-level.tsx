@@ -11,6 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Edit, Search, TriangleAlert, Trash, Printer } from "lucide-react";
 import {
   Dialog,
@@ -19,8 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { jsPDF } from "jspdf";
-
+import PdfGenerator from "../templates/pdf-generator";
 
 interface StockLevelValues {
   itemNo: string;
@@ -34,12 +39,21 @@ interface StockLevelValues {
 
 const StockLevel = () => {
   const [stockLevels, setStockLevels] = useState<StockLevelValues[]>([]);
-  const [filteredStockLevels, setFilteredStockLevels] = useState<StockLevelValues[]>([]);
+  const [filteredStockLevels, setFilteredStockLevels] = useState<
+    StockLevelValues[]
+  >([]);
   const [search, setSearch] = useState("");
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
+  >(undefined);
+
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPrintDialogOpen, setisPrintDialogOpen] = useState(false);
-  const [selectedStock, setSelectedStock] = useState<StockLevelValues | null>(null);
+  const [selectedStock, setSelectedStock] = useState<StockLevelValues | null>(
+    null
+  );
+  const [pageSize, setPageSize] = useState("a4");
 
   useEffect(() => {
     const fetchData = [
@@ -81,136 +95,34 @@ const StockLevel = () => {
 
     setFilteredStockLevels(
       stockLevels.filter((stock) =>
-        `${stock.itemNo} ${stock.description}`.toLowerCase().includes(query.toLowerCase())
+        `${stock.itemNo} ${stock.description}`
+          .toLowerCase()
+          .includes(query.toLowerCase())
       )
     );
   };
-
-  const handlePrint = () => {
-    const doc = new jsPDF();
-    const baseUrl = window.location.origin; // Get the base URL for the images
-  
-    // Load images first, and once they are loaded, generate the PDF
-    const imgElement1 = new Image();
-    const imgElement2 = new Image();
-  
-    // Set image sources
-    imgElement1.src = `${baseUrl}/images/mrl-logo.png`;
-    imgElement2.src = `${baseUrl}/images/pgh-logo.png`;
-  
-    // Wait for both images to load
-    Promise.all([
-      new Promise((resolve) => (imgElement1.onload = resolve)),
-      new Promise((resolve) => (imgElement2.onload = resolve)),
-    ]).then(() => {
-      // Add logos to the PDF
-      doc.addImage(imgElement1, 'PNG', 30, 10, 20, 20); // MRL Logo
-      doc.addImage(imgElement2, 'PNG', 160, 10, 20, 20); // PGH Logo
-  
-      doc.setFont("helvetica", "normal"); // Set font to Helvetica (default)
-      doc.setFontSize(12);
-      const headerText = [
-        "PHILIPPINE GENERAL HOSPITAL",
-        "The National University Hospital",
-        "University of the Philippines Manila",
-        "MEDICAL RESEARCH LABORATORY",
-        "Department of Medicine",
-        "Taft Avenue, Manila",
-        "Tel. no. 8554-8400 loc. 3232"
-      ];
-      let y = 15; // Starting position for header
-      
-      // Set PHILIPPINE GENERAL HOSPITAL and MEDICAL RESEARCH LABORATORY in bold
-      doc.setFont("helvetica", "bold"); 
-      doc.text(headerText[0], 105, y, { align: 'center' }); // PHILIPPINE GENERAL HOSPITAL
-      y += 5;
-      doc.setFont("helvetica", "normal"); // Switch back to normal font
-      headerText.slice(1, 3).forEach((text) => { // The following lines in regular font
-        doc.text(text, 105, y, { align: 'center' });
-        y += 5;
-      });
-  
-      // Set MEDICAL RESEARCH LABORATORY in bold
-      doc.setFont("helvetica", "bold");
-      doc.text(headerText[3], 105, y, { align: 'center' }); // MEDICAL RESEARCH LABORATORY
-      y += 5;
-  
-      // Continue with normal font for the rest
-      doc.setFont("helvetica", "normal");
-      headerText.slice(4).forEach((text) => { 
-        doc.text(text, 105, y, { align: 'center' });
-        y += 5;
-      });
-  
-      y += 8;
-      // Add PHIC header
-      doc.setFont("times", "italic");
-      doc.text("PHIC - Accredited Health Care Provider", 105, y, { align: 'center' });
-      y += 5;
-      doc.text("ISO 9001 CERTIFIED", 105, y, { align: 'center' });
-      y += 5;
-      doc.text("TUV-SUD, Asia Pacific, Ltd", 105, y, { align: 'center' });
-      y += 15; // Add extra space before the title
-  
-      doc.setFont("helvetica", "bold");
-      // Add report title
-      doc.setFontSize(18);
-      doc.text("Stock Level Report", 105, y, { align: 'center' });
-      y += 5; // Add extra space after the report title
-  
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      const tableHeaders = ['Item No', 'Description', 'On Hand', 'Min Level', 'Max Level', 'Status'];
-      const tableData = filteredStockLevels.map(stock => [
-        stock.itemNo,
-        stock.description,
-        stock.onHand,
-        stock.minLevel,
-        stock.maxLevel,
-        stock.status
-      ]);
-
-      // Calculate dynamic column widths based on the longest content
-      const colWidths = tableHeaders.map((header, index) => {
-        const longestData = Math.max(
-          header.length,
-          ...tableData.map(row => row[index].toString().length)
-        );
-        return Math.max(longestData * 3, 30); // Ensures that the minimum width is 30 and adjusts for long text
-      });
-
-      // Draw the table header with borders
-      let x = 6; // Starting X position for the table
-      y += 5; // Add some space after the title
-
-      // Header text with borders
-      tableHeaders.forEach((header, index) => {
-        doc.rect(x, y, colWidths[index], 10); // Draw cell border
-        doc.text(header, x + 2, y + 7); // Add text inside the cell
-        x += colWidths[index];
-      });
-
-      doc.setFont("helvetica", "normal");
-      // Draw the table data with borders
-      y += 10; // Move down for the first row of data
-      tableData.forEach((row) => {
-        x = 6; // Reset X position for each row
-        row.forEach((cell, cellIndex) => {
-          doc.rect(x, y, colWidths[cellIndex], 10); // Draw cell border
-          doc.text(cell.toString(), x + 2, y + 7); // Add text inside the cell
-          x += colWidths[cellIndex];
-        });
-        y += 10; // Move down for each row
-      });
-
-      // Save the PDF directly without opening a preview window
-      doc.save('Stock Level Report.pdf');
-    });
-  };
+  const tableHeaders = [
+    "Item No",
+    "Description",
+    "On Hand",
+    "Min Level",
+    "Max Level",
+    "Status",
+  ];
+  const tableData = filteredStockLevels.map((stock) => [
+    stock.itemNo,
+    stock.description,
+    stock.onHand,
+    stock.minLevel,
+    stock.maxLevel,
+    stock.status,
+  ]);
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold text-teal-700 mb-4">Stock Level Reports</h1>
+      <h1 className="text-3xl font-semibold text-teal-700 mb-4">
+        Stock Level Reports
+      </h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
@@ -231,7 +143,7 @@ const StockLevel = () => {
               setisPrintDialogOpen(true);
             }}
           >
-             <Printer className="w-4 h-4 -mr-1" />
+            <Printer className="w-4 h-4 -mr-1" />
             Print Report
           </Button>
         </div>
@@ -306,7 +218,10 @@ const StockLevel = () => {
           </DialogHeader>
           <div>
             <div className="mb-4">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Description
               </label>
               <Input
@@ -316,7 +231,10 @@ const StockLevel = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="onHand" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="onHand"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 On Hand
               </label>
               <Input
@@ -326,7 +244,10 @@ const StockLevel = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="minLevel" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="minLevel"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Min Level
               </label>
               <Input
@@ -336,7 +257,10 @@ const StockLevel = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="maxLevel" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="maxLevel"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Max Level
               </label>
               <Input
@@ -346,7 +270,10 @@ const StockLevel = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="status"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Status
               </label>
               <Input
@@ -356,7 +283,10 @@ const StockLevel = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="action"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Action
               </label>
               <Input
@@ -376,7 +306,6 @@ const StockLevel = () => {
           </div>
         </DialogContent>
       </Dialog>
-
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="bg-white">
@@ -414,31 +343,109 @@ const StockLevel = () => {
       </Dialog>
 
       <Dialog open={isPrintDialogOpen} onOpenChange={setisPrintDialogOpen}>
-      <DialogContent className="bg-white">
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Stock Level Report
             </DialogTitle>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this report?
+          <p className="text-left pt-2 text-m">
+            Select page size for the report:
           </p>
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span className={pageSize ? "text-black" : "text-gray-500"}>
+                    {pageSize === "a4"
+                      ? "A4 (210 x 297 mm)"
+                      : pageSize === "short"
+                      ? "Short (Letter, 215.9 x 279.4 mm)"
+                      : pageSize === "long"
+                      ? "Long (Legal, 215.9 x 355.6 mm)"
+                      : "Select Page Size"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "A4 (210 x 297 mm)", value: "a4" },
+                  { label: "Short (Letter, 215.9 x 279.4 mm)", value: "short" },
+                  { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={pageSize === option.value}
+                    onCheckedChange={(checked) =>
+                      setPageSize(checked ? option.value : "a4")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-left pt-4 text-m">
+            Select orientation for the report:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span
+                    className={orientation ? "text-black" : "text-gray-500"}
+                  >
+                    {orientation === "portrait"
+                      ? "Portrait"
+                      : orientation === "landscape"
+                      ? "Landscape"
+                      : "Select Orientation"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "Portrait", value: "portrait" as const },
+                  { label: "Landscape", value: "landscape" as const },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={orientation === option.value}
+                    onCheckedChange={(checked) =>
+                      setOrientation(checked ? option.value : undefined)
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => setisPrintDialogOpen(false)}
             >
               Cancel
             </Button>
-            <Button
-              onClick={() => {
-                handlePrint(); // Invoke the function here
-                setisPrintDialogOpen(false); // Close the dialog after printing
-              }}
-            >
-              Confirm
-            </Button>
+            <PdfGenerator
+              pdfTitle="Stock Level Report"
+              pageSize={pageSize}
+              orientation={orientation}
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setisPrintDialogOpen(false)}
+            ></PdfGenerator>
           </div>
         </DialogContent>
       </Dialog>

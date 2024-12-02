@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast, Toaster } from "sonner";
@@ -19,18 +19,23 @@ import {
   Search,
   TriangleAlert,
   UserPlus,
+  UserPen,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import CreateAccount from "@/components/molecules/create-account";
+import CreateAccount from "@/components/dialogs/create-account";
 import { userSchema, UserSchema } from "@/packages/api/user";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
+import CustomPagination from "@/components/ui/pagination-custom";
+import EditAccount from "@/components/dialogs/edit-user";
 import {
   Select,
   SelectContent,
@@ -38,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
 
 interface MappedUser {
   userId: number;
@@ -51,12 +55,11 @@ interface MappedUser {
   email: string | null;
   username: string;
   status: string;
+  phoneNumber: string;
 }
-const labMapping = {
-  Pathology: 1,
-  Immunology: 2,
-  Microbiology: 3,
-};
+
+const ITEMS_PER_PAGE = 4;
+
 const AdminView = () => {
   const [users, setUsers] = useState<MappedUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<MappedUser[]>([]);
@@ -66,26 +69,8 @@ const AdminView = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
-  const [formData, setFormData] = useState<Partial<MappedUser>>({});
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
-  const statuses = [
-    "active",
-    "inactive",
-    "to be approved",
-    "to be otp-verified",
-  ];
-  const laboratories = [
-    { name: "Pathology", id: 1 },
-    { name: "Immunology", id: 2 },
-    { name: "Microbiology", id: 3 },
-  ];
-  const designations = [
-    "medical technologist",
-    "researcher",
-    "lab manager",
-    "student",
-    "technician",
-  ];
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
 
@@ -127,6 +112,7 @@ const AdminView = () => {
           email: user.email ?? "",
           username: user.username,
           status: user.status,
+          phoneNumber: user.phoneNumber,
         }));
 
         setUsers(mappedUsers);
@@ -140,71 +126,23 @@ const AdminView = () => {
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
+    const query = e.target.value.toLowerCase();
     setSearch(query);
-
     setFilteredUsers(
-      users.filter((user) =>
-        `${user.firstName} ${user.lastName} ${user.middleName}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
+      users.filter((user) => {
+        const combinedString = `${user.firstName} ${user.lastName} ${user.middleName}  ${user.laboratory} ${user.designation} ${user.status}`;
+        return combinedString.toLowerCase().includes(query);
+      })
     );
+    setCurrentPage(1);
   };
 
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
   const handleViewModeChange = (view: string) => {
     setViewMode(view);
-  };
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditSubmit = async () => {
-    if (selectedUser) {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}update-user/${selectedUser.userId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...formData,
-              labId: formData.labId || selectedUser.labId,
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const updatedUser = {
-            ...selectedUser,
-            ...formData,
-            labId: formData.labId || selectedUser.labId,
-          };
-          setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.userId === updatedUser.userId ? updatedUser : user
-            )
-          );
-          setFilteredUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.userId === updatedUser.userId ? updatedUser : user
-            )
-          );
-          toast.success("User updated successfully!");
-          setIsEditDialogOpen(false);
-          window.location.reload();
-        } else {
-          throw new Error("Failed to update user");
-        }
-      } catch (error) {
-        console.error("Error updating user:", error);
-        toast.error("Failed to update user");
-      }
-    }
   };
 
   const handleDeleteUser = async () => {
@@ -236,26 +174,53 @@ const AdminView = () => {
     }
   };
 
+  const handleEditStatus = async (currentUserId: number, status: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}update-user/${currentUserId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: status,
+          }),
+        }
+      );
+      if (response.ok) {
+        toast.success("Account status changed successful!");
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Account update failed!");
+      }
+    } catch (error) {
+      toast.error("An error occurred.");
+    }
+  };
+
   return (
-    <div className="p-12 w-screen h-screen bg-white">
-      <h1 className="text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex-grow">
+    <div className="p-4 sm:p-8 md:p-12 w-full min-h-screen bg-white">
+      <h1 className="text-lg sm:text-xl font-bold py-2 tracking-tight mb-4 text-teal-900 justify-center hidden sm:flex">
         MANAGE USERS
       </h1>
-      <div className="flex text-right justify-between items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search for a user"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
-
+      <div className="flex sm:flex-row flex-col-reverse sm:justify-between items-end sm:items-center w-full mb-4 space-y-4 sm:space-y-0">
+        <div className="flex flex-row w-full sm:w-3/4 justify-between sm:justify-start space-x-2">
+          <div className="relative w-full">
+            <Input
+              placeholder="Search for a user"
+              value={search}
+              onChange={handleSearch}
+              className="w-full pr-10 rounded-lg"
+            />
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <Search className="size-5 text-gray-500" />
+            </span>
+          </div>
           <Button
             className={cn(
-              `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 ${
+              `bg-teal-500 text-white w-2/5 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out sm:mx-2 ${
                 viewMode === "card" ? "hidden" : ""
               }`
             )}
@@ -263,130 +228,179 @@ const AdminView = () => {
               setIsCreateDialogOpen(true);
             }}
           >
-            <UserPlus className="w-4 h-4" strokeWidth={1.5} />
-            Add User
+            <UserPlus className="w-4 h-4 md:mr-1" strokeWidth={1.5} />
+            <span className="lg:flex xs:flex sm:hidden">Add User</span>
           </Button>
         </div>
-
-        <div className="inline-flex right-0 border border-gray-300 rounded-xl overflow-hidden">
-          <button
-            className={cn(
-              `px-4 py-2 ${
-                viewMode === "table"
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700"
-              }`
-            )}
-            onClick={() => handleViewModeChange("table")}
-          >
-            <List className="w-4 h-4 inline-block mr-1" /> Table View
-          </button>
-          <button
-            className={cn(
-              `px-4 py-2 ${
-                viewMode === "card"
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700"
-              }`
-            )}
-            onClick={() => handleViewModeChange("card")}
-          >
-            <Grid className="w-4 h-4 justify-center inline-block mr-1 items-center" />{" "}
-            Card View
-          </button>
+        <div className="w-full flex justify-between sm:justify-end">
+          <h1 className="ml-1 text-lg sm:text-xl w-3/4 font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex sm:hidden">
+            MANAGE USERS
+          </h1>
+          <div className="flex rounded-lg overflow-hidden border h-10 lg:w-2/5">
+            <button
+              className={cn(
+                `px-4 py-2 flex items-center w-1/2 justify-start h-10 space-x-1  ${
+                  viewMode === "table"
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700"
+                }`
+              )}
+              onClick={() => handleViewModeChange("table")}
+            >
+              <List className="w-4 h-4 inline-block mr-1" />
+              <span className="lg:flex hidden truncate">Table View</span>
+            </button>
+            <button
+              className={cn(
+                `px-4 py-2 flex items-center w-1/2 justify-start h-10 space-x-1 ${
+                  viewMode === "card"
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700"
+                }`
+              )}
+              onClick={() => handleViewModeChange("card")}
+            >
+              <Grid className="w-4 h-4 inline-block mr-1" />
+              <span className="lg:flex hidden truncate">Card View</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <Toaster />
 
       {viewMode === "table" ? (
-        <Table className="items-center justify-center">
-          <TableHeader className="text-center justify-center">
-            <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Designation</TableHead>
-              <TableHead>Laboratory</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-center">Username</TableHead>
-              <TableHead className="text-center">Email</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <TableRow key={user.userId} className={"text-gray-900"}>
-                  <TableCell>{user.userId}</TableCell>
-                  <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
-                  <TableCell className="capitalize">
-                    {user.designation}
-                  </TableCell>
-                  <TableCell className="capitalize">
-                    {user.laboratory}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      `capitalize ${
-                        user.status?.toLowerCase() === "deleted"
-                          ? "text-red-500"
-                          : user.status?.toLowerCase() === "active"
-                          ? "text-teal-500"
-                          : user.status?.toLowerCase() === "inactive"
-                          ? "text-gray-500"
-                          : user.status?.toLowerCase() === "to be approved"
-                          ? "text-yellow-500"
-                          : user.status?.toLowerCase() === "to be otp-verified"
-                          ? "text-blue-500"
-                          : "text-black"
-                      }`
-                    )}
-                  >
-                    {user.status}
-                  </TableCell>
-                  <TableCell className="text-center">{user.username}</TableCell>
-                  <TableCell className="text-center lowercase">
-                    {user.email}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {user.status !== "Deleted" && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash className="w-4 h-4 -mr-1" /> Delete
-                        </Button>
-                      </>
-                    )}
-                  </TableCell>
+        <>
+          <div className="overflow-x-hidden">
+            <Table className="min-w-full">
+              <TableHeader className="text-center justify-center">
+                <TableRow>
+                  <TableHead>Id</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Designation</TableHead>
+                  <TableHead>Laboratory</TableHead>
+                  <TableHead className="text-center">Username</TableHead>
+                  <TableHead className="text-center">Email</TableHead>
+                  <TableHead className="text-center">Phone Number</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center text-gray-500">
-                  No users found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedUsers.length > 0 ? (
+                  paginatedUsers.map((user) => (
+                    <TableRow key={user.userId} className={"text-gray-900"}>
+                      <TableCell>{user.userId}</TableCell>
+                      <TableCell>{`${user.firstName} ${user.middleName} ${user.lastName}`}</TableCell>
+                      <TableCell className="capitalize">
+                        {user.designation}
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {user.laboratory}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {user.username}
+                      </TableCell>
+                      <TableCell className="text-center lowercase">
+                        {user.email}
+                      </TableCell>
+                      <TableCell className="text-center lowercase">
+                        {user.phoneNumber}
+                      </TableCell>
+                      <TableCell>
+                        {user.status.toLowerCase() === "deleted" ? (
+                          <div className="w-full px-4 py-2 rounded-md bg-green-300 font-semibold text-red-500">
+                            Deleted
+                          </div>
+                        ) : (
+                          <Select
+                            value={user.status}
+                            onValueChange={(newStatus) => {
+                              setSelectedUser(user);
+                              handleEditStatus(user.userId, newStatus);
+                            }}
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "w-32 inline-flex",
+                                user.status.toLowerCase() === "active"
+                                  ? "bg-green-300 text-green-950 pl-6"
+                                  : user.status.toLowerCase() === "inactive"
+                                  ? "bg-gray-300 text-gray-950 pl-6"
+                                  : user.status.toLowerCase() ===
+                                    "unverified email"
+                                  ? "bg-indigo-300 text-indigo-950"
+                                  : user.status.toLowerCase() ===
+                                    "unapproved account"
+                                  ? "bg-yellow-300 text-yellow-950"
+                                  : "bg-teal-300 text-teal-950"
+                              )}
+                            >
+                              <SelectValue placeholder="Select status..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Active">Active</SelectItem>
+                              <SelectItem value="Inactive">Inactive</SelectItem>
+                              <SelectItem value="Unverified Email">
+                                Unverified Email
+                              </SelectItem>
+                              <SelectItem value="Unapproved Account">
+                                Unapproved Account
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {user.status !== "Deleted" && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash className="w-4 h-4 -mr-1" /> Delete
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={9}
+                      className="text-center text-gray-500"
+                    >
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+            <CustomPagination
+              totalItems={filteredUsers.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              currentPage={currentPage}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
+        </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredUsers.map((user) => (
@@ -397,9 +411,52 @@ const AdminView = () => {
               <CardContent>
                 <p>Designation: {user.designation}</p>
                 <p>Laboratory: {user.laboratory}</p>
-                <p>Status: {user.status}</p>
                 <p>Username: {user.username}</p>
                 <p>Email: {user.email}</p>
+                <p>Phone Number: {user.phoneNumber}</p>
+                <span className="flex gap-2">
+                  <p className="">Status:</p>
+                  {user.status.toLowerCase() === "deleted" ? (
+                    <div className="w-full px-4 py-2 rounded-md bg-green-300 font-semibold text-red-500">
+                      Deleted
+                    </div>
+                  ) : (
+                    <Select
+                      value={user.status}
+                      onValueChange={(newStatus) => {
+                        setSelectedUser(user);
+                        handleEditStatus(user.userId, newStatus);
+                      }}
+                    >
+                      <SelectTrigger
+                        className={cn(
+                          "w-32 inline-flex h-6",
+                          user.status.toLowerCase() === "active"
+                            ? "bg-green-300 text-green-950 pl-10"
+                            : user.status.toLowerCase() === "inactive"
+                            ? "bg-gray-300 text-gray-950 pl-9"
+                            : user.status.toLowerCase() === "unverified email"
+                            ? "bg-indigo-300 text-indigo-950"
+                            : user.status.toLowerCase() === "unapproved account"
+                            ? "bg-yellow-300 text-yellow-950"
+                            : "bg-teal-300 text-teal-950"
+                        )}
+                      >
+                        <SelectValue placeholder="Select status..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                        <SelectItem value="Unverified Email">
+                          Unverified Email
+                        </SelectItem>
+                        <SelectItem value="Unapproved Account">
+                          Unapproved Account
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </span>
                 <div className="items-right text-right pt-16 pb-0">
                   <Button
                     size="sm"
@@ -442,158 +499,23 @@ const AdminView = () => {
       )}
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white overflow-y-auto max-h-full md:h-auto md:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 tracking-tight text-teal-900 mt-2">
+              <UserPen className="text-teal-900 size-5 -mt-0.5" />
+              Edit Account Details
+            </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           {selectedUser && (
-            <div>
-              <form className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-500" htmlFor="firstName">
-                    First Name
-                  </label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName || selectedUser.firstName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500" htmlFor="middleName">
-                    Middle Name
-                  </label>
-                  <Input
-                    id="middleName"
-                    name="middleName"
-                    placeholder="Middle Name"
-                    value={formData.middleName || selectedUser.middleName || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500" htmlFor="lastName">
-                    Last Name
-                  </label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName || selectedUser.lastName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500">Designation</label>
-                  <Select
-                    value={formData.designation || selectedUser.designation}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, designation: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Designation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {designations.map((designation) => (
-                        <SelectItem key={designation} value={designation}>
-                          {designation.charAt(0).toUpperCase() +
-                            designation.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500">Laboratory</label>
-                  <Select
-                    value={
-                      formData.labId?.toString() ||
-                      labMapping[
-                        selectedUser.laboratory as keyof typeof labMapping
-                      ]?.toString()
-                    }
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        labId: parseInt(value, 10),
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Laboratory" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {laboratories.map((lab) => (
-                        <SelectItem key={lab.id} value={lab.id.toString()}>
-                          {lab.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500" htmlFor="email">
-                    Email
-                  </label>
-                  <Input
-                    id="email"
-                    name="email"
-                    placeholder="Email"
-                    type="email"
-                    value={formData.email || selectedUser.email || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500" htmlFor="username">
-                    Username
-                  </label>
-                  <Input
-                    id="username"
-                    name="username"
-                    placeholder="Username"
-                    value={formData.username || selectedUser.username}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500">Status</label>
-                  <Select
-                    value={formData.status || selectedUser.status}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, status: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statuses.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </form>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleEditSubmit}>Save Changes</Button>
-              </div>
-            </div>
+            <EditAccount
+              closeDialog={() => setIsEditDialogOpen(false)}
+              editor="admin"
+              userId={selectedUser.userId.toString()}
+            />
           )}
         </DialogContent>
       </Dialog>
-      <Toaster />
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="bg-white">
@@ -602,6 +524,7 @@ const AdminView = () => {
               <TriangleAlert className="text-red-500 size-5 -mt-0.5" />
               Delete User
             </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure you want to delete this user?
@@ -634,12 +557,13 @@ const AdminView = () => {
       </Dialog>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-white overflow-y-auto max-h-full md:h-auto md:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight mb-4">
               <UserPlus className="text-teal-500 size-5 -mt-0.5" />
               Add User
             </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <CreateAccount closeDialog={() => setIsCreateDialogOpen(false)} />
         </DialogContent>

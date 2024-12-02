@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,293 +10,281 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, TriangleAlert, FilePlus, Printer } from "lucide-react";
+import { Edit, Search, FilePlus, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import CustomPagination from "../ui/pagination-custom";
+import { ReagentDispenseSchema } from "@/packages/api/inventory";
+import EditReagentDispense from "../dialogs/reagent-dispense-edit";
 
-interface User {
-  id: string;
-  lastName: string;
-  firstName: string;
-  middleName: string;
-  designation: string;
+interface ReagentDispenseValues {
+  dispenseId: number;
+  date: string;
+  reagentId: number;
+  name: string;
+  totalNoContainers: number;
+  lotNo: string;
+  qtyDispensed: number;
+  remarks: string;
+  userId: number;
+  analyst: string;
   laboratory: string;
-  email: string;
-  username: string;
-  status: string;
+  remainingQuantity: number;
 }
 
+const ITEMS_PER_PAGE = 4;
+
 const ReagentDispense = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const labSlug = pathname?.split("/")[2];
+  const [dispenses, setDispenses] = useState<ReagentDispenseValues[]>([]);
+  const [filteredDispenses, setFilteredDispenses] = useState<
+    ReagentDispenseValues[]
+  >([]);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedDispense, setSelectedDispense] =
+    useState<ReagentDispenseValues | null>(null);
 
   useEffect(() => {
-    const fetchData = [
-      {
-        id: "1",
-        lastName: "Doe",
-        firstName: "John",
-        middleName: "A.",
-        designation: "Researcher",
-        laboratory: "Pathology",
-        email: "john.doe@example.com",
-        username: "jdoe",
-        status: "active",
-      },
-      {
-        id: "2",
-        lastName: "Smith",
-        firstName: "Jane",
-        middleName: "B.",
-        designation: "Technician",
-        laboratory: "Immunology",
-        email: "jane.smith@example.com",
-        username: "jsmith",
-        status: "active",
-      },
-      {
-        id: "3",
-        lastName: "Brown",
-        firstName: "Alex",
-        middleName: "C.",
-        designation: "Lab Manager",
-        laboratory: "Microbiology",
-        email: "alex.brown@example.com",
-        username: "abrown",
-        status: "active",
-      },
-    ];
-    setUsers(fetchData);
-    setFilteredUsers(fetchData);
-  }, []);
+    if (!isEditDialogOpen) {
+      const fetchDispenses = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}reagents-dispense`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch disposal forms");
+          }
+          const data = await response.json();
+
+          const mappedDisposal = data.map(
+            (disposal: ReagentDispenseSchema) => ({
+              ...disposal,
+              laboratory: `${disposal.reagent.laboratory.labName}`,
+              remainingQuantity: disposal.reagent.quantityAvailable,
+            })
+          );
+          const disposedMaterials = mappedDisposal.filter(
+            (disposal: ReagentDispenseValues) =>
+              disposal.laboratory.toLowerCase() === labSlug
+          );
+          setDispenses(disposedMaterials);
+          setFilteredDispenses(disposedMaterials);
+        } catch (error) {
+          console.error("Error fetching forms:", error);
+        }
+      };
+
+      fetchDispenses();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
+    const query = e.target.value.toLowerCase();
     setSearch(query);
-
-    setFilteredUsers(
-      users.filter((user) =>
-        `${user.firstName} ${user.lastName} ${user.middleName}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
+    setFilteredDispenses(
+      dispenses.filter((dispense) => {
+        const combinedString = `${dispense.name} ${dispense.analyst} ${dispense.remarks} ${dispense.date}`;
+        return combinedString.toLowerCase().includes(query);
+      })
     );
+    setCurrentPage(1);
   };
 
+  const paginatedMaterials = filteredDispenses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
-    <div className=" p-8">
+    <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
         Reagent Dispense Forms
       </h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for an entry"
+            placeholder="Search for a material"
             value={search}
             onChange={handleSearch}
-            className="w-80 pr-8"
+            className="w-80 pr-8 rounded-lg"
           />
           <span className="relative -ml-8">
             <Search className="size-5 text-gray-500" />
           </span>
-
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
-            )}
+            className="bg-teal-500 text-white w-40 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
-              setIsCreateDialogOpen(true);
+              router.push("/reagents-inventory-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Create Form
+            Dispense Reagent
+          </Button>
+          <Button
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            onClick={() => {
+              setIsPrintDialogOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
           </Button>
         </div>
       </div>
 
       <Toaster />
-
-      <Table className="items-center justify-center">
-        <TableHeader className="text-center justify-center">
-          <TableRow>
-            <TableHead>Id</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Designation</TableHead>
-            <TableHead>Laboratory</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-center">Username</TableHead>
-            <TableHead className="text-center">Email</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{`${user.lastName}, ${user.firstName} ${user.middleName}`}</TableCell>
-                <TableCell>{user.designation}</TableCell>
-                <TableCell>{user.laboratory}</TableCell>
-                <TableCell>{user.status}</TableCell>
-                <TableCell className="text-center">{user.username}</TableCell>
-                <TableCell className="text-center">{user.email}</TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setIsDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Printer className="w-4 h-4 -mr-1" /> Print
-                  </Button>
+      <TooltipProvider>
+        <Table className="overflow-x-auto">
+          <TableHeader className="text-center justify-center">
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Item Name</TableHead>
+              <TableHead>Total Containers</TableHead>
+              <TableHead>Lot Number</TableHead>
+              <TableHead>Quantity Dispensed</TableHead>
+              <TableHead>Remaining Quantity</TableHead>
+              <TableHead>Remarks</TableHead>
+              <TableHead>Analyst</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedMaterials.length > 0 ? (
+              paginatedMaterials.map((dispense) => (
+                <TableRow key={dispense.dispenseId}>
+                  <TableCell>{dispense.dispenseId}</TableCell>
+                  <TableCell>
+                    {new Date(dispense.date).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>{dispense.name}</TableCell>
+                  <TableCell>{dispense.totalNoContainers}</TableCell>
+                  <TableCell>{dispense.lotNo}</TableCell>
+                  <TableCell>{dispense.qtyDispensed}</TableCell>
+                  <TableCell>{dispense.remainingQuantity}</TableCell>
+                  <TableCell className="relative max-w-8 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer truncate">
+                          {dispense.remarks}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{dispense.remarks}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>{dispense.analyst}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                      onClick={() => {
+                        setSelectedDispense(dispense);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-md text-black-600 hover:text-black-900 hover:bg-black-50"
+                      onClick={() => {
+                        setIsPrintDialogOpen(true);
+                      }}
+                    >
+                      <Printer className="w-4 h-4 -mr-1" /> Print
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center text-gray-500">
+                  No materials found.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center text-gray-500">
-                No users found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </TooltipProvider>
+      <CustomPagination
+        totalItems={filteredDispenses.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        currentPage={currentPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white max-h-4/5 sm:h-4/5 h-full overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <Edit className="text-teal-500 size-5 -mt-0.5" />
+              Edit Reagent Dispense
+            </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
-          <div>
-            <Input
-              value={selectedUser?.firstName}
-              placeholder="First Name"
-              className="mb-4"
+          {selectedDispense && (
+            <EditReagentDispense
+              closeDialog={() => setIsEditDialogOpen(false)}
+              dispenseId={selectedDispense.dispenseId}
+              date={selectedDispense.date}
+              materialId={selectedDispense.reagentId}
+              name={selectedDispense.name}
+              totalNoContainers={selectedDispense.totalNoContainers}
+              lotNo={selectedDispense.lotNo}
+              qtyDispensed={selectedDispense.qtyDispensed}
+              remainingQuantity={selectedDispense.remainingQuantity}
+              remarks={selectedDispense.remarks}
+              userId={selectedDispense.userId}
             />
-            <Input
-              value={selectedUser?.middleName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.lastName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.designation}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.laboratory}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.email}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.username}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <div className="relative">
-              <Button
-                className="absolute right-0 mr-4"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Save Changes
-              </Button>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <TriangleAlert className="text-red-500 size-5 -mt-0.5" />
-              Delete User
+              <Printer className="text-black size-5 -mt-0.5" />
+              Print Disposal Form
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
-            Are you sure you want to delete this user?
-          </p>
-          <p className="text-left bg-red-300 -mt-2 relative py-2 text-sm">
-            <span className="pl-4">
-              By deleting this user, they will be removed indefinitely.
-            </span>
-            <span className="absolute left-0 top-0 h-full w-2 bg-red-600"></span>
+            Are you sure you want to print this form?
           </p>
           <div className="flex justify-end gap-2 mt-2">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => setIsPrintDialogOpen(false)}
             >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Confirm
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight mb-4">
-              <FilePlus className="text-teal-500 size-5 -mt-0.5" />
-              Add User
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Add User
-            </Button>
+            <Button onClick={() => setIsPrintDialogOpen(false)}>Confirm</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -54,9 +54,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import AddSupplier from "@/components/molecules/supplier";
+import AddSupplier from "@/components/dialogs/supplier";
 import { Category, Supplier } from "@/packages/api/lab";
-import AddCategory from "@/components/molecules/category";
+import AddCategory from "@/components/dialogs/category";
 import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -78,6 +78,7 @@ interface ReagentsFormValues {
   notes: string;
   reorderThreshold: number;
   maxThreshold: number;
+  qtyPerContainer: number;
 }
 
 const ReagentsInventoryForm = () => {
@@ -109,7 +110,26 @@ const ReagentsInventoryForm = () => {
     number | null
   >(null);
 
-  const form = useForm<ReagentsFormValues>();
+  const form = useForm<ReagentsFormValues>({
+    defaultValues: {
+      personnel: 0,
+      itemName: "",
+      itemCode: "",
+      unit: "",
+      location: "",
+      expiryDate: "",
+      category: 0,
+      supplier: 0,
+      cost: 0,
+      quantity: 0,
+      qtyPerContainer: 0,
+      totalNoContainers: 0,
+      lotNo: "",
+      notes: "",
+      reorderThreshold: 0,
+      maxThreshold: 0,
+    },
+  });
 
   const addFilteredSupplier = async () => {
     try {
@@ -192,7 +212,10 @@ const ReagentsInventoryForm = () => {
   const handleSubmit = async (values: ReagentsFormValues) => {
     const parsedValues = {
       ...values,
-      totalNoContainers: Number(values.totalNoContainers),
+      totalNoContainers: Math.ceil(
+        Number(values.quantity) / Number(values.qtyPerContainer)
+      ),
+      qtyPerContainer: Number(values.qtyPerContainer),
       quantity: Number(values.quantity),
       cost: Number(values.cost),
       date: format(new Date(values.date), "yyyy-MM-dd"),
@@ -209,12 +232,13 @@ const ReagentsInventoryForm = () => {
       location: parsedValues.location,
       expiryDate: parsedValues.expiryDate,
       cost: parsedValues.cost,
-      totalNoContainers: parsedValues.totalNoContainers,
+      totalNoContainers: 0,
       lotNo: parsedValues.lotNo,
       notes: parsedValues.notes,
       quantityAvailable: 0,
       reorderThreshold: parsedValues.reorderThreshold,
       maxThreshold: parsedValues.maxThreshold,
+      qtyPerContainer: parsedValues.qtyPerContainer,
     };
 
     const inventoryLogPayload = {
@@ -225,7 +249,17 @@ const ReagentsInventoryForm = () => {
       source: `Add ${parsedValues.quantity}`,
       remarks: "Initial Inventory",
     };
+    let laboratory: string;
 
+    if (Number(parsedValues.labId) === 1) {
+      laboratory = "pathology";
+    } else if (Number(parsedValues.labId) === 2) {
+      laboratory = "immunology";
+    } else if (Number(parsedValues.labId) === 3) {
+      laboratory = "microbiology";
+    } else {
+      laboratory = "unknown";
+    }
     try {
       const materialResponse = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}material/create`,
@@ -264,7 +298,8 @@ const ReagentsInventoryForm = () => {
 
       toast.success("Material and inventory log added successfully!");
       form.reset();
-      router.push("/lab/pathology");
+      router.push(`/lab/${laboratory}`);
+      toast;
     } catch (error) {
       toast.error("Submission failed. Please try again.");
     }
@@ -402,7 +437,7 @@ const ReagentsInventoryForm = () => {
         <div className="md:overflow-y-auto md:max-h-[400px] mb-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="date"
                   render={({ field }) => (
@@ -489,7 +524,7 @@ const ReagentsInventoryForm = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="labId"
                   render={({ field }) => (
@@ -635,7 +670,8 @@ const ReagentsInventoryForm = () => {
                   )}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="itemName"
                   render={({ field }) => (
@@ -679,7 +715,26 @@ const ReagentsInventoryForm = () => {
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="Quantity"
+                          placeholder="Total Quantity"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  name="qtyPerContainer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantity Per Container</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Quantity per Container"
                           {...field}
                           required
                           className="w-full"
@@ -706,6 +761,25 @@ const ReagentsInventoryForm = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  name="lotNo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lot Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Lot Number (e.g., 220101-001-EX230530)"
+                          {...field}
+                          required
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                 <FormField
                   name="reorderThreshold"
                   render={({ field }) => (
@@ -742,43 +816,6 @@ const ReagentsInventoryForm = () => {
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  name="totalNoContainers"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total Number of Containers</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Total Number of Containers"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  name="lotNo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lot Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Lot Number (e.g., 220101-001-EX230530)"
-                          {...field}
-                          required
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   name="location"
                   render={({ field }) => (
@@ -953,23 +990,24 @@ const ReagentsInventoryForm = () => {
                   )}
                 />
               </div>
-
-              <FormField
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Any relevant information..."
-                        {...field}
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 gap-3 mb-4">
+                <FormField
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Any relevant information..."
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="flex justify-center mt-8">
                 <Button
                   type="submit"

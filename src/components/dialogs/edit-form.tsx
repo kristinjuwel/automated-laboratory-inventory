@@ -51,9 +51,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import AddSupplier from "@/components/molecules/supplier";
+import AddSupplier from "@/components/dialogs/supplier";
 import { Category, Supplier } from "@/packages/api/lab";
-import AddCategory from "@/components/molecules/category";
+import AddCategory from "@/components/dialogs/category";
 import { format } from "date-fns";
 import { EditInput } from "../ui/edit-input";
 import { Textarea } from "../ui/textarea";
@@ -72,6 +72,7 @@ type FormValues = {
   supplier: number;
   cost: string;
   totalNoContainers?: string;
+  qtyPerContainer?: string;
   lotNo?: string;
   notes?: string;
   reorderThreshold: string;
@@ -104,6 +105,7 @@ const EditInventory = ({
   notes,
   reorderThreshold,
   maxThreshold,
+  qtyPerContainer,
 }: EditProps) => {
   const userRole = localStorage.getItem("userRole");
   const currentUserId = localStorage.getItem("authToken");
@@ -153,6 +155,7 @@ const EditInventory = ({
       notes: notes,
       reorderThreshold: reorderThreshold,
       maxThreshold: maxThreshold,
+      qtyPerContainer: qtyPerContainer,
     },
   });
 
@@ -262,6 +265,7 @@ const EditInventory = ({
       quantityAvailable: parsedValues.quantity,
       reorderThreshold: parsedValues.reorderThreshold,
       maxThreshold: parsedValues.maxThreshold,
+      qtyPerContainer: parsedValues.qtyPerContainer,
     };
 
     const inventoryLogPayload = {
@@ -748,44 +752,62 @@ const EditInventory = ({
                   </FormItem>
                 )}
               />
-              {shortName === "Reagent" && (
-                <>
-                  <FormField
-                    name="totalNoContainers"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Total Containers</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder={totalNoContainers}
-                            {...field}
-                            className="w-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="lotNo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Lot Number</FormLabel>
-                        <FormControl>
-                          <EditInput
-                            placeholder={lotNo}
-                            {...field}
-                            className="w-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
+            </div>
+            {shortName === "Reagent" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 mb-4 gap-4">
+                <FormField
+                  name="totalNoContainers"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Containers</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder={totalNoContainers}
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="qtyPerContainer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount per Container</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder={qtyPerContainer}
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="lotNo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lot Number</FormLabel>
+                      <FormControl>
+                        <EditInput
+                          placeholder={lotNo}
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <FormField
                 name="location"
                 render={({ field }) => (

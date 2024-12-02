@@ -11,88 +11,104 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, TriangleAlert, FilePlus, Printer } from "lucide-react";
+import { Edit, Search, FilePlus, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
+import { DispositionSchema } from "@/packages/api/inventory";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import CustomPagination from "../ui/pagination-custom";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import EditDisposal from "../dialogs/disposal-edit";
 
-interface User {
-  id: string;
-  lastName: string;
-  firstName: string;
-  middleName: string;
-  designation: string;
+interface DispositionValues {
+  disposalId: number;
+  userId: number;
+  materialId: number;
+  material: string;
   laboratory: string;
-  email: string;
-  username: string;
-  status: string;
+  itemDescription: string;
+  qty: number;
+  reasonForDisposal: string;
+  disposalMethod: string;
+  dateDisposed: string;
+  disposedBy: string;
+  comments: string;
 }
 
+const ITEMS_PER_PAGE = 4;
+
 const Disposition = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const labSlug = pathname?.split("/")[2];
+  const [dispositions, setDispositions] = useState<DispositionValues[]>([]);
+  const [filteredDisps, setFilteredDisps] = useState<DispositionValues[]>([]);
   const [search, setSearch] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [selectedDisposition, setSelectedDisposition] =
+    useState<DispositionValues | null>(null);
 
   useEffect(() => {
-    const fetchData = [
-      {
-        id: "1",
-        lastName: "Doe",
-        firstName: "John",
-        middleName: "A.",
-        designation: "Researcher",
-        laboratory: "Pathology",
-        email: "john.doe@example.com",
-        username: "jdoe",
-        status: "active",
-      },
-      {
-        id: "2",
-        lastName: "Smith",
-        firstName: "Jane",
-        middleName: "B.",
-        designation: "Technician",
-        laboratory: "Immunology",
-        email: "jane.smith@example.com",
-        username: "jsmith",
-        status: "active",
-      },
-      {
-        id: "3",
-        lastName: "Brown",
-        firstName: "Alex",
-        middleName: "C.",
-        designation: "Lab Manager",
-        laboratory: "Microbiology",
-        email: "alex.brown@example.com",
-        username: "abrown",
-        status: "active",
-      },
-    ];
-    setUsers(fetchData);
-    setFilteredUsers(fetchData);
-  }, []);
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}disposal`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch disposal forms");
+          }
+          const data = await response.json();
+
+          const mappedDisposal = data.map((disposal: DispositionSchema) => ({
+            ...disposal,
+            laboratory: `${disposal.material.laboratory.labName}`,
+            material: disposal.material.itemName,
+            disposalMethod: disposal.disposalMethod,
+          }));
+          const disposedMaterials = mappedDisposal.filter(
+            (disposal: DispositionValues) =>
+              disposal.laboratory.toLowerCase() === labSlug
+          );
+          setDispositions(disposedMaterials);
+          setFilteredDisps(disposedMaterials);
+        } catch (error) {
+          console.error("Error fetching forms:", error);
+        }
+      };
+
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
+    const query = e.target.value.toLowerCase();
     setSearch(query);
-
-    setFilteredUsers(
-      users.filter((user) =>
-        `${user.firstName} ${user.lastName} ${user.middleName}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
+    setFilteredDisps(
+      dispositions.filter((disposal) => {
+        const combinedString = `${disposal.material} ${disposal.dateDisposed} ${disposal.disposedBy}`;
+        return combinedString.toLowerCase().includes(query);
+      })
     );
+    setCurrentPage(1);
   };
+
+  const paginatedMaterials = filteredDisps.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className=" p-8">
@@ -112,192 +128,186 @@ const Disposition = () => {
           </span>
 
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
-            )}
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
-              setIsCreateDialogOpen(true);
+              router.push("/disposition-report");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Create Form
+            Dispose Items
+          </Button>
+          <Button
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            onClick={() => {
+              setIsPrintDialogOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
           </Button>
         </div>
       </div>
 
       <Toaster />
 
-      <Table className="items-center justify-center">
-        <TableHeader className="text-center justify-center">
-          <TableRow>
-            <TableHead>Id</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Designation</TableHead>
-            <TableHead>Laboratory</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-center">Username</TableHead>
-            <TableHead className="text-center">Email</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{`${user.lastName}, ${user.firstName} ${user.middleName}`}</TableCell>
-                <TableCell>{user.designation}</TableCell>
-                <TableCell>{user.laboratory}</TableCell>
-                <TableCell>{user.status}</TableCell>
-                <TableCell className="text-center">{user.username}</TableCell>
-                <TableCell className="text-center">{user.email}</TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="w-4 h-4 -mr-0.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-md text-red-600 hover:text-red-900 hover:bg-red-50"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setIsDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Printer className="w-4 h-4 -mr-1" /> Print
-                  </Button>
+      <TooltipProvider>
+        <Table className="overflow-x-auto">
+          <TableHeader className="text-center justify-center">
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Material</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead>Reason for Disposal</TableHead>
+              <TableHead>Disposal Method</TableHead>
+              <TableHead>Date Disposed</TableHead>
+              <TableHead>Disposed by</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedMaterials.length > 0 ? (
+              paginatedMaterials.map((disposition) => (
+                <TableRow key={disposition.disposalId}>
+                  <TableCell>{disposition.disposalId}</TableCell>
+                  <TableCell>{disposition.material}</TableCell>
+                  <TableCell className="relative max-w-8 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer truncate">
+                          {disposition.itemDescription}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{disposition.itemDescription}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>{disposition.qty}</TableCell>
+                  <TableCell className="relative max-w-8 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer truncate">
+                          {disposition.reasonForDisposal}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{disposition.reasonForDisposal}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell className="relative max-w-8 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer truncate">
+                          {disposition.disposalMethod}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{disposition.disposalMethod}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(disposition.dateDisposed).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>{disposition.disposedBy}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                      onClick={() => {
+                        setSelectedDisposition(disposition);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-md text-black-600 hover:text-black-900 hover:bg-black-50"
+                      onClick={() => {
+                        setIsPrintDialogOpen(true);
+                      }}
+                    >
+                      <Printer className="w-4 h-4 -mr-1" /> Print
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-gray-500">
+                  No materials found.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center text-gray-500">
-                No users found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </TooltipProvider>
+      <CustomPagination
+        totalItems={filteredDisps.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        currentPage={currentPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-h-4/5 overflow-y-auto">
+        <DialogContent className="bg-white max-h-4/5 sm:h-4/5 h-full overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <Edit className="text-teal-500 size-5 -mt-0.5" />
+              Edit Disposal Form
+            </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
-          <div>
-            <Input
-              value={selectedUser?.firstName}
-              placeholder="First Name"
-              className="mb-4"
+          {selectedDisposition && (
+            <EditDisposal
+              closeDialog={() => setIsEditDialogOpen(false)}
+              disposalId={selectedDisposition.disposalId}
+              userId={selectedDisposition.userId}
+              materialId={selectedDisposition.materialId}
+              itemDescription={selectedDisposition.itemDescription}
+              qty={selectedDisposition.qty}
+              reasonForDisposal={selectedDisposition.reasonForDisposal}
+              disposalMethod={selectedDisposition.disposalMethod}
+              dateDisposed={selectedDisposition.dateDisposed}
+              disposedBy={selectedDisposition.disposedBy}
+              comments={selectedDisposition.comments}
             />
-            <Input
-              value={selectedUser?.middleName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.lastName}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.designation}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.laboratory}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.email}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <Input
-              value={selectedUser?.username}
-              placeholder="Last Name"
-              className="mb-4"
-            />
-            <div className="relative">
-              <Button
-                className="absolute right-0 mr-4"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Save Changes
-              </Button>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <TriangleAlert className="text-red-500 size-5 -mt-0.5" />
-              Delete User
+              <Printer className="text-black size-5 -mt-0.5" />
+              Print Disposal Form
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
-            Are you sure you want to delete this user?
-          </p>
-          <p className="text-left bg-red-300 -mt-2 relative py-2 text-sm">
-            <span className="pl-4">
-              By deleting this user, they will be removed indefinitely.
-            </span>
-            <span className="absolute left-0 top-0 h-full w-2 bg-red-600"></span>
+            Are you sure you want to print this form?
           </p>
           <div className="flex justify-end gap-2 mt-2">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => setIsPrintDialogOpen(false)}
             >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Confirm
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 tracking-tight mb-4">
-              <FilePlus className="text-teal-500 size-5 -mt-0.5" />
-              Add User
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              className="bg-gray-100"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Add User
-            </Button>
+            <Button onClick={() => setIsPrintDialogOpen(false)}>Confirm</Button>
           </div>
         </DialogContent>
       </Dialog>

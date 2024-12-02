@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -65,7 +66,7 @@ interface Logs {
 
 const ITEMS_PER_PAGE = 4;
 
-const Biological = () => {
+const Incident = () => {
   const router = useRouter();
   const pathname = usePathname();
   const labSlug = pathname?.split("/")[2];
@@ -148,7 +149,7 @@ const Biological = () => {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
-        Biological Inventory
+        Incident Forms
       </h1>
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
@@ -162,9 +163,11 @@ const Biological = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
+            className={cn(
+              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
+            )}
             onClick={() => {
-              router.push("/biological-inventory-form");
+              router.push("/incident-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
@@ -207,10 +210,7 @@ const Biological = () => {
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {Math.max(
-                      0,
-                      material.quantityAvailable - material.maxThreshold
-                    )}
+                    {material.maxThreshold - material.quantityAvailable}
                   </TableCell>
                   <TableCell>
                     {new Date(material.expiryDate).toLocaleDateString("en-US", {
@@ -264,7 +264,7 @@ const Biological = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={15} className="text-center text-gray-500">
+                <TableCell colSpan={12} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -388,4 +388,4 @@ const Biological = () => {
   );
 };
 
-export default Biological;
+export default Incident;

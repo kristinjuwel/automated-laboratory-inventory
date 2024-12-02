@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -27,7 +26,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
-import EditInventory from "./edit-form";
+import EditInventory from "../dialogs/edit-form";
 
 interface Material {
   materialId: number;
@@ -52,6 +51,7 @@ interface Material {
   updatedAt?: string;
   reorderThreshold: number;
   maxThreshold: number;
+  qtyPerContainer: number;
 }
 
 interface Logs {
@@ -87,29 +87,31 @@ const Reagent = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch materials");
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch materials");
+          }
+          const data = await response.json();
+          const reagentMaterials = data.filter(
+            (material: Material) =>
+              material.category.shortName.toLowerCase() === "reagent" &&
+              material.laboratory.labName.toLowerCase() === labSlug
+          );
+          setMaterials(reagentMaterials);
+          setFilteredMaterials(reagentMaterials);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
         }
-        const data = await response.json();
-        const reagentMaterials = data.filter(
-          (material: Material) =>
-            material.category.shortName.toLowerCase() === "reagent" &&
-            material.laboratory.labName.toLowerCase() === labSlug
-        );
-        setMaterials(reagentMaterials);
-        setFilteredMaterials(reagentMaterials);
-      } catch (error) {
-        console.error("Error fetching materials:", error);
-      }
-    };
+      };
 
-    fetchMaterials();
-  }, [labSlug]);
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
 
   const fetchInventoryLogs = async (materialId: number) => {
     try {
@@ -165,9 +167,7 @@ const Reagent = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
-            )}
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
             onClick={() => {
               router.push("/reagents-inventory-form");
             }}
@@ -186,8 +186,11 @@ const Reagent = () => {
               <TableHead>ID</TableHead>
               <TableHead>Item Name</TableHead>
               <TableHead>Item Code</TableHead>
-              <TableHead>Quantity</TableHead>
+              <TableHead>Quantity Per Container</TableHead>
+              <TableHead>Total Quantity</TableHead>
+              <TableHead>Total Containers</TableHead>
               <TableHead>Unit</TableHead>
+              <TableHead>Lot Number</TableHead>
               <TableHead>Min</TableHead>
               <TableHead>Max</TableHead>
               <TableHead>Excess</TableHead>
@@ -196,8 +199,6 @@ const Reagent = () => {
               <TableHead>Location</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Cost</TableHead>
-              <TableHead>Total Containers</TableHead>
-              <TableHead>Lot Number</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -209,12 +210,18 @@ const Reagent = () => {
                   <TableCell>{material.materialId}</TableCell>
                   <TableCell>{material.itemName}</TableCell>
                   <TableCell>{material.itemCode}</TableCell>
+                  <TableCell>{material.qtyPerContainer}</TableCell>
                   <TableCell>{material.quantityAvailable}</TableCell>
+                  <TableCell>{material.totalNoContainers}</TableCell>
                   <TableCell>{material.unit}</TableCell>
+                  <TableCell>{material.lotNo}</TableCell>
                   <TableCell>{material.reorderThreshold}</TableCell>
                   <TableCell>{material.maxThreshold}</TableCell>
                   <TableCell>
-                    {material.maxThreshold - material.quantityAvailable}
+                    {Math.max(
+                      0,
+                      material.quantityAvailable - material.maxThreshold
+                    )}
                   </TableCell>
                   <TableCell>
                     {new Date(material.expiryDate).toLocaleDateString("en-US", {
@@ -227,8 +234,6 @@ const Reagent = () => {
                   <TableCell>{material.location}</TableCell>
                   <TableCell>{material.supplier.companyName}</TableCell>
                   <TableCell>{material.cost}</TableCell>
-                  <TableCell>{material.totalNoContainers}</TableCell>
-                  <TableCell>{material.lotNo}</TableCell>
                   <TableCell className="relative max-w-8 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -270,7 +275,7 @@ const Reagent = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-gray-500">
+                <TableCell colSpan={17} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -313,6 +318,7 @@ const Reagent = () => {
               totalNoContainers={selectedMaterial.totalNoContainers.toString()}
               lotNo={selectedMaterial.lotNo}
               notes={selectedMaterial.notes}
+              qtyPerContainer={selectedMaterial.qtyPerContainer.toString()}
               date={""}
               closeDialog={() => setIsEditDialogOpen(false)}
               shortName="Reagent"
