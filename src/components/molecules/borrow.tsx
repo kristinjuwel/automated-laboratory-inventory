@@ -517,7 +517,7 @@ const Borrow = () => {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Stock Level Report
+              Print Borrow Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
