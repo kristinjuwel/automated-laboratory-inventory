@@ -77,12 +77,16 @@ const AdminView = () => {
   const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<keyof MappedUser | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
   const router = useRouter();
-  const [selectedDesignation, setSelectedDesignation] = useState<Set<string>>(new Set());
+  const [selectedDesignation, setSelectedDesignation] = useState<Set<string>>(
+    new Set()
+  );
   const [selectedLab, setSelectedLab] = useState<Set<string>>(new Set());
   const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
-  
+
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
 
@@ -101,7 +105,7 @@ const AdminView = () => {
           throw new Error("Failed to fetch users");
         }
         const data: UserSchema[] = await response.json();
-  
+
         const parsedData = z.array(userSchema).parse(data);
         const userRole = localStorage.getItem("userRole");
         const filteredData =
@@ -112,10 +116,10 @@ const AdminView = () => {
                   user.designation !== "superadmin"
               )
             : parsedData;
-          const sortedData = filteredData.sort((a, b) =>
+        const sortedData = filteredData.sort((a, b) =>
           a.lastName.localeCompare(b.lastName)
         );
-  
+
         const mappedUsers: MappedUser[] = sortedData.map((user) => ({
           userId: user.userId,
           lastName: user.lastName,
@@ -129,39 +133,37 @@ const AdminView = () => {
           status: user.status,
           phoneNumber: user.phoneNumber,
         }));
-  
+
         setUsers(mappedUsers);
         setFilteredUsers(mappedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
-  
+
     fetchAllUsers();
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [selectedDesignation, selectedLab, selectedStatus]);
-  
+    const applyFilters = () => {
+      const filtered = users.filter((user) => {
+        const matchesDesignation =
+          selectedDesignation.size === 0 ||
+          selectedDesignation.has(user.designation);
+        const matchesLab =
+          selectedLab.size === 0 || selectedLab.has(user.laboratory);
+        const matchesStatus =
+          selectedStatus.size === 0 || selectedStatus.has(user.status);
 
-  const applyFilters = () => {
-    const filtered = users.filter((user) => {
-      const matchesDesignation =
-        selectedDesignation.size === 0 ||
-        selectedDesignation.has(user.designation);
-      const matchesLab = selectedLab.size === 0 || selectedLab.has(user.laboratory);
-      const matchesStatus = selectedStatus.size === 0 || selectedStatus.has(user.status);
-  
-      return matchesDesignation && matchesLab && matchesStatus;
-    });
-  
-    setFilteredUsers(filtered);
-    setCurrentPage(1);
-  };
-  
-  
-  
+        return matchesDesignation && matchesLab && matchesStatus;
+      });
+
+      setFilteredUsers(filtered);
+      setCurrentPage(1);
+    };
+    applyFilters();
+  }, [selectedDesignation, selectedLab, selectedStatus, users]);
+
   const handleDesignationChange = (value: string) => {
     setSelectedDesignation((prev) => {
       const newSet = new Set(prev);
@@ -173,7 +175,7 @@ const AdminView = () => {
       return newSet;
     });
   };
-  
+
   const handleLabChange = (value: string) => {
     setSelectedLab((prev) => {
       const newSet = new Set(prev);
@@ -185,7 +187,7 @@ const AdminView = () => {
       return newSet;
     });
   };
-  
+
   const handleStatusChange = (value: string) => {
     setSelectedStatus((prev) => {
       const newSet = new Set(prev);
@@ -197,8 +199,6 @@ const AdminView = () => {
       return newSet;
     });
   };
-  
-  
 
   const sortUsers = (
     users: MappedUser[],
@@ -208,7 +208,7 @@ const AdminView = () => {
     return [...users].sort((a, b) => {
       const valueA = a[key];
       const valueB = b[key];
-  
+
       if (typeof valueA === "string" && typeof valueB === "string") {
         return order === "asc"
           ? valueA.localeCompare(valueB)
@@ -220,19 +220,17 @@ const AdminView = () => {
       return 0;
     });
   };
-  
 
   const handleSort = (column: keyof MappedUser) => {
-    const newDirection = sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
-  
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
     setSortColumn(column);
     setSortDirection(newDirection);
-  
+
     const sorted = sortUsers(filteredUsers, column, newDirection);
     setFilteredUsers(sorted);
   };
-  
-  
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -341,20 +339,28 @@ const AdminView = () => {
             <span className="lg:flex xs:flex sm:hidden">Add User</span>
           </Button>
           <Popover>
-          <PopoverTrigger asChild>
-            <Button className={cn(`bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center space-x-2`)}>
-             <Filter /> <span>Filter</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg"
-          >
-            <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-semibold text-sm">Designation</h3>
-                <div className="space-y-1">
-                  {["Admin","Lab Manager",   "Medical Technologist", "Researcher", "Student", "Technician"].map(
-                    (designation) => (
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center space-x-2`
+                )}
+              >
+                <Filter /> <span>Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg">
+              <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                <div className="flex flex-col space-y-2">
+                  <h3 className="font-semibold text-sm">Designation</h3>
+                  <div className="space-y-1">
+                    {[
+                      "Admin",
+                      "Lab Manager",
+                      "Medical Technologist",
+                      "Researcher",
+                      "Student",
+                      "Technician",
+                    ].map((designation) => (
                       <label
                         key={designation}
                         className="flex items-center space-x-2 whitespace-nowrap"
@@ -367,31 +373,38 @@ const AdminView = () => {
                         />
                         <span>{designation}</span>
                       </label>
-                    )
-                  )}
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-semibold text-sm">Laboratory</h3>
-                <div className="space-y-1">
-                  {["Pathology", "Immunology", "Microbiology"].map((lab) => (
-                    <label key={lab} className="flex items-center space-x-2 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        value={lab}
-                        checked={selectedLab.has(lab)}
-                        onChange={() => handleLabChange(lab)}
-                      />
-                      <span>{lab}</span>
-                    </label>
-                  ))}
+                <div className="flex flex-col space-y-2">
+                  <h3 className="font-semibold text-sm">Laboratory</h3>
+                  <div className="space-y-1">
+                    {["Pathology", "Immunology", "Microbiology"].map((lab) => (
+                      <label
+                        key={lab}
+                        className="flex items-center space-x-2 whitespace-nowrap"
+                      >
+                        <input
+                          type="checkbox"
+                          value={lab}
+                          checked={selectedLab.has(lab)}
+                          onChange={() => handleLabChange(lab)}
+                        />
+                        <span>{lab}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-semibold text-sm">Status</h3>
-                <div className="space-y-1">
-                  {["Active", "Inactive", "Deleted", "Unverified Email", "Unapproved Account"].map(
-                    (status) => (
+                <div className="flex flex-col space-y-2">
+                  <h3 className="font-semibold text-sm">Status</h3>
+                  <div className="space-y-1">
+                    {[
+                      "Active",
+                      "Inactive",
+                      "Deleted",
+                      "Unverified Email",
+                      "Unapproved Account",
+                    ].map((status) => (
                       <label
                         key={status}
                         className="flex items-center space-x-2 whitespace-nowrap"
@@ -404,13 +417,12 @@ const AdminView = () => {
                         />
                         <span>{status}</span>
                       </label>
-                    )
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="w-full flex justify-between sm:justify-end">
@@ -453,23 +465,39 @@ const AdminView = () => {
       {viewMode === "table" ? (
         <>
           <div className="overflow-x-hidden">
-          <Table className="items-center justify-center">
-            <TableHeader className="text-center justify-center">
+            <Table className="items-center justify-center">
+              <TableHeader className="text-center justify-center">
                 <TableRow>
-                <TableHead onClick={() => handleSort("userId")}>
-                  Id {sortColumn === "userId" && (sortDirection === "asc" ? "↑" : "↓")}
-                </TableHead>
-                <TableHead onClick={() => handleSort("firstName")}>
-                  Name {sortColumn === "firstName" && (sortDirection === "asc" ? "↑" : "↓")}
-                </TableHead>
-                <TableHead onClick={() => handleSort("designation")}>
-                  Designation {sortColumn === "designation" && (sortDirection === "asc" ? "↑" : "↓")}
-                </TableHead>
-                <TableHead onClick={() => handleSort("laboratory")}>
-                  Laboratory {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}
-                </TableHead>
-                <TableHead onClick={() => handleSort("username")}>Username {sortColumn === "username" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-                <TableHead onClick={() => handleSort("email")}>Email {sortColumn === "email" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+                  <TableHead onClick={() => handleSort("userId")}>
+                    Id{" "}
+                    {sortColumn === "userId" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("firstName")}>
+                    Name{" "}
+                    {sortColumn === "firstName" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("designation")}>
+                    Designation{" "}
+                    {sortColumn === "designation" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("laboratory")}>
+                    Laboratory{" "}
+                    {sortColumn === "laboratory" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("username")}>
+                    Username{" "}
+                    {sortColumn === "username" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("email")}>
+                    Email{" "}
+                    {sortColumn === "email" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
                   <TableHead className="text-center">Phone Number</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
