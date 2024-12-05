@@ -86,6 +86,9 @@ const AdminView = () => {
   );
   const [selectedLab, setSelectedLab] = useState<Set<string>>(new Set());
   const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
+  const [isDesignationOpen, setIsDesignationOpen] = useState(false);
+  const [isLaboratoryOpen, setIsLaboratoryOpen] = useState(false);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
 
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
@@ -351,8 +354,18 @@ const AdminView = () => {
             <PopoverContent className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg">
               <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                 <div className="flex flex-col space-y-2">
-                  <h3 className="font-semibold text-sm">Designation</h3>
-                  <div className="space-y-1">
+                  <h3
+                    className="font-semibold text-sm cursor-pointer"
+                    onClick={() => setIsDesignationOpen(!isDesignationOpen)}
+                    aria-expanded={isDesignationOpen}
+                  >
+                    Designation
+                  </h3>
+                  <div
+                    className={`space-y-1 transition-all ${
+                      isDesignationOpen ? "block" : "hidden sm:block"
+                    }`}
+                  >
                     {[
                       "Admin",
                       "Lab Manager",
@@ -377,8 +390,18 @@ const AdminView = () => {
                   </div>
                 </div>
                 <div className="flex flex-col space-y-2">
-                  <h3 className="font-semibold text-sm">Laboratory</h3>
-                  <div className="space-y-1">
+                  <h3
+                    className="font-semibold text-sm cursor-pointer"
+                    onClick={() => setIsLaboratoryOpen(!isLaboratoryOpen)}
+                    aria-expanded={isLaboratoryOpen}
+                  >
+                    Laboratory
+                  </h3>
+                  <div
+                    className={`space-y-1 transition-all ${
+                      isLaboratoryOpen ? "block" : "hidden sm:block"
+                    }`}
+                  >
                     {["Pathology", "Immunology", "Microbiology"].map((lab) => (
                       <label
                         key={lab}
@@ -396,8 +419,18 @@ const AdminView = () => {
                   </div>
                 </div>
                 <div className="flex flex-col space-y-2">
-                  <h3 className="font-semibold text-sm">Status</h3>
-                  <div className="space-y-1">
+                  <h3
+                    className="font-semibold text-sm cursor-pointer"
+                    onClick={() => setIsStatusOpen(!isStatusOpen)}
+                    aria-expanded={isStatusOpen}
+                  >
+                    Status
+                  </h3>
+                  <div
+                    className={`space-y-1 transition-all ${
+                      isStatusOpen ? "block" : "hidden sm:block"
+                    }`}
+                  >
                     {[
                       "Active",
                       "Inactive",
