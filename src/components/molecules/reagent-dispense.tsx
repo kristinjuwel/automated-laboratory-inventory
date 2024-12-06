@@ -25,9 +25,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import CustomPagination from "../ui/pagination-custom";
 import { ReagentDispenseSchema } from "@/packages/api/inventory";
 import EditReagentDispense from "../dialogs/reagent-dispense-edit";
+import PdfGenerator from "../templates/pdf-generator";
+import PdfForm from "../templates/pdf-form";
 
 interface ReagentDispenseValues {
   dispenseId: number;
@@ -58,10 +66,15 @@ const ReagentDispense = () => {
   >([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDispense, setSelectedDispense] =
     useState<ReagentDispenseValues | null>(null);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
+  const [pageSize, setPageSize] = useState("a4");
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -113,6 +126,83 @@ const ReagentDispense = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const tableHeaders = [
+    "ID",
+    "Date",
+    "Item Name",
+    "Total Containers",
+    "Lot Number",
+    "Quantity Dispensed",
+    "Remaining Quantity",
+    "Remarks",
+    "Analyst",
+    "Date Created",
+    "Date Updated"
+  ];
+  const tableData = dispenses.map((dispense) => [
+    dispense.dispenseId,
+    new Date(dispense.date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    dispense.name,
+    dispense.totalNoContainers,
+    dispense.lotNo,
+    dispense.qtyDispensed,
+    dispense.remainingQuantity,
+    dispense.remarks,
+    dispense.analyst,
+    new Date(dispense.creationDate).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    new Date(dispense.dateUpdated).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  ]);
+
+  const singleTableData = selectedDispense
+    ? [
+        [
+          selectedDispense.dispenseId,
+          new Date(selectedDispense.date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }),
+          selectedDispense.name,
+          selectedDispense.totalNoContainers,
+          selectedDispense.lotNo,
+          selectedDispense.qtyDispensed,
+          selectedDispense.remainingQuantity,
+          selectedDispense.remarks,
+          selectedDispense.analyst,
+          new Date(selectedDispense.creationDate).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          new Date(selectedDispense.dateUpdated).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        ],
+      ]
+    : [];
 
   return (
     <div className="p-8">
@@ -292,19 +382,131 @@ const ReagentDispense = () => {
           )}
         </DialogContent>
       </Dialog>
-      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+
+      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <Printer className="text-black size-5 -mt-0.5" />
-              Print Disposal Form
+              Print Reagent Dispense Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure you want to print this form?
           </p>
-          <div className="flex justify-end gap-2 mt-2">
+          <p className="text-left text-sm italic">
+            *This form shall be printed in a long bond paper.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setIsPrintAllOpen(false)}
+            >
+              Cancel
+            </Button>
+            <PdfGenerator
+              pdfTitle="Reagent Dispense Report"
+              pageSize="long"
+              orientation="landscape"
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setIsPrintAllOpen(false)}
+            ></PdfGenerator>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              Print Reagent Dispense Form
+            </DialogTitle>
+            <DialogDescription />
+          </DialogHeader>
+          <p className="text-left pt-2 text-m">
+            Select page size for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span className={pageSize ? "text-black" : "text-gray-500"}>
+                    {pageSize === "a4"
+                      ? "A4 (210 x 297 mm)"
+                      : pageSize === "short"
+                      ? "Short (Letter, 215.9 x 279.4 mm)"
+                      : pageSize === "long"
+                      ? "Long (Legal, 215.9 x 355.6 mm)"
+                      : "Select Page Size"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "A4 (210 x 297 mm)", value: "a4" },
+                  { label: "Short (Letter, 215.9 x 279.4 mm)", value: "short" },
+                  { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={pageSize === option.value}
+                    onCheckedChange={(checked) =>
+                      setPageSize(checked ? option.value : "a4")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-left pt-4 text-m">
+            Select orientation for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span
+                    className={orientation ? "text-black" : "text-gray-500"}
+                  >
+                    {orientation === "portrait"
+                      ? "Portrait"
+                      : orientation === "landscape"
+                      ? "Landscape"
+                      : "Select Orientation"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "Portrait", value: "portrait" as const },
+                  { label: "Landscape", value: "landscape" as const },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={orientation === option.value}
+                    onCheckedChange={(checked) =>
+                      setOrientation(checked ? option.value : "portrait")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
@@ -312,7 +514,17 @@ const ReagentDispense = () => {
             >
               Cancel
             </Button>
-            <Button onClick={() => setIsPrintDialogOpen(false)}>Confirm</Button>
+            {selectedDispense && (
+              <PdfForm
+                pdfTitle="Reagent Dispense Form"
+                pageSize={pageSize}
+                orientation={orientation}
+                tableHeaders={tableHeaders}
+                tableData={singleTableData}
+                materialName={selectedDispense.name}
+                closeDialog={() => setIsPrintDialogOpen(false)}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
