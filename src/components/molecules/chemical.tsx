@@ -45,8 +45,8 @@ interface Material {
   description?: string;
   notes?: string;
   quantityAvailable: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
   reorderThreshold: number;
   maxThreshold: number;
 }
@@ -192,6 +192,8 @@ const Chemical = () => {
               <TableHead>Supplier</TableHead>
               <TableHead>Cost</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -237,6 +239,24 @@ const Chemical = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
+                    {new Date(material.createdAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(material.updatedAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -265,7 +285,7 @@ const Chemical = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={15} className="text-center text-gray-500">
+                <TableCell colSpan={17} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

@@ -12,6 +12,7 @@ import { Eye, EyeOff, RotateCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -221,6 +222,7 @@ const LoginPage = () => {
               <RotateCw className="text-teal-900 size-5 -mt-0.5" />
               Reset Password
             </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <div className="pt-2">
             <label

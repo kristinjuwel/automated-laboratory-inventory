@@ -26,7 +26,6 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Incident from "@/components/molecules/incident";
 import Borrow from "@/components/molecules/borrow";
-import StockLevel from "@/components/molecules/stock-level";
 
 const DashboardPage = () => {
   const pathname = usePathname();
@@ -102,14 +101,6 @@ const DashboardPage = () => {
             >
               <ShoppingBag size={20} />
               <span className="font-medium">Purchase Order</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="stockLevel"
-              onClick={() => setActiveTab("stockLevel")}
-              className="flex items-center space-x-2"
-            >
-              <FileMinus size={20} />
-              <span className="font-medium">Stock Level</span>
             </TabsTrigger>
             <TabsTrigger
               value="borrow"
@@ -217,9 +208,6 @@ const DashboardPage = () => {
           </TabsContent>
           <TabsContent value="purchaseOrder">
             <PurchaseOrder />
-          </TabsContent>
-          <TabsContent value="stockLevel">
-            <StockLevel />
           </TabsContent>
           <TabsContent value="borrow">
             <Borrow />

@@ -33,6 +33,7 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import OTPVerification from "@/components/dialogs/verification";
 import { cn } from "@/lib/utils";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface RegisterFormValues {
   email: string;
@@ -494,6 +495,7 @@ const RegisterPage = () => {
             <DialogTitle className="text-teal-700 text-center">
               OTP Verification
             </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <OTPVerification />
         </DialogContent>

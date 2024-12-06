@@ -12,6 +12,7 @@ import {
   UserPen,
   UserCog,
   Menu,
+  Printer,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -24,7 +25,7 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, Toaster } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,23 @@ import {
 import { Button } from "../ui/button";
 import ChangePassword from "../dialogs/change-password";
 import EditAccount from "../dialogs/edit-user";
+import PdfGenerator from "../templates/pdf-generator";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+
+interface StockLevelValues {
+  itemNo: string;
+  description: string;
+  onHand: number;
+  minLevel: number;
+  maxLevel: number;
+  status: string;
+  action: string;
+}
 
 const Navbar = () => {
   const router = useRouter();
@@ -42,6 +60,49 @@ const Navbar = () => {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const userRole = localStorage.getItem("userRole");
+  const [stockLevels, setStockLevels] = useState<StockLevelValues[]>([]);
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
+  >(undefined);
+  const [isPrintDialogOpen, setisPrintDialogOpen] = useState(false);
+  const [pageSize, setPageSize] = useState("a4");
+
+  useEffect(() => {
+    fetchStockLevels();
+  }, []);
+
+  const fetchStockLevels = () => {
+    const fetchData = [
+      {
+        itemNo: "001",
+        description: "Test Tube",
+        onHand: 150,
+        minLevel: 50,
+        maxLevel: 200,
+        status: "Sufficient",
+        action: "Monitor",
+      },
+      {
+        itemNo: "002",
+        description: "Petri Dish",
+        onHand: 30,
+        minLevel: 50,
+        maxLevel: 200,
+        status: "Low",
+        action: "Reorder",
+      },
+      {
+        itemNo: "003",
+        description: "Microscope Slide",
+        onHand: 120,
+        minLevel: 60,
+        maxLevel: 180,
+        status: "Sufficient",
+        action: "Monitor",
+      },
+    ];
+    setStockLevels(fetchData);
+  };
 
   const logoutUser = () => {
     const token = localStorage.getItem("authToken");
@@ -70,7 +131,22 @@ const Navbar = () => {
         console.error("Logout error:", error);
       });
   };
-
+  const tableHeaders = [
+    "Item No",
+    "Description",
+    "On Hand",
+    "Min Level",
+    "Max Level",
+    "Status",
+  ];
+  const tableData = stockLevels.map((stock) => [
+    stock.itemNo,
+    stock.description,
+    stock.onHand,
+    stock.minLevel,
+    stock.maxLevel,
+    stock.status,
+  ]);
   return (
     <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center px-2 space-x-2">
@@ -88,7 +164,7 @@ const Navbar = () => {
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl"
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl cursor-pointer"
               onClick={() => router.push("/lab/pathology")}
             >
               <Microscope className="size-5 pr-1" />
@@ -97,7 +173,7 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl"
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl  cursor-pointer"
               onClick={() => router.push("/lab/immunology")}
             >
               <Syringe className="size-5 pr-1" />
@@ -106,7 +182,7 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl"
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl  cursor-pointer"
               onClick={() => router.push("/lab/microbiology")}
             >
               <Dna className="size-5 pr-1" />
@@ -114,13 +190,19 @@ const Navbar = () => {
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800">
+            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800  cursor-pointer">
               <ShoppingCart className="size-5 pr-1" />
               Purchase Order
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink className="hover:text-teal-800 flex">
+            <NavigationMenuLink
+              onClick={() => {
+                fetchStockLevels();
+                setisPrintDialogOpen(true);
+              }}
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl cursor-pointer"
+            >
               <Box className="size-5 pr-1" />
               Stock Level
             </NavigationMenuLink>
@@ -303,7 +385,118 @@ const Navbar = () => {
             </div>
           </DialogContent>
         </Dialog>
-
+        <Dialog open={isPrintDialogOpen} onOpenChange={setisPrintDialogOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 tracking-tight">
+                <Printer className="text-teal-500 size-5 -mt-0.5" />
+                Print Stock Level Report
+              </DialogTitle>
+            </DialogHeader>
+            <DialogDescription />
+            <p className="text-left pt-2 text-m">
+              Select page size for the report:
+            </p>
+            <div className="flex flex-col gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full flex justify-between items-center"
+                  >
+                    <span className={pageSize ? "text-black" : "text-gray-500"}>
+                      {pageSize === "a4"
+                        ? "A4 (210 x 297 mm)"
+                        : pageSize === "short"
+                        ? "Short (Letter, 215.9 x 279.4 mm)"
+                        : pageSize === "long"
+                        ? "Long (Legal, 215.9 x 355.6 mm)"
+                        : "Select Page Size"}
+                    </span>
+                    <span className="ml-auto">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {[
+                    { label: "A4 (210 x 297 mm)", value: "a4" },
+                    {
+                      label: "Short (Letter, 215.9 x 279.4 mm)",
+                      value: "short",
+                    },
+                    { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+                  ].map((option) => (
+                    <DropdownMenuCheckboxItem
+                      key={option.value}
+                      checked={pageSize === option.value}
+                      onCheckedChange={(checked) =>
+                        setPageSize(checked ? option.value : "a4")
+                      }
+                    >
+                      {option.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <p className="text-left pt-4 text-m">
+              Select orientation for the report:
+            </p>
+            <div className="flex flex-col gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full flex justify-between items-center"
+                  >
+                    <span
+                      className={orientation ? "text-black" : "text-gray-500"}
+                    >
+                      {orientation === "portrait"
+                        ? "Portrait"
+                        : orientation === "landscape"
+                        ? "Landscape"
+                        : "Select Orientation"}
+                    </span>
+                    <span className="ml-auto">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {[
+                    { label: "Portrait", value: "portrait" as const },
+                    { label: "Landscape", value: "landscape" as const },
+                  ].map((option) => (
+                    <DropdownMenuCheckboxItem
+                      key={option.value}
+                      checked={orientation === option.value}
+                      onCheckedChange={(checked) =>
+                        setOrientation(checked ? option.value : undefined)
+                      }
+                    >
+                      {option.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="ghost"
+                className="bg-gray-100"
+                onClick={() => setisPrintDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <PdfGenerator
+                pdfTitle="Stock Level Report"
+                pageSize={pageSize}
+                orientation={orientation}
+                tableHeaders={tableHeaders}
+                tableData={tableData}
+                closeDialog={() => setisPrintDialogOpen(false)}
+              ></PdfGenerator>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Toaster />
       </div>
     </div>

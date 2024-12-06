@@ -47,8 +47,8 @@ interface Material {
   description?: string;
   notes?: string;
   quantityAvailable: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
   reorderThreshold: number;
   maxThreshold: number;
   qtyPerContainer: number;
@@ -200,6 +200,8 @@ const Reagent = () => {
               <TableHead>Supplier</TableHead>
               <TableHead>Cost</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -245,6 +247,24 @@ const Reagent = () => {
                         <p>{material.notes}</p>
                       </TooltipContent>
                     </Tooltip>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(material.createdAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(material.updatedAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </TableCell>
                   <TableCell>
                     <Button
