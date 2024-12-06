@@ -152,27 +152,54 @@ const Reagent = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold text-teal-700 mb-4">
+      <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Reagent Inventory
       </h1>
-      <div className="flex text-right justify-left items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search for a material"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
+          <div className="relative flex-grow w-full">
+            <Input
+              placeholder="Search for a material"
+              value={search}
+              onChange={handleSearch}
+              className="w-full pr-10"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Search className="w-5 h-5 text-gray-500" />
+            </span>
+          </div>
+
           <Button
-            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               router.push("/reagents-inventory-form");
             }}
           >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+            <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
+            Add Material
+          </Button>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="relative">
+            <Input
+              placeholder="Search for an entry"
+              value={search}
+              onChange={handleSearch}
+              className="w-80 pr-10"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Search className="w-5 h-5 text-gray-500" />
+            </span>
+          </div>
+
+          <Button
+            className="flex items-center bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            onClick={() => {
+              router.push("/reagents-inventory-form");
+            }}
+          >
+            <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
             Add Material
           </Button>
         </div>
@@ -295,7 +322,7 @@ const Reagent = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={17} className="text-center text-gray-500">
+                <TableCell colSpan={18} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

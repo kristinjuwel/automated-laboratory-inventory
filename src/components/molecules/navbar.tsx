@@ -228,12 +228,7 @@ const Navbar = () => {
           <PopoverTrigger className="lg:hidden p-2 text-teal-900 rounded-full transition">
             <Menu className="w-6 h-6" />
           </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            side="right"
-            sideOffset={10}
-            className="bg-white shadow-lg rounded-md p-4"
-          >
+          <PopoverContent align="end" className="w-48 p-2 shadow-lg">
             <div className="relative p-4 md:hidden flex">
               <Input
                 type="text"
