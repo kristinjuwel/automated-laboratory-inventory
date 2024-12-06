@@ -88,6 +88,10 @@ const Borrow = () => {
   const [orientation, setOrientation] = useState<
     "portrait" | "landscape" | undefined
   >(undefined);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -231,6 +235,41 @@ const Borrow = () => {
       ]
     : [];
 
+    const sortMaterials = (
+      materials: Borrow[],
+      key: string, // Allow nested keys like "material.itemName"
+      order: "asc" | "desc"
+    ) => {
+      return [...materials].sort((a, b) => {
+        const getNestedValue = (obj: any, path: string) =>
+          path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    
+        const valueA = getNestedValue(a, key);
+        const valueB = getNestedValue(b, key);
+    
+        if (typeof valueA === "string" && typeof valueB === "string") {
+          return order === "asc"
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+        }
+        if (typeof valueA === "number" && typeof valueB === "number") {
+          return order === "asc" ? valueA - valueB : valueB - valueA;
+        }
+        return 0;
+      });
+    };
+    
+    const handleSort = (column: string) => {
+      const newDirection =
+        sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+    
+      setSortColumn(column as keyof Borrow);
+      setSortDirection(newDirection);
+    
+      const sorted = sortMaterials(filteredBorrows, column, newDirection);
+      setFilteredBorrows(sorted);
+    };
+    
   const handleReturn = async () => {
     if (selectedBorrow) {
       try {
@@ -277,7 +316,7 @@ const Borrow = () => {
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search form"
+            placeholder="Search for an entry"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -311,22 +350,54 @@ const Borrow = () => {
         <Table className="overflow-x-auto">
           <TableHeader className="text-center justify-center">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Item Name</TableHead>
-              <TableHead>Item Code</TableHead>
-              <TableHead>Quantity Borrowed</TableHead>
-              <TableHead>Borrower</TableHead>
-              <TableHead>Borrower Details</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Date Borrowed</TableHead>
-              <TableHead>Time Borrowed</TableHead>
-              <TableHead>Date Returned</TableHead>
-              <TableHead>Time Returned</TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>Damage Materials</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
+              <TableHead onClick={() => handleSort("borrowId")}>
+                ID {" "} {sortColumn === "borrowId" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("material.itemName")}>
+                Item Name{" "} {sortColumn === "material.itemName" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("material.itemCode")}>
+                Item Code{" "} {sortColumn === "material.itemCode" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("qty")}>
+                Quantity Borrowed{" "} {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("user")}>
+                Borrower{" "} {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("borrowerDetail")}>
+                Borrower Details{" "} {sortColumn === "borrowerDetail" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("department")}>
+                Department{" "} {sortColumn === "department" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateBorrowed")}>
+                Date Borrowed{" "} {sortColumn === "dateBorrowed" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("timeBorrowed")}>
+                Time Borrowed{" "} {sortColumn === "timeBorrowed" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateReturned")}>
+                Date Returned{" "} {sortColumn === "dateReturned" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("timeReturned")}>
+                Time Returned{" "} {sortColumn === "timeReturned" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("remarks")}>
+                Remarks{" "} {sortColumn === "remarks" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("damageMaterials")}>
+                Damage Materials{" "} {sortColumn === "damageMaterials" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("status")}>
+                Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("createdAt")}>
+                Created At{" "} {sortColumn === "createdAt" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("updatedAt")}>
+                Updated At{" "} {sortColumn === "updatedAt" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>

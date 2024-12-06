@@ -85,6 +85,10 @@ const Reagent = () => {
     null
   );
   const [logs, setLogs] = useState<Logs[]>([]);
+  const [sortColumn, setSortColumn] = useState<keyof Material | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -128,7 +132,38 @@ const Reagent = () => {
       console.error("Error fetching inventory logs:", error);
     }
   };
+  const sortMaterials = (
+    materials: Material[],
+    key: keyof Material,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
 
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof Material) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredMaterials, column, newDirection);
+    setFilteredMaterials(sorted);
+  };
+  
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearch(query);
@@ -158,7 +193,7 @@ const Reagent = () => {
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for a material"
+            placeholder="Search for an entry"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -183,25 +218,57 @@ const Reagent = () => {
         <Table className="overflow-x-auto">
           <TableHeader className="text-center justify-center">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Item Name</TableHead>
-              <TableHead>Item Code</TableHead>
-              <TableHead>Quantity Per Container</TableHead>
+              <TableHead onClick={() => handleSort("materialId")}>
+                ID{" "} {sortColumn === "materialId" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("itemName")}>
+                Item Name {" "} {sortColumn === "itemName" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("itemCode")}>
+                Item Code{" "} {sortColumn === "itemCode" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("qtyPerContainer")}>
+                Quantity Per Container{" "} {sortColumn === "qtyPerContainer" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Total Quantity</TableHead>
               <TableHead>Total Containers</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Lot Number</TableHead>
-              <TableHead>Min</TableHead>
-              <TableHead>Max</TableHead>
+              <TableHead onClick={() => handleSort("unit")}>
+                Unit{" "} {sortColumn === "unit" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("lotNo")}>
+                Lot Number{" "} {sortColumn === "lotNo" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("reorderThreshold")}>
+                Min{" "} {sortColumn === "reorderThreshold" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("maxThreshold")}>
+                Max{" "} {sortColumn === "maxThreshold" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Excess</TableHead>
-              <TableHead>Expiry Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated</TableHead>
+              <TableHead onClick={() => handleSort("expiryDate")}>
+                Expiration{" "} {sortColumn === "expiryDate" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("category")}>
+                Category{" "} {sortColumn === "category" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("location")}>
+                Location{" "} {sortColumn === "location" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("supplier")}>
+                Supplier{" "} {sortColumn === "supplier" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("cost")}>
+                Cost{" "} {sortColumn === "cost" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("notes")}>
+                Notes{" "} {sortColumn === "notes" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("createdAt")}>
+                Created At{" "} {sortColumn === "createdAt" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("updatedAt")}>
+                Updated At{" "} {sortColumn === "updatedAt" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -295,7 +362,7 @@ const Reagent = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={17} className="text-center text-gray-500">
+                <TableCell colSpan={20} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

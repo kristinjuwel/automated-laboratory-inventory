@@ -61,6 +61,10 @@ const Disposition = () => {
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [selectedDisposition, setSelectedDisposition] =
     useState<DispositionValues | null>(null);
+  const [sortColumn, setSortColumn] = useState<keyof DispositionValues | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -94,6 +98,38 @@ const Disposition = () => {
       fetchMaterials();
     }
   }, [labSlug, isEditDialogOpen]);
+
+  const sortMaterials = (
+    materials: DispositionValues[],
+    key: keyof DispositionValues,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof DispositionValues) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredDisps, column, newDirection);
+    setFilteredDisps(sorted);
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -156,16 +192,36 @@ const Disposition = () => {
         <Table className="overflow-x-auto">
           <TableHeader className="text-center justify-center">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Material</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Reason for Disposal</TableHead>
-              <TableHead>Disposal Method</TableHead>
-              <TableHead>Date Disposed</TableHead>
-              <TableHead>Disposed by</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
+              <TableHead onClick={() => handleSort("disposalId")}>
+                ID{" "} {sortColumn === "disposalId" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("material")}>
+                Material{" "} {sortColumn === "material" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("itemDescription")}>
+                Description{" "} {sortColumn === "itemDescription" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("qty")}>
+                Quantity{" "} {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("reasonForDisposal")}>
+                Reason for Disposal{" "} {sortColumn === "reasonForDisposal" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("disposalMethod")}>
+                Disposal Method{" "} {sortColumn === "disposalMethod" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateDisposed")}>
+                Date Disposed{" "} {sortColumn === "dateDisposed" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("userId")}>
+                Disposed by{" "} {sortColumn === "userId" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("creationDate")}>
+                Created At{" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateUpdated")}>
+                Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>

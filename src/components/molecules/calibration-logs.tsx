@@ -107,6 +107,10 @@ const CalibrationLogs = () => {
         return "application/octet-stream";
     }
   };
+  const [sortColumn, setSortColumn] = useState<keyof CalibrationLogValues | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchMaterials = async () => {
@@ -147,6 +151,37 @@ const CalibrationLogs = () => {
       fetchMaterials();
     }
   }, [labSlug, isEditDialogOpen]);
+  const sortMaterials = (
+    materials: CalibrationLogValues[],
+    key: keyof CalibrationLogValues,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof CalibrationLogValues) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredCalibrations, column, newDirection);
+    setFilteredCalibrations(sorted);
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -308,7 +343,7 @@ const CalibrationLogs = () => {
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for a material"
+            placeholder="Search for an entry"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -342,15 +377,33 @@ const CalibrationLogs = () => {
         <Table className="overflow-x-auto">
           <TableHeader className="text-center justify-center">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Item Name</TableHead>
-              <TableHead>Personnel</TableHead>
-              <TableHead>Calibration Date</TableHead>
-              <TableHead>Next Calibration</TableHead>
-              <TableHead>Attachment</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
+              <TableHead onClick={() => handleSort("calibrationId")}>
+                ID{" "} {sortColumn === "calibrationId" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("material")}>
+                Item Name{" "} {sortColumn === "material" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("user")}>
+                Personnel{" "} {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("calibrationDate")}>
+                Calibration Date{" "} {sortColumn === "calibrationDate" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("nextCalibration")}>
+                Next Calibration{" "} {sortColumn === "nextCalibration" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("fileName")}>
+                Attachment{" "} {sortColumn === "fileName" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("notes")}>
+                Notes{" "} {sortColumn === "notes" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("creationDate")}>
+                Created At{" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateUpdated")}>
+                Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>

@@ -62,7 +62,10 @@ const ReagentDispense = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDispense, setSelectedDispense] =
     useState<ReagentDispenseValues | null>(null);
-
+  const [sortColumn, setSortColumn] = useState<keyof ReagentDispenseValues | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchDispenses = async () => {
@@ -97,6 +100,38 @@ const ReagentDispense = () => {
     }
   }, [labSlug, isEditDialogOpen]);
 
+  const sortMaterials = (
+    materials: ReagentDispenseValues[],
+    key: keyof ReagentDispenseValues,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof ReagentDispenseValues) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredDispenses, column, newDirection);
+    setFilteredDispenses(sorted);
+  };
+  
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearch(query);
@@ -122,7 +157,7 @@ const ReagentDispense = () => {
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for a material"
+            placeholder="Search for an entry"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8 rounded-lg"
@@ -156,17 +191,39 @@ const ReagentDispense = () => {
         <Table className="overflow-x-auto">
           <TableHeader className="text-center justify-center">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Item Name</TableHead>
-              <TableHead>Total Containers</TableHead>
-              <TableHead>Lot Number</TableHead>
-              <TableHead>Quantity Dispensed</TableHead>
-              <TableHead>Remaining Quantity</TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>Analyst</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
+              <TableHead onClick={() => handleSort("reagentId")}>
+                ID{" "} {sortColumn === "reagentId" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("date")}>
+                Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("name")}>
+                Item Name{" "} {sortColumn === "name" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("totalNoContainers")}>
+                Total Containers{" "} {sortColumn === "totalNoContainers" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("lotNo")}>
+                Lot Number{" "} {sortColumn === "lotNo" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("qtyDispensed")}>
+                Quantity Dispensed{" "} {sortColumn === "qtyDispensed" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("remainingQuantity")}>
+                Remaining Quantity{" "} {sortColumn === "remainingQuantity" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("remarks")}>
+                Remarks{" "} {sortColumn === "remarks" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("analyst")}>
+                Analyst{" "} {sortColumn === "analyst" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("creationDate")}>
+                Created At{" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              <TableHead onClick={() => handleSort("dateUpdated")}>
+                Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>

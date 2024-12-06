@@ -55,7 +55,10 @@ const PurchaseOrder = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] =
     useState<LabPurchaseValues | null>(null);
-
+  const [sortColumn, setSortColumn] = useState<keyof LabPurchaseValues | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
   useEffect(() => {
     const fetchData: LabPurchaseValues[] = [
       {
@@ -122,7 +125,38 @@ const PurchaseOrder = () => {
     setPurchases(fetchData);
     setFilteredPurchases(fetchData);
   }, []);
+  const sortMaterials = (
+    materials: LabPurchaseValues[],
+    key: keyof LabPurchaseValues,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
 
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof LabPurchaseValues) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredPurchases, column, newDirection);
+    setFilteredPurchases(sorted);
+  };
+  
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearch(query);
@@ -173,14 +207,30 @@ const PurchaseOrder = () => {
       <Table className="items-center justify-center">
         <TableHeader className="text-center justify-center">
           <TableRow>
-            <TableHead>Purchase Order No</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Supplier</TableHead>
-            <TableHead>Laboratory</TableHead>
-            <TableHead>Quantity</TableHead>
-            <TableHead>Unit Price</TableHead>
-            <TableHead>Total Price</TableHead>
+            <TableHead onClick={() => handleSort("purchaseOrderNo")}>
+              Purchase Order No{" "} {sortColumn === "purchaseOrderNo" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("date")}>
+              Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("status")}>
+              Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("supplierName")}>
+              Supplier{" "} {sortColumn === "supplierName" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("labName")}>
+              Laboratory{" "} {sortColumn === "labName" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("quantity")}>
+              Quantity{" "} {sortColumn === "quantity" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("unitPrice")}>
+              Unit Price{" "} {sortColumn === "unitPrice" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("totalPrice")}>
+              Total Price{" "} {sortColumn === "totalPrice" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
