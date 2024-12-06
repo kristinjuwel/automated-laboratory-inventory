@@ -156,6 +156,8 @@ const Borrow = () => {
     "Remarks",
     "Damage Materials",
     "Status",
+    "Date Created",
+    "Date Updated"
   ];
   const tableData = borrows.map((borrow) => [
     borrow.materialId,
@@ -188,6 +190,20 @@ const Borrow = () => {
     borrow.remarks,
     borrow.damageMaterials,
     borrow.status,
+    new Date(borrow.creationDate).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    new Date(borrow.dateUpdated).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
   ]);
 
   const singleTableData = selectedBorrow
@@ -227,6 +243,20 @@ const Borrow = () => {
           selectedBorrow.remarks,
           selectedBorrow.damageMaterials,
           selectedBorrow.status,
+          new Date(selectedBorrow.creationDate).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          new Date(selectedBorrow.dateUpdated).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         ],
       ]
     : [];
@@ -673,6 +703,7 @@ const Borrow = () => {
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
+                materialName={selectedBorrow.material.itemName}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
             )}

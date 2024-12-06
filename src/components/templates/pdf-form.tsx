@@ -2,6 +2,7 @@ import React from "react";
 import { jsPDF } from "jspdf";
 import { Button } from "../ui/button";
 import autoTable from "jspdf-autotable";
+import { format } from "date-fns";
 
 interface PdfGeneratorProps {
   pdfTitle?: string;
@@ -10,12 +11,14 @@ interface PdfGeneratorProps {
   tableHeaders: string[];
   tableData: (string | number)[][];
   closeDialog: () => void;
+  materialName?: string; 
 }
 
 const PdfGenerator: React.FC<PdfGeneratorProps> = ({
   pdfTitle = "Stock Level Report",
   pageSize = "a4",
   orientation = "portrait",
+  materialName = "",
   tableHeaders = [],
   tableData = [],
   closeDialog,
@@ -49,6 +52,10 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       unit: "mm",
       format: adjustedFormat,
     });
+
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "MM/dd/yyyy");
+    const formattedDateForFile = format(currentDate, "MM-dd-yyyy"); // For filename
 
     const baseUrl = window.location.origin;
     const imgElement1 = new Image();
@@ -154,86 +161,28 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       doc.text(pdfTitle, isLandscape ? (isLong ? 175 : 143) : 105, y, {
         align: "center",
       });
-      y += 10;
+      y += 15;
 
-      // Check if there is an image attachment in the table data
-      const hasImageAttachment = tableData.some(
-        (row) => typeof row[7] === "string" && row[7].startsWith("data:image/")
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+
+      const x = 15;
+      const textY = y;
+
+      const baseText = "Date Generated: ";
+      doc.text(baseText + formattedDate, x, textY);
+
+      const baseTextWidth = doc.getTextWidth(baseText);
+      const dateWidth = doc.getTextWidth(formattedDate);
+
+      doc.line(
+        x + baseTextWidth,
+        textY + 1.5,
+        x + baseTextWidth + dateWidth,
+        textY + 1.5
       );
 
-      if (hasImageAttachment) {
-        // Case where there is an image attachment
-        autoTable(doc, {
-          startY: y,
-          margin: { right: 10, left: 10 },
-          head: [tableHeaders],
-          body: tableData.map((row) => row.slice(0, -1)),
-          styles: {
-            font: "helvetica",
-            fontSize: 12,
-            cellPadding: 2,
-            overflow: "linebreak",
-            valign: "middle",
-            lineColor: [0, 0, 0],
-            lineWidth: 0.2,
-            fillColor: [255, 255, 255],
-            textColor: [0, 0, 0],
-          },
-          didDrawCell: (data) => {
-            if (data.row.index !== undefined && data.column.index === 0) {
-              const imageBase64 = tableData[data.row.index][7]; // Image column index
-              if (
-                typeof imageBase64 === "string" &&
-                imageBase64.startsWith("data:image/")
-              ) {
-                const margin = 20; // Margin from the edges of the page
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
-                const remainingHeight =
-                  pageHeight - (data.cell.y + data.cell.height + margin);
-
-                if (remainingHeight > margin) {
-                  // Position for the image
-                  const xPos = data.cell.x; // Start slightly right from the left margin
-                  const yPos = data.cell.y + data.cell.height + 15; // Below the current cell
-
-                  // Image dimensions
-                  let imgWidth = pageWidth - 2 * margin; // Full width of the page, minus margins
-                  let imgHeight = remainingHeight;
-
-                  // Maintain aspect ratio
-                  const aspectRatio = imgWidth / imgHeight;
-                  if (imgWidth / aspectRatio > remainingHeight) {
-                    imgHeight = remainingHeight;
-                    imgWidth = imgHeight * aspectRatio;
-                  }
-
-                  // Add the image
-                  try {
-                    doc.addImage(
-                      imageBase64,
-                      "PNG",
-                      xPos,
-                      yPos,
-                      imgWidth,
-                      imgHeight
-                    );
-                  } catch (error) {
-                    console.error("Error adding image:", error);
-                  }
-                }
-              }
-            }
-          },
-          columnStyles: {
-            0: { cellWidth: 10 },
-          },
-          theme: "grid",
-          tableWidth: "auto",
-        });
-      } else {
-        // Default case when there is no image attachment
-        const preparedData = tableHeaders.map((header, index) => [
+      const preparedData = tableHeaders.map((header, index) => [
           header,
           tableData.map((row) => row[index] || "").join(", "),
         ]);
@@ -258,9 +207,8 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
           },
           theme: "grid",
         });
-      }
 
-      doc.save(`${pdfTitle}.pdf`);
+      doc.save(`${pdfTitle}-${materialName}-${formattedDateForFile}.pdf`);
       closeDialog();
     });
   };
