@@ -21,6 +21,7 @@ import {
   UserPlus,
   UserPen,
   Filter,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   Dialog,
@@ -49,6 +50,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface MappedUser {
   userId: number;
@@ -316,7 +322,7 @@ const AdminView = () => {
         MANAGE USERS
       </h1>
       <div className="flex sm:flex-row flex-col-reverse sm:justify-between items-end sm:items-center w-full mb-4 space-y-4 sm:space-y-0">
-        <div className="flex flex-row w-full sm:w-3/4 justify-between sm:justify-start space-x-2">
+        <div className="flex flex-row w-full sm:w-11/12 md:w-3/4 justify-between sm:justify-start space-x-2">
           <div className="relative w-full">
             <Input
               placeholder="Search for a user"
@@ -328,9 +334,149 @@ const AdminView = () => {
               <Search className="size-5 text-gray-500" />
             </span>
           </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+                <Collapsible
+                  open={isDesignationOpen}
+                  onOpenChange={setIsDesignationOpen}
+                  className="w-auto"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Designation</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Admin",
+                        "Lab Manager",
+                        "Medical Technologist",
+                        "Researcher",
+                        "Student",
+                        "Technician",
+                      ].map((designation) => (
+                        <label
+                          key={designation}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={designation}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedDesignation.has(designation)}
+                            onChange={() =>
+                              handleDesignationChange(designation)
+                            }
+                          />
+                          <span>{designation}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible
+                  open={isLaboratoryOpen}
+                  onOpenChange={setIsLaboratoryOpen}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Laboratory</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {["Pathology", "Immunology", "Microbiology"].map(
+                        (lab) => (
+                          <label
+                            key={lab}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={lab}
+                              checked={selectedLab.has(lab)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() => handleLabChange(lab)}
+                            />
+                            <span>{lab}</span>
+                          </label>
+                        )
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Status</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Active",
+                        "Inactive",
+                        "Deleted",
+                        "Unverified Email",
+                        "Unapproved Account",
+                      ].map((status) => (
+                        <label
+                          key={status}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={status}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedStatus.has(status)}
+                            onChange={() => handleStatusChange(status)}
+                          />
+                          <span>{status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedDesignation(new Set());
+                    setSelectedLab(new Set());
+                    setSelectedStatus(new Set());
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             className={cn(
-              `bg-teal-500 text-white w-2/5 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out sm:mx-2 ${
+              `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out sm:mx-2 ${
                 viewMode === "card" ? "hidden" : ""
               }`
             )}
@@ -339,123 +485,8 @@ const AdminView = () => {
             }}
           >
             <UserPlus className="w-4 h-4 md:mr-1" strokeWidth={1.5} />
-            <span className="lg:flex xs:flex sm:hidden">Add User</span>
+            <span className="lg:flex hidden">Add User</span>
           </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  `bg-teal-500 text-white w-28 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center space-x-2`
-                )}
-              >
-                <Filter /> <span>Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="flex flex-col space-y-2 p-2 w-[90vw] sm:w-auto max-w-sm sm:max-w-lg">
-              <div className="flex flex-col sm:flex-row overflow-x-auto space-y-6 sm:space-y-0 sm:space-x-6 items-start scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-                <div className="flex flex-col space-y-2">
-                  <h3
-                    className="font-semibold text-sm cursor-pointer"
-                    onClick={() => setIsDesignationOpen(!isDesignationOpen)}
-                    aria-expanded={isDesignationOpen}
-                  >
-                    Designation
-                  </h3>
-                  <div
-                    className={`space-y-1 transition-all ${
-                      isDesignationOpen ? "block" : "hidden sm:block"
-                    }`}
-                  >
-                    {[
-                      "Admin",
-                      "Lab Manager",
-                      "Medical Technologist",
-                      "Researcher",
-                      "Student",
-                      "Technician",
-                    ].map((designation) => (
-                      <label
-                        key={designation}
-                        className="flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <input
-                          type="checkbox"
-                          value={designation}
-                          checked={selectedDesignation.has(designation)}
-                          onChange={() => handleDesignationChange(designation)}
-                        />
-                        <span>{designation}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <h3
-                    className="font-semibold text-sm cursor-pointer"
-                    onClick={() => setIsLaboratoryOpen(!isLaboratoryOpen)}
-                    aria-expanded={isLaboratoryOpen}
-                  >
-                    Laboratory
-                  </h3>
-                  <div
-                    className={`space-y-1 transition-all ${
-                      isLaboratoryOpen ? "block" : "hidden sm:block"
-                    }`}
-                  >
-                    {["Pathology", "Immunology", "Microbiology"].map((lab) => (
-                      <label
-                        key={lab}
-                        className="flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <input
-                          type="checkbox"
-                          value={lab}
-                          checked={selectedLab.has(lab)}
-                          onChange={() => handleLabChange(lab)}
-                        />
-                        <span>{lab}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <h3
-                    className="font-semibold text-sm cursor-pointer"
-                    onClick={() => setIsStatusOpen(!isStatusOpen)}
-                    aria-expanded={isStatusOpen}
-                  >
-                    Status
-                  </h3>
-                  <div
-                    className={`space-y-1 transition-all ${
-                      isStatusOpen ? "block" : "hidden sm:block"
-                    }`}
-                  >
-                    {[
-                      "Active",
-                      "Inactive",
-                      "Deleted",
-                      "Unverified Email",
-                      "Unapproved Account",
-                    ].map((status) => (
-                      <label
-                        key={status}
-                        className="flex items-center space-x-2 whitespace-nowrap"
-                      >
-                        <input
-                          type="checkbox"
-                          value={status}
-                          checked={selectedStatus.has(status)}
-                          onChange={() => handleStatusChange(status)}
-                        />
-                        <span>{status}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
         </div>
 
         <div className="w-full flex justify-between sm:justify-end">
@@ -512,9 +543,11 @@ const AdminView = () => {
                       (sortDirection === "asc" ? "↑" : "↓")}
                   </TableHead>
                   <TableHead onClick={() => handleSort("designation")}>
-                    Designation{" "}
-                    {sortColumn === "designation" &&
-                      (sortDirection === "asc" ? "↑" : "↓")}
+                    Designation
+                    <span className="mb-0.5">
+                      {sortColumn === "designation" &&
+                        (sortDirection === "asc" ? "↑" : "↓")}
+                    </span>
                   </TableHead>
                   <TableHead onClick={() => handleSort("laboratory")}>
                     Laboratory{" "}
