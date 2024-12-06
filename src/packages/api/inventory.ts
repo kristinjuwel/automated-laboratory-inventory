@@ -24,6 +24,8 @@ export const materialSchema = z.object({
   lotNo: z.string().optional(),
   totalNoContainers: z.number().optional(),
   qtyPerContainer: z.number().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 export const inventoryLogSchema = z.object({
@@ -57,6 +59,8 @@ export const borrowSchema = z.object({
   remarks: z.string().optional(),
   damageMaterials: z.string().optional(),
   status: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
 });
 
 export const dispositionSchema = z.object({
@@ -72,6 +76,8 @@ export const dispositionSchema = z.object({
   disposedBy: z.string().optional(),
   dateDisposed: z.string().optional(),
   comments: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
 });
 
 export const calibrationSchema = z.object({
@@ -86,6 +92,8 @@ export const calibrationSchema = z.object({
   file: z.string(),
   attachments: z.string(),
   fileType: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
 });
 
 export const reagentDispenseSchema = z.object({

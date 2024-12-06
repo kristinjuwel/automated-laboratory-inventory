@@ -64,6 +64,8 @@ interface Borrow {
   remarks: string;
   damageMaterials: string;
   status: string;
+  creationDate: string;
+  dateUpdated: string;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -323,6 +325,8 @@ const Borrow = () => {
               <TableHead>Remarks</TableHead>
               <TableHead>Damage Materials</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -437,6 +441,24 @@ const Borrow = () => {
                     )}
                   </TableCell>
                   <TableCell>
+                    {new Date(borrow.creationDate).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(borrow.dateUpdated).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
                     {borrow.status !== "Returned" && (
                       <Button
                         variant="ghost"
@@ -466,7 +488,7 @@ const Borrow = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={15} className="text-center text-gray-500">
+                <TableCell colSpan={17} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -553,6 +575,7 @@ const Borrow = () => {
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Borrow Form
             </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <p className="text-left pt-2 text-m">
             Select page size for the form:

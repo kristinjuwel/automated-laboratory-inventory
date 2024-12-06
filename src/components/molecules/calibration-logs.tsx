@@ -52,6 +52,8 @@ interface CalibrationLogValues {
   user: string;
   laboratory: string;
   fileName: string;
+  creationDate: string;
+  dateUpdated: string;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -347,6 +349,8 @@ const CalibrationLogs = () => {
               <TableHead>Next Calibration</TableHead>
               <TableHead>Attachment</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -403,6 +407,30 @@ const CalibrationLogs = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
+                    {new Date(calibration.creationDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(calibration.dateUpdated).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -430,7 +458,7 @@ const CalibrationLogs = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-gray-500">
+                <TableCell colSpan={10} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -528,6 +556,7 @@ const CalibrationLogs = () => {
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Borrow Form
             </DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <p className="text-left pt-2 text-m">
             Select page size for the form:
