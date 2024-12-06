@@ -242,25 +242,14 @@ const CalibrationLogs = () => {
     );
   };
 
-  const renderFileForPdf = (file: string, fileName: string) => {
-    const mimeType = getMimeType(fileName);
-  
-    if (mimeType.startsWith("image/")) {
-      return `data:${mimeType};base64,${file}`;
-    }
-  
-    return "Unsupported file type or not renderable in PDF";
-  };
-  
-
   const tableHeaders = [
     "ID",
     "Item Name",
     "Personnel",
     "Calibration Date",
     "Next Calibration",
-    "Notes", 
-    "Attachment"
+    "Notes",
+    "Attachment",
   ];
   const tableData = calibrations.map((calibration) => [
     calibration.calibrationId,
@@ -281,27 +270,33 @@ const CalibrationLogs = () => {
   ]);
 
   const singleTableData = selectedCalibration
-  ? [
-      [
-        selectedCalibration.calibrationId,
-        selectedCalibration.material,
-        selectedCalibration.user,
-        new Date(selectedCalibration.calibrationDate).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }),
-        new Date(selectedCalibration.nextCalibration).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }),
-        selectedCalibration.notes,
-        selectedCalibration.fileName,
-        renderFileForPdf(selectedCalibration.file, selectedCalibration.fileName)
-      ],
-    ]
-  : [];
+    ? [
+        [
+          selectedCalibration.calibrationId,
+          selectedCalibration.material,
+          selectedCalibration.user,
+          new Date(selectedCalibration.calibrationDate).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }
+          ),
+          new Date(selectedCalibration.nextCalibration).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }
+          ),
+          selectedCalibration.notes,
+          selectedCalibration.fileName,
+          selectedCalibration.fileName,
+        ],
+      ]
+    : [];
 
   return (
     <div className="p-8">
