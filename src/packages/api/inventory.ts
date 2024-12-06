@@ -95,7 +95,23 @@ export const calibrationSchema = z.object({
   creationDate: z.string().optional(),
   dateUpdated: z.string().optional(),
 });
-
+export const incidentSchema = z.object({
+  incidentId: z.number().optional(),
+  date: z.string(),
+  time: z.string(),
+  userId: z.string(),
+  materialId: z.string(),
+  natureOfIncident: z.string(),
+  materialsInvolved: z.string(),
+  qty: z.string(),
+  brand: z.string(),
+  remarks: z.string().optional(),
+  files: z.array(z.string()),
+  attachments: z.string().optional(),
+  fileType: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
+});
 export const reagentDispenseSchema = z.object({
   dispenseId: z.number().optional(),
   userId: z.number(),
@@ -117,3 +133,4 @@ export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
 export type MaterialSchema = z.infer<typeof materialSchema>;
 export type CalibrationSchema = z.infer<typeof calibrationSchema>;
 export type ReagentDispenseSchema = z.infer<typeof reagentDispenseSchema>;
+export type IncidentSchema = z.infer<typeof incidentSchema>;
