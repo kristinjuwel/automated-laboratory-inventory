@@ -20,6 +20,8 @@ import {
   TriangleAlert,
   UserPlus,
   UserPen,
+  Filter,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +45,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface MappedUser {
   userId: number;
@@ -70,7 +82,20 @@ const AdminView = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortColumn, setSortColumn] = useState<keyof MappedUser | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
   const router = useRouter();
+  const [selectedDesignation, setSelectedDesignation] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedLab, setSelectedLab] = useState<Set<string>>(new Set());
+  const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
+  const [isDesignationOpen, setIsDesignationOpen] = useState(false);
+  const [isLaboratoryOpen, setIsLaboratoryOpen] = useState(false);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
 
@@ -100,8 +125,11 @@ const AdminView = () => {
                   user.designation !== "superadmin"
               )
             : parsedData;
+        const sortedData = filteredData.sort((a, b) =>
+          a.lastName.localeCompare(b.lastName)
+        );
 
-        const mappedUsers: MappedUser[] = filteredData.map((user) => ({
+        const mappedUsers: MappedUser[] = sortedData.map((user) => ({
           userId: user.userId,
           lastName: user.lastName,
           firstName: user.firstName,
@@ -124,6 +152,94 @@ const AdminView = () => {
 
     fetchAllUsers();
   }, []);
+
+  useEffect(() => {
+    const applyFilters = () => {
+      const filtered = users.filter((user) => {
+        const matchesDesignation =
+          selectedDesignation.size === 0 ||
+          selectedDesignation.has(user.designation);
+        const matchesLab =
+          selectedLab.size === 0 || selectedLab.has(user.laboratory);
+        const matchesStatus =
+          selectedStatus.size === 0 || selectedStatus.has(user.status);
+
+        return matchesDesignation && matchesLab && matchesStatus;
+      });
+
+      setFilteredUsers(filtered);
+      setCurrentPage(1);
+    };
+    applyFilters();
+  }, [selectedDesignation, selectedLab, selectedStatus, users]);
+
+  const handleDesignationChange = (value: string) => {
+    setSelectedDesignation((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+
+  const handleLabChange = (value: string) => {
+    setSelectedLab((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+
+  const sortUsers = (
+    users: MappedUser[],
+    key: keyof MappedUser,
+    order: "asc" | "desc"
+  ) => {
+    return [...users].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof MappedUser) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortUsers(filteredUsers, column, newDirection);
+    setFilteredUsers(sorted);
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -206,7 +322,7 @@ const AdminView = () => {
         MANAGE USERS
       </h1>
       <div className="flex sm:flex-row flex-col-reverse sm:justify-between items-end sm:items-center w-full mb-4 space-y-4 sm:space-y-0">
-        <div className="flex flex-row w-full sm:w-3/4 justify-between sm:justify-start space-x-2">
+        <div className="flex flex-row w-full sm:w-11/12 md:w-3/4 justify-between sm:justify-start space-x-2">
           <div className="relative w-full">
             <Input
               placeholder="Search for a user"
@@ -218,9 +334,149 @@ const AdminView = () => {
               <Search className="size-5 text-gray-500" />
             </span>
           </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+                <Collapsible
+                  open={isDesignationOpen}
+                  onOpenChange={setIsDesignationOpen}
+                  className="w-auto"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Designation</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Admin",
+                        "Lab Manager",
+                        "Medical Technologist",
+                        "Researcher",
+                        "Student",
+                        "Technician",
+                      ].map((designation) => (
+                        <label
+                          key={designation}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={designation}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedDesignation.has(designation)}
+                            onChange={() =>
+                              handleDesignationChange(designation)
+                            }
+                          />
+                          <span>{designation}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible
+                  open={isLaboratoryOpen}
+                  onOpenChange={setIsLaboratoryOpen}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Laboratory</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {["Pathology", "Immunology", "Microbiology"].map(
+                        (lab) => (
+                          <label
+                            key={lab}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={lab}
+                              checked={selectedLab.has(lab)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() => handleLabChange(lab)}
+                            />
+                            <span>{lab}</span>
+                          </label>
+                        )
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Status</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Active",
+                        "Inactive",
+                        "Deleted",
+                        "Unverified Email",
+                        "Unapproved Account",
+                      ].map((status) => (
+                        <label
+                          key={status}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={status}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedStatus.has(status)}
+                            onChange={() => handleStatusChange(status)}
+                          />
+                          <span>{status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedDesignation(new Set());
+                    setSelectedLab(new Set());
+                    setSelectedStatus(new Set());
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             className={cn(
-              `bg-teal-500 text-white w-2/5 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out sm:mx-2 ${
+              `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out sm:mx-2 ${
                 viewMode === "card" ? "hidden" : ""
               }`
             )}
@@ -229,9 +485,10 @@ const AdminView = () => {
             }}
           >
             <UserPlus className="w-4 h-4 md:mr-1" strokeWidth={1.5} />
-            <span className="lg:flex xs:flex sm:hidden">Add User</span>
+            <span className="lg:flex hidden">Add User</span>
           </Button>
         </div>
+
         <div className="w-full flex justify-between sm:justify-end">
           <h1 className="ml-1 text-lg sm:text-xl w-3/4 font-bold py-2 tracking-tight mb-4 text-teal-900 text-center flex sm:hidden">
             MANAGE USERS
@@ -272,15 +529,41 @@ const AdminView = () => {
       {viewMode === "table" ? (
         <>
           <div className="overflow-x-hidden">
-            <Table className="min-w-full">
+            <Table className="items-center justify-center">
               <TableHeader className="text-center justify-center">
                 <TableRow>
-                  <TableHead>Id</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Designation</TableHead>
-                  <TableHead>Laboratory</TableHead>
-                  <TableHead className="text-center">Username</TableHead>
-                  <TableHead className="text-center">Email</TableHead>
+                  <TableHead onClick={() => handleSort("userId")}>
+                    Id{" "}
+                    {sortColumn === "userId" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("firstName")}>
+                    Name{" "}
+                    {sortColumn === "firstName" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("designation")}>
+                    Designation
+                    <span className="mb-0.5">
+                      {sortColumn === "designation" &&
+                        (sortDirection === "asc" ? "↑" : "↓")}
+                    </span>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("laboratory")}>
+                    Laboratory{" "}
+                    {sortColumn === "laboratory" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("username")}>
+                    Username{" "}
+                    {sortColumn === "username" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("email")}>
+                    Email{" "}
+                    {sortColumn === "email" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </TableHead>
                   <TableHead className="text-center">Phone Number</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
