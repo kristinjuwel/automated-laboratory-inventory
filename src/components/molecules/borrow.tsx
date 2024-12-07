@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer, SquarePen } from "lucide-react";
+import { Edit, Search, FilePlus, Printer, SquarePen, Filter, ChevronsUpDown} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,16 @@ import {
 import EditBorrow from "../dialogs/borrow-edit";
 import PdfGenerator from "../templates/pdf-generator";
 import PdfForm from "../templates/pdf-form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface Borrow {
   borrowId: number;
@@ -92,6 +102,12 @@ const Borrow = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
     null
   );
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
+  const [isEquipmentOpen, setIsEquipmentOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(new Set());
+  const [isDepartmentOpen, setIsDepartmentOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -116,6 +132,11 @@ const Borrow = () => {
               }${borrow.user.lastName}`,
             })
           );
+
+          const uniqueEquipment = Array.from(
+            new Set(borrowedMaterials.map((m: Borrow) => m.equipment))
+          );
+          console.log("Unique Equipment: ", uniqueEquipment)
 
           setBorrows(mappedBorrows);
           setFilteredBorrows(mappedBorrows);
@@ -269,6 +290,61 @@ const Borrow = () => {
       const sorted = sortMaterials(filteredBorrows, column, newDirection);
       setFilteredBorrows(sorted);
     };
+    useEffect(() => {
+      const applyFilters = () => {
+        const filtered = borrows.filter((borrow) => {
+          const matchesEquipment =
+            selectedEquipment.size === 0 || selectedEquipment.has(borrow.equipment);
+          const matchesDepartment = 
+            selectedDepartment.size === 0 || selectedDepartment.has(borrow.department);
+          const matchesStatus =
+            selectedStatus.size === 0 || selectedStatus.has(borrow.status);
+  
+          return matchesEquipment && matchesDepartment && matchesStatus;
+        });
+  
+        setFilteredBorrows(filtered);
+        setCurrentPage(1);
+      };
+      applyFilters();
+    }, [selectedEquipment, selectedDepartment, selectedStatus, borrows]);
+    
+    const handleEquipmentChange = (equipment: string) => {
+      setSelectedEquipment((prev) => {
+        const updated = new Set(prev);
+        if (updated.has(equipment)) {
+          updated.delete(equipment);
+        } else {
+          updated.add(equipment);
+        }
+        return updated;
+      });
+    };
+    
+    const handleDepartmentChange = (department: string) => {
+      setSelectedDepartment((prev) => {
+        const updated = new Set(prev);
+        if (updated.has(department)) {
+          updated.delete(department);
+        } else {
+          updated.add(department);
+        }
+        return updated;
+      });
+    };
+    
+
+    const handleStatusChange = (status: string) => {
+      setSelectedStatus((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(status)) {
+          newSet.delete(status);
+        } else {
+          newSet.add(status);
+        }
+        return newSet;
+      });
+    };
     
   const handleReturn = async () => {
     if (selectedBorrow) {
@@ -334,7 +410,7 @@ const Borrow = () => {
             Borrow Material
           </Button>
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out ml-2"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}
@@ -342,6 +418,131 @@ const Borrow = () => {
             <Printer className="w-4 h-4" strokeWidth={1.5} />
             Print Forms
           </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+              <Collapsible open={isEquipmentOpen} onOpenChange={setIsEquipmentOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Equipment</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                          new Set(borrows.map((m) => m.equipment))
+                        ).map((equipment) => (
+                        <label
+                          key={equipment}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={equipment}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedEquipment.has(equipment)}
+                            onChange={() => handleEquipmentChange(equipment)}
+                          />
+                          <span>{equipment}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+              </Collapsible>
+              <Collapsible open={isDepartmentOpen} onOpenChange={setIsDepartmentOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Department</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Pathology",
+                        "Immunology",
+                        "Microbiology",
+                      ].map((department) => (
+                        <label
+                          key={department}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={department}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedDepartment.has(department)}
+                            onChange={() => handleDepartmentChange(department)}
+                          />
+                          <span>{department}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Status</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Borrowed",
+                        "Returned",
+                      ].map((status) => (
+                        <label
+                          key={status}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={status}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedStatus.has(status)}
+                            onChange={() => handleStatusChange(status)}
+                          />
+                          <span>{status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedStatus(new Set());
+                    setSelectedDepartment(new Set());
+                    setSelectedEquipment(new Set());
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

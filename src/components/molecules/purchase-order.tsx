@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer } from "lucide-react";
+import { Edit, Search, FilePlus, Printer, Filter, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 
 interface LabPurchaseValues {
   purchaseOrderNo: string;
@@ -46,6 +57,7 @@ interface LabPurchaseValues {
 const PurchaseOrder = () => {
   const router = useRouter();
   const [purchases, setPurchases] = useState<LabPurchaseValues[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filteredPurchases, setFilteredPurchases] = useState<
     LabPurchaseValues[]
   >([]);
@@ -59,6 +71,12 @@ const PurchaseOrder = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
     null
   );
+  
+  const [isSupplierOpen, setIsSupplierOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Set<string>>(new Set());
+  const [isLaboratoryOpen, setIsLaboratoryOpen] = useState(false);
+  const [selectedLaboratory, setSelectedLaboratory] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     const fetchData: LabPurchaseValues[] = [
       {
@@ -156,6 +174,46 @@ const PurchaseOrder = () => {
     const sorted = sortMaterials(filteredPurchases, column, newDirection);
     setFilteredPurchases(sorted);
   };
+
+  useEffect(() => {
+    const applyFilters = () => {
+      const filtered = purchases.filter((purchase) => {
+        const matchesSupplier =
+          selectedSupplier.size === 0 || selectedSupplier.has(purchase.supplierName);
+        const matchesLaboratory = 
+          selectedLaboratory.size === 0 || selectedLaboratory.has(purchase.labName);
+        return matchesSupplier && matchesLaboratory;
+      });
+
+      setFilteredPurchases(filtered);
+      setCurrentPage(1);
+    };
+    applyFilters();
+  }, [selectedLaboratory, selectedSupplier, purchases]);
+  
+  const handleLaboratoryChange = (labName: string) => {
+    setSelectedLaboratory((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(labName)) {
+        updated.delete(labName);
+      } else {
+        updated.add(labName);
+      }
+      return updated;
+    });
+  };
+  
+  const handleSupplierChange = (supplierName: string) => {
+    setSelectedSupplier((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(supplierName)) {
+        updated.delete(supplierName);
+      } else {
+        updated.add(supplierName);
+      }
+      return updated;
+    });
+  };
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -189,7 +247,7 @@ const PurchaseOrder = () => {
 
           <Button
             className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
+              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
             )}
             onClick={() => {
               setSelectedPurchase(null);
@@ -199,6 +257,97 @@ const PurchaseOrder = () => {
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
             Create Form
           </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+              <Collapsible open={isSupplierOpen} onOpenChange={setIsSupplierOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Supplier</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                          new Set(purchases.map((m) => m.supplierName))
+                        ).map((supplierName) => (
+                        <label
+                          key={supplierName}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={supplierName}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedSupplier.has(supplierName)}
+                            onChange={() => handleSupplierChange(supplierName)}
+                          />
+                          <span>{supplierName}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+              </Collapsible>
+              <Collapsible open={isLaboratoryOpen} onOpenChange={setIsLaboratoryOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Laboratory</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Pathology",
+                        "Immunology",
+                        "Microbiology",
+                      ].map((labName) => (
+                        <label
+                          key={labName}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={labName}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedLaboratory.has(labName)}
+                            onChange={() => handleLaboratoryChange(labName)}
+                          />
+                          <span>{labName}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedLaboratory(new Set());
+                    setSelectedSupplier(new Set());
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer } from "lucide-react";
+import { Edit, Search, FilePlus, Printer, Filter, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,18 @@ import {
 import CustomPagination from "../ui/pagination-custom";
 import { ReagentDispenseSchema } from "@/packages/api/inventory";
 import EditReagentDispense from "../dialogs/reagent-dispense-edit";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 
 interface ReagentDispenseValues {
   dispenseId: number;
@@ -66,6 +78,12 @@ const ReagentDispense = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
     null
   );
+
+  const [isPersonnelOpen, setIsPersonnelOpen] = useState(false);
+  const [selectedPersonnel, setSelectedPersonnel] = useState<Set<string>>(new Set());
+  const [isMaterialOpen, setIsMaterialOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchDispenses = async () => {
@@ -131,6 +149,46 @@ const ReagentDispense = () => {
     const sorted = sortMaterials(filteredDispenses, column, newDirection);
     setFilteredDispenses(sorted);
   };
+
+  useEffect(() => {
+    const applyFilters = () => {
+      const filtered = dispenses.filter((dispense) => {
+        const matchesMaterial = 
+          selectedMaterial.size === 0 || selectedMaterial.has(dispense.name);
+        const matchesPersonnel =
+          selectedPersonnel.size === 0 || selectedPersonnel.has(dispense.analyst);
+        return matchesPersonnel && matchesMaterial;
+      });
+
+      setFilteredDispenses(filtered);
+      setCurrentPage(1);
+    };
+    applyFilters();
+  }, [selectedPersonnel, selectedMaterial, dispenses]);
+  
+  const handlePersonnelChange = (personnel: string) => {
+    setSelectedPersonnel((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(personnel)) {
+        updated.delete(personnel);
+      } else {
+        updated.add(personnel);
+      }
+      return updated;
+    });
+  };
+  const handleMaterialChange = (material: string) => {
+    setSelectedMaterial((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(material)) {
+        newSet.delete(material);
+      } else {
+        newSet.add(material);
+      }
+      return newSet;
+    });
+  };
+
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -168,14 +226,14 @@ const ReagentDispense = () => {
           <Button
             className="bg-teal-500 text-white w-40 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
-              router.push("/reagents-inventory-form");
+              router.push("/reagents-dispense-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
             Dispense Reagent
           </Button>
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out ml-2"
             onClick={() => {
               setIsPrintDialogOpen(true);
             }}
@@ -183,6 +241,94 @@ const ReagentDispense = () => {
             <Printer className="w-4 h-4" strokeWidth={1.5} />
             Print Forms
           </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+              <Collapsible open={isPersonnelOpen} onOpenChange={setIsPersonnelOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Analyst</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                          new Set(dispenses.map((m) => m.analyst))
+                        ).map((analyst) => (
+                        <label
+                          key={analyst}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={analyst}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedPersonnel.has(analyst)}
+                            onChange={() => handlePersonnelChange(analyst)}
+                          />
+                          <span>{analyst}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible open={isMaterialOpen} onOpenChange={setIsMaterialOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Material</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                          new Set(dispenses.map((m) => m.name))
+                        ).map((material_name) => (
+                        <label
+                          key={material_name}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={material_name}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedMaterial.has(material_name)}
+                            onChange={() => handleMaterialChange(material_name)}
+                          />
+                          <span>{material_name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedPersonnel(new Set());
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

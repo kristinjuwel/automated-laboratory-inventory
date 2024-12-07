@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, History } from "lucide-react";
+import { Edit, Search, FilePlus, History, Filter, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,16 @@ import {
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
 import EditInventory from "../dialogs/edit-form";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface Material {
   materialId: number;
@@ -51,6 +61,7 @@ interface Material {
   reorderThreshold: number;
   maxThreshold: number;
 }
+
 
 interface Logs {
   inventoryLogId: number;
@@ -85,7 +96,116 @@ const Incident = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
     null
   );
+  
+  const [isSupplierOpen, setIsSupplierOpen] = useState(false);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [selectedLocations, setSelectedLocations] = useState<Set<string>>(new Set());
 
+
+
+  useEffect(() => {
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch materials");
+          }
+          const data: Material[] = await response.json();
+          const biologicalMaterials = data.filter(
+            (material) =>
+              material.category.shortName.toLowerCase() === "biological" &&
+              material.laboratory.labName.toLowerCase() === labSlug
+          );
+          setMaterials(biologicalMaterials);
+          setFilteredMaterials(biologicalMaterials);
+
+          const uniqueSuppliers = Array.from(
+            new Set(biologicalMaterials.map((m) => m.supplier.companyName))
+          );
+          console.log("Unique Suppliers:", uniqueSuppliers);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
+        }
+      };
+  
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
+  
+  const filterMaterials = () => {
+    const query = search.toLowerCase();
+  
+    const filtered = materials.filter((material) => {
+      const matchesSearch =
+        `${material.itemName} ${material.itemCode} ${material.category.subcategory1} ${material.location} ${material.supplier.companyName}`
+          .toLowerCase()
+          .includes(query);
+  
+      const matchesSuppliers =
+        selectedSuppliers.size === 0 ||
+        selectedSuppliers.has(material.supplier.companyName);
+  
+      const matchesCategories =
+        selectedCategories.size === 0 ||
+        selectedCategories.has(material.category.subcategory1);
+  
+      const matchesLocations =
+        selectedLocations.size === 0 || selectedLocations.has(material.location);
+  
+      return matchesSearch && matchesSuppliers && matchesCategories && matchesLocations;
+    });
+  
+    setFilteredMaterials(filtered);
+    setCurrentPage(1); // Reset pagination
+  };
+  
+  
+  const handleSupplierChange = (supplier: string) => {
+    setSelectedSuppliers((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(supplier)) {
+        updated.delete(supplier);
+      } else {
+        updated.add(supplier);
+      }
+      return updated;
+    });
+  };
+  
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategories((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(category)) {
+        updated.delete(category);
+      } else {
+        updated.add(category);
+      }
+      return updated;
+    });
+  };
+  
+  const handleLocationChange = (location: string) => {
+    setSelectedLocations((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(location)) {
+        updated.delete(location);
+      } else {
+        updated.add(location);
+      }
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    filterMaterials();
+  }, [selectedSuppliers, selectedCategories, selectedLocations, search]);
+  
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchMaterials = async () => {
@@ -200,7 +320,7 @@ const Incident = () => {
           </span>
           <Button
             className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6`
+              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
             )}
             onClick={() => {
               router.push("/incident-form");
@@ -209,6 +329,130 @@ const Incident = () => {
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
             Add Material
           </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+                <Collapsible open={isSupplierOpen} onOpenChange={setIsSupplierOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Supplier</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(materials.map((m) => m.supplier.companyName))
+                        ).map((supplier) => (
+                          <label
+                            key={supplier}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={supplier}
+                              checked={selectedSuppliers.has(supplier)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() => handleSupplierChange(supplier)}
+                            />
+                            <span>{supplier}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                <Collapsible open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Category</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                        new Set(materials.map((m) => m.category.subcategory1))
+                      ).map((subcategory1) => (
+                        <label
+                          key={subcategory1}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={subcategory1}
+                            checked={selectedCategories.has(subcategory1)}
+                            className="text-teal-500 accent-teal-200"
+                            onChange={() => handleCategoryChange(subcategory1)}
+                          />
+                          <span>{subcategory1}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Location</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                        new Set(materials.map((m) => m.location).filter(Boolean)) // Filter out undefined/null
+                      ).map((location) => (
+                        <label
+                          key={location}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={location}
+                            checked={selectedLocations.has(location)}
+                            className="text-teal-500 accent-teal-200"
+                            onChange={() => handleLocationChange(location)}
+                          />
+                          <span>{location}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedSuppliers(new Set());
+                    setSelectedCategories(new Set());
+                    setSelectedLocations(new Set());
+                    filterMaterials(); // Trigger filtering after reset
+                  }}
+                >
+                  Clear Filters
+                </Button>
+
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -326,7 +570,7 @@ const Incident = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-gray-500">
+                <TableCell colSpan={15} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
