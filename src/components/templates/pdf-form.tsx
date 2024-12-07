@@ -10,8 +10,8 @@ interface PdfGeneratorProps {
   orientation?: "portrait" | "landscape";
   tableHeaders: string[];
   tableData: (string | number)[][];
-  closeDialog: () => void;
   materialName?: string; 
+  closeDialog: () => void;
 }
 
 const PdfGenerator: React.FC<PdfGeneratorProps> = ({

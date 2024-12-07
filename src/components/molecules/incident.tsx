@@ -221,6 +221,7 @@ const Incident = () => {
     "Updated At",
   ];
   const tableData = incidents.map((incident) => [
+    incident.incidentFormId,
     new Date(incident.date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "2-digit",
@@ -231,7 +232,6 @@ const Incident = () => {
       minute: "2-digit",
       hour12: true,
     }),
-    incident.incidentFormId,
     incident.materialsInvolved,
     incident.qty,
     incident.brand,
@@ -261,6 +261,7 @@ const Incident = () => {
   const singleTableData = selectedIncident
     ? [
         [
+          selectedIncident.incidentFormId,
           new Date(selectedIncident.date).toLocaleDateString("en-US", {
             year: "numeric",
             month: "2-digit",
@@ -274,7 +275,6 @@ const Incident = () => {
               hour12: true,
             }
           ),
-          selectedIncident.incidentFormId,
           selectedIncident.materialsInvolved,
           selectedIncident.qty,
           selectedIncident.brand,
@@ -573,7 +573,7 @@ const Incident = () => {
               Cancel
             </Button>
             <PdfGenerator
-              pdfTitle="Calibration Report"
+              pdfTitle="Incident Report"
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
@@ -681,13 +681,14 @@ const Incident = () => {
             >
               Cancel
             </Button>
-            {selectedIncident && selectedIncident?.file && (
+            {selectedIncident && (
               <PdfForm
                 pdfTitle="Incident Form"
                 pageSize={pageSize}
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
+                materialName={selectedIncident.natureOfIncident}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
             )}
