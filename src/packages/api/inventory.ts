@@ -127,6 +127,37 @@ export const reagentDispenseSchema = z.object({
   analyst: z.string(),
 });
 
+export const purchaseOrderSchema = z.object({
+  purchaseOrderId: z.number().optional(),
+  purchaseOrderNumber: z.string(),
+  userId: z.number(),
+  user: userSchema,
+  supplierId: z.number(),
+  supplier: supplierSchema,
+  date: z.string(),
+  shippingCost: z.number(),
+  totalPrice: z.number(),
+  status: z.string(),
+  labId: z.number(),
+  laboratory: laboratorySchema,
+  tax: z.number().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
+});
+
+export const purchaseSchema = z.object({
+  purchaseId: z.number().optional(),
+  purchaseOrderId: z.number(),
+  purchaseOrder: purchaseOrderSchema.optional(),
+  materialId: z.number(),
+  material: materialSchema,
+  qty: z.number(),
+  unitPrice: z.number(),
+  description: z.string(),
+  creationDate: z.string(),
+  dateUpdated: z.string(),
+});
+
 export type DispositionSchema = z.infer<typeof dispositionSchema>;
 export type BorrowSchema = z.infer<typeof borrowSchema>;
 export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
@@ -134,3 +165,5 @@ export type MaterialSchema = z.infer<typeof materialSchema>;
 export type CalibrationSchema = z.infer<typeof calibrationSchema>;
 export type ReagentDispenseSchema = z.infer<typeof reagentDispenseSchema>;
 export type IncidentSchema = z.infer<typeof incidentSchema>;
+export type PurchaseOrderSchema = z.infer<typeof purchaseOrderSchema>;
+export type PurchaseSchema = z.infer<typeof purchaseSchema>;

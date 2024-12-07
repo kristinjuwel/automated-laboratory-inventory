@@ -29,16 +29,10 @@ import CustomPagination from "../ui/pagination-custom";
 import { IncidentSchema } from "@/packages/api/inventory";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
-import Image from "next/image";
 import PdfGenerator from "../templates/pdf-generator";
 import PdfForm from "../templates/pdf-form";
-import { Separator } from "@radix-ui/react-dropdown-menu";
 import IncidentEdit from "../dialogs/edit-incident";
-interface FileMetadata {
-  fileName: string;
-  fileType: string;
-  fileData: string;
-}
+import { Label } from "../ui/label";
 
 interface IncidentValues {
   incidentFormId: number;
@@ -240,7 +234,7 @@ const Incident = () => {
     incident.remarks,
     incident.attachments
       .split(",")
-      .map((attachment: string, index: number) => attachment.trim())
+      .map((attachment: string) => attachment.trim())
       .join("\n"),
     new Date(incident.creationDate).toLocaleDateString("en-US", {
       year: "numeric",
@@ -283,7 +277,7 @@ const Incident = () => {
           selectedIncident.remarks,
           selectedIncident.attachments
             .split(",")
-            .map((attachment: string, index: number) => attachment.trim())
+            .map((attachment: string) => attachment.trim())
             .join("\n"),
           new Date(selectedIncident.creationDate).toLocaleDateString("en-US", {
             year: "numeric",
@@ -348,12 +342,11 @@ const Incident = () => {
             <TableHead>Date</TableHead>
             <TableHead>Time</TableHead>
             <TableHead>
-              <div className="flex flex-row gap-2 justify-center items-center text-center">
-                <p>Involved Material</p>
-                <Separator className="w-1 h-5 bg-teal-600"></Separator>
-                <p>Quantity</p>
-                <Separator className="w-1 h-5 bg-teal-600"></Separator>
-                <p>Brand</p>
+              <div className="flex flex-col">
+                <Label className="text-sm font-bold">Material</Label>
+                <Label className="text-xs text-teal-600 text-nowrap">
+                  Item name (Brand) - Quantity
+                </Label>
               </div>
             </TableHead>
             <TableHead>Nature of Incident</TableHead>
@@ -361,7 +354,7 @@ const Incident = () => {
             <TableHead>Attachment</TableHead>
             <TableHead>Remarks</TableHead>
             <TableHead>Created At</TableHead>
-            <TableHead>Updated At</TableHead>
+            <TableHead className="text-nowrap">Updated At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -388,21 +381,16 @@ const Incident = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col gap-2 justify-start items-start text-left w-full">
+                  <div className="flex flex-col gap-2 justify-center items-center text-center w-full">
                     {incident.materialsInvolved
                       .split(",")
                       .map((material, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-row gap-3 items-center"
-                        >
-                          <p className="w-20">{material.trim()}</p>
-                          <Separator className="w-0.5 h-4 bg-teal-600" />
-                          <p className="w-3">
+                        <div key={index} className="flex flex-row gap-3">
+                          <p className="text-nowrap">
+                            {material.trim()} (
+                            {incident.brand.split(",")[index].trim()}) -{" "}
                             {incident.qty.split(",")[index].trim()}
                           </p>
-                          <Separator className="w-0.5 h-4 bg-teal-600" />
-                          <p>{incident.brand.split(",")[index].trim()}</p>
                         </div>
                       ))}
                   </div>
