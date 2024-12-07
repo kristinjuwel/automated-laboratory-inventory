@@ -241,6 +241,7 @@ const ReagentDispense = () => {
                       size="sm"
                       className="rounded-md text-black-600 hover:text-black-900 hover:bg-black-50"
                       onClick={() => {
+                        setSelectedDispense(dispense);
                         setIsPrintDialogOpen(true);
                       }}
                     >
