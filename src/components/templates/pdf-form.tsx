@@ -2,21 +2,23 @@ import React from "react";
 import { jsPDF } from "jspdf";
 import { Button } from "../ui/button";
 import autoTable from "jspdf-autotable";
-import { Bold } from "lucide-react";
+import { format } from "date-fns";
 
-interface PdfFormProps {
+interface PdfGeneratorProps {
   pdfTitle?: string;
   pageSize?: string;
   orientation?: "portrait" | "landscape";
   tableHeaders: string[];
   tableData: (string | number)[][];
   closeDialog: () => void;
+  materialName?: string; 
 }
 
-const PdfForm: React.FC<PdfFormProps> = ({
+const PdfGenerator: React.FC<PdfGeneratorProps> = ({
   pdfTitle = "Stock Level Report",
   pageSize = "a4",
   orientation = "portrait",
+  materialName = "",
   tableHeaders = [],
   tableData = [],
   closeDialog,
@@ -51,6 +53,10 @@ const PdfForm: React.FC<PdfFormProps> = ({
       format: adjustedFormat,
     });
 
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "MM/dd/yyyy");
+    const formattedDateForFile = format(currentDate, "MM-dd-yyyy"); // For filename
+
     const baseUrl = window.location.origin;
     const imgElement1 = new Image();
     const imgElement2 = new Image();
@@ -65,7 +71,7 @@ const PdfForm: React.FC<PdfFormProps> = ({
       doc.addImage(
         imgElement1,
         "PNG",
-        isLandscape ? (isLong ? 60 : 40) : 20,
+        isLandscape ? (isLong ? 60 : 40) : 30,
         10,
         30,
         30
@@ -148,42 +154,61 @@ const PdfForm: React.FC<PdfFormProps> = ({
           align: "center",
         }
       );
-      y += 20;
+      y += 15;
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text(pdfTitle, isLandscape ? (isLong ? 175 : 143) : 105, y, {
         align: "center",
       });
-      y += 10;
+      y += 15;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+
+      const x = 15;
+      const textY = y;
+
+      const baseText = "Date Generated: ";
+      doc.text(baseText + formattedDate, x, textY);
+
+      const baseTextWidth = doc.getTextWidth(baseText);
+      const dateWidth = doc.getTextWidth(formattedDate);
+
+      doc.line(
+        x + baseTextWidth,
+        textY + 1.5,
+        x + baseTextWidth + dateWidth,
+        textY + 1.5
+      );
 
       const preparedData = tableHeaders.map((header, index) => [
-        header,
-        tableData.map((row) => row[index] || "").join(", "),
-      ]);
+          header,
+          tableData.map((row) => row[index] || "").join(", "),
+        ]);
 
-      autoTable(doc, {
-        startY: 105,
-        body: preparedData,
-        styles: {
-          font: "helvetica",
-          fontSize: 12,
-          cellPadding: 2,
-          overflow: "linebreak",
-          valign: "middle",
-          lineColor: [0, 0, 0],
-          lineWidth: 0.2,
-          fillColor: [255, 255, 255],
-          textColor: [0, 0, 0],
-        },
-        columnStyles: {
-          0: { cellWidth: 60, fontStyle: "bold" },
-          1: { cellWidth: 120 },
-        },
-        theme: "grid",
-      });
+        autoTable(doc, {
+          startY: 105,
+          body: preparedData,
+          styles: {
+            font: "helvetica",
+            fontSize: 12,
+            cellPadding: 2,
+            overflow: "linebreak",
+            valign: "middle",
+            lineColor: [0, 0, 0],
+            lineWidth: 0.2,
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+          },
+          columnStyles: {
+            0: { cellWidth: 60, fontStyle: "bold" },
+            1: { cellWidth: 120 },
+          },
+          theme: "grid",
+        });
 
-      doc.save(`${pdfTitle}.pdf`);
+      doc.save(`${pdfTitle}-${materialName}-${formattedDateForFile}.pdf`);
       closeDialog();
     });
   };
@@ -198,4 +223,4 @@ const PdfForm: React.FC<PdfFormProps> = ({
   );
 };
 
-export default PdfForm;
+export default PdfGenerator;

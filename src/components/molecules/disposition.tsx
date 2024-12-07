@@ -43,6 +43,8 @@ interface DispositionValues {
   dateDisposed: string;
   disposedBy: string;
   comments: string;
+  creationDate: string;
+  dateUpdated: string;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -162,6 +164,8 @@ const Disposition = () => {
               <TableHead>Disposal Method</TableHead>
               <TableHead>Date Disposed</TableHead>
               <TableHead>Disposed by</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -220,6 +224,27 @@ const Disposition = () => {
                   </TableCell>
                   <TableCell>{disposition.disposedBy}</TableCell>
                   <TableCell>
+                    {new Date(disposition.creationDate).toLocaleString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(disposition.dateUpdated).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -246,7 +271,7 @@ const Disposition = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-gray-500">
+                <TableCell colSpan={11} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

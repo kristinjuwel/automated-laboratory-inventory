@@ -25,12 +25,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import CustomPagination from "../ui/pagination-custom";
 import { CalibrationSchema } from "@/packages/api/inventory";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
 import Image from "next/image";
 import EditCalibration from "../dialogs/calibration-edit";
+import PdfGenerator from "../templates/pdf-generator";
+import PdfForm from "../templates/pdf-form";
 
 interface CalibrationLogValues {
   calibrationId: number;
@@ -44,6 +52,8 @@ interface CalibrationLogValues {
   user: string;
   laboratory: string;
   fileName: string;
+  creationDate: string;
+  dateUpdated: string;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -57,10 +67,15 @@ const CalibrationLogs = () => {
     CalibrationLogValues[]
   >([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [pageSize, setPageSize] = useState("a4");
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
+  >(undefined);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
   const [selectedCalibration, setSelectedCalibration] =
     useState<CalibrationLogValues | null>(null);
   const getMimeType = (fileName: string) => {
@@ -229,6 +244,91 @@ const CalibrationLogs = () => {
     );
   };
 
+  const tableHeaders = [
+    "ID",
+    "Item Name",
+    "Personnel",
+    "Calibration Date",
+    "Next Calibration",
+    "Notes",
+    "Attachment",
+    "Date Created",
+    "Date Updated"
+  ];
+  const tableData = calibrations.map((calibration) => [
+    calibration.calibrationId,
+    calibration.material,
+    calibration.user,
+    new Date(calibration.calibrationDate).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    new Date(calibration.nextCalibration).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    calibration.notes,
+    calibration.fileName,
+    new Date(calibration.creationDate).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    new Date(calibration.dateUpdated).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  ]);
+
+  const singleTableData = selectedCalibration
+    ? [
+        [
+          selectedCalibration.calibrationId,
+          selectedCalibration.material,
+          selectedCalibration.user,
+          new Date(selectedCalibration.calibrationDate).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }
+          ),
+          new Date(selectedCalibration.nextCalibration).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }
+          ),
+          selectedCalibration.notes,
+          selectedCalibration.fileName,
+          new Date(selectedCalibration.creationDate).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          new Date(selectedCalibration.dateUpdated).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        ],
+      ]
+    : [];
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
@@ -257,7 +357,7 @@ const CalibrationLogs = () => {
           <Button
             className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
             onClick={() => {
-              setIsPrintDialogOpen(true);
+              setIsPrintAllOpen(true);
             }}
           >
             <Printer className="w-4 h-4" strokeWidth={1.5} />
@@ -277,7 +377,9 @@ const CalibrationLogs = () => {
               <TableHead>Calibration Date</TableHead>
               <TableHead>Next Calibration</TableHead>
               <TableHead>Attachment</TableHead>
-              <TableHead>File</TableHead>
+              <TableHead>Notes</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -334,6 +436,30 @@ const CalibrationLogs = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
+                    {new Date(calibration.creationDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(calibration.dateUpdated).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -350,6 +476,7 @@ const CalibrationLogs = () => {
                       size="sm"
                       className="rounded-md text-black-600 hover:text-black-900 hover:bg-black-50"
                       onClick={() => {
+                        setSelectedCalibration(calibration);
                         setIsPrintDialogOpen(true);
                       }}
                     >
@@ -360,7 +487,7 @@ const CalibrationLogs = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-gray-500">
+                <TableCell colSpan={10} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -417,19 +544,131 @@ const CalibrationLogs = () => {
           )}
         </DialogContent>
       </Dialog>
-      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+
+      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <Printer className="text-black size-5 -mt-0.5" />
-              Print Disposal Form
+              Print Calibration Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure you want to print this form?
           </p>
-          <div className="flex justify-end gap-2 mt-2">
+          <p className="text-left text-sm italic">
+            *This form shall be printed in a long bond paper.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setIsPrintAllOpen(false)}
+            >
+              Cancel
+            </Button>
+            <PdfGenerator
+              pdfTitle="Calibration Report"
+              pageSize="long"
+              orientation="landscape"
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setIsPrintAllOpen(false)}
+            ></PdfGenerator>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              Print Borrow Form
+            </DialogTitle>
+            <DialogDescription />
+          </DialogHeader>
+          <p className="text-left pt-2 text-m">
+            Select page size for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span className={pageSize ? "text-black" : "text-gray-500"}>
+                    {pageSize === "a4"
+                      ? "A4 (210 x 297 mm)"
+                      : pageSize === "short"
+                      ? "Short (Letter, 215.9 x 279.4 mm)"
+                      : pageSize === "long"
+                      ? "Long (Legal, 215.9 x 355.6 mm)"
+                      : "Select Page Size"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "A4 (210 x 297 mm)", value: "a4" },
+                  { label: "Short (Letter, 215.9 x 279.4 mm)", value: "short" },
+                  { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={pageSize === option.value}
+                    onCheckedChange={(checked) =>
+                      setPageSize(checked ? option.value : "a4")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-left pt-4 text-m">
+            Select orientation for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span
+                    className={orientation ? "text-black" : "text-gray-500"}
+                  >
+                    {orientation === "portrait"
+                      ? "Portrait"
+                      : orientation === "landscape"
+                      ? "Landscape"
+                      : "Select Orientation"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "Portrait", value: "portrait" as const },
+                  { label: "Landscape", value: "landscape" as const },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={orientation === option.value}
+                    onCheckedChange={(checked) =>
+                      setOrientation(checked ? option.value : "portrait")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
@@ -437,7 +676,17 @@ const CalibrationLogs = () => {
             >
               Cancel
             </Button>
-            <Button onClick={() => setIsPrintDialogOpen(false)}>Confirm</Button>
+            {selectedCalibration && selectedCalibration?.file && (
+              <PdfForm
+                pdfTitle="Calibration Form"
+                pageSize={pageSize}
+                orientation={orientation}
+                tableHeaders={tableHeaders}
+                tableData={singleTableData}
+                materialName={selectedCalibration.material} 
+                closeDialog={() => setIsPrintDialogOpen(false)}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>

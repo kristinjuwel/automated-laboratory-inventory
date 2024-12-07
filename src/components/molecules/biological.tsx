@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, History } from "lucide-react";
+import { Edit, Search, FilePlus, Printer, History } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -27,6 +33,7 @@ import {
 } from "../ui/tooltip";
 import CustomPagination from "../ui/pagination-custom";
 import EditInventory from "../dialogs/edit-form";
+import PdfGenerator from "../templates/pdf-generator";
 
 interface Material {
   materialId: number;
@@ -45,8 +52,8 @@ interface Material {
   description?: string;
   notes?: string;
   quantityAvailable: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
   reorderThreshold: number;
   maxThreshold: number;
 }
@@ -80,6 +87,10 @@ const Biological = () => {
     null
   );
   const [logs, setLogs] = useState<Logs[]>([]);
+  const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
+  const [pageSize, setPageSize] = useState("a4");
+  const [orientation, setOrientation] = useState<"portrait" | "landscape" | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -92,6 +103,7 @@ const Biological = () => {
             throw new Error("Failed to fetch materials");
           }
           const data = await response.json();
+          console.log(data);
           const biologicalMaterials = data.filter(
             (material: Material) =>
               material.category.shortName.toLowerCase() === "biological" &&
@@ -145,6 +157,47 @@ const Biological = () => {
     currentLogPage * ITEMS_PER_PAGE
   );
 
+  const tableHeaders = [
+    "ID",
+    "Item Name",
+    "Item Code",
+    "Minimum",
+    "Maximum",
+    "Status", 
+    "Date Created",
+    "Date Updated",
+  ];
+  
+  const tableData = materials.map((material) => [
+    material.materialId,
+    material.itemName,
+    material.itemCode,
+    material.reorderThreshold,
+    material.maxThreshold,
+    material.quantityAvailable === 0
+      ? "Critical Stockout"
+      : material.quantityAvailable < material.reorderThreshold
+      ? "Below Reorder Level"
+      : material.quantityAvailable < material.maxThreshold
+      ? "Sufficient"
+      : "Maximum Threshold", 
+    new Date(material.createdAt).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    new Date(material.updatedAt).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  ]);
+  
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
@@ -162,13 +215,22 @@ const Biological = () => {
             <Search className="size-5 text-gray-500" />
           </span>
           <Button
-            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out mx-6"
+            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
               router.push("/biological-inventory-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
             Add Material
+          </Button>
+          <Button
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            onClick={() => {
+              setIsPrintAllOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
           </Button>
         </div>
       </div>
@@ -192,6 +254,9 @@ const Biological = () => {
               <TableHead>Supplier</TableHead>
               <TableHead>Cost</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -236,6 +301,45 @@ const Biological = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
+                  <div
+                    className={`w-full px-4 py-2 rounded-md font-semibold ${
+                      material.quantityAvailable === 0
+                        ? "bg-red-300 text-red-950"
+                        : material.quantityAvailable < material.reorderThreshold
+                        ? "bg-yellow-300 text-yellow-950"
+                        : material.quantityAvailable < material.maxThreshold
+                        ? "bg-emerald-300 text-emerald-950"
+                        : "bg-green-300 text-green-950"
+                    }`}
+                  >
+                    {material.quantityAvailable === 0
+                      ? "Critical Stockout"
+                      : material.quantityAvailable < material.reorderThreshold
+                      ? "Below Reorder Level"
+                      : material.quantityAvailable < material.maxThreshold
+                      ? "Sufficient"
+                      : "Maximum Threshold"}
+                  </div>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(material.createdAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(material.updatedAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -264,7 +368,7 @@ const Biological = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={15} className="text-center text-gray-500">
+                <TableCell colSpan={17} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -310,6 +414,115 @@ const Biological = () => {
               shortName="Biological"
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
+      <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              Print Biological Stock Level Report
+            </DialogTitle>
+            <DialogDescription />
+          </DialogHeader>
+          <p className="text-left pt-2 text-m">
+            Select page size for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span className={pageSize ? "text-black" : "text-gray-500"}>
+                    {pageSize === "a4"
+                      ? "A4 (210 x 297 mm)"
+                      : pageSize === "short"
+                      ? "Short (Letter, 215.9 x 279.4 mm)"
+                      : pageSize === "long"
+                      ? "Long (Legal, 215.9 x 355.6 mm)"
+                      : "Select Page Size"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "A4 (210 x 297 mm)", value: "a4" },
+                  { label: "Short (Letter, 215.9 x 279.4 mm)", value: "short" },
+                  { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={pageSize === option.value}
+                    onCheckedChange={(checked) =>
+                      setPageSize(checked ? option.value : "a4")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-left pt-4 text-m">
+            Select orientation for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span
+                    className={orientation ? "text-black" : "text-gray-500"}
+                  >
+                    {orientation === "portrait"
+                      ? "Portrait"
+                      : orientation === "landscape"
+                      ? "Landscape"
+                      : "Select Orientation"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "Portrait", value: "portrait" as const },
+                  { label: "Landscape", value: "landscape" as const },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={orientation === option.value}
+                    onCheckedChange={(checked) =>
+                      setOrientation(checked ? option.value : "portrait")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setIsPrintAllOpen(false)}
+            >
+              Cancel
+            </Button>
+              <PdfGenerator
+                pdfTitle="Biological Stock Level Report"
+                pageSize={pageSize}
+                orientation={orientation}
+                tableHeaders={tableHeaders}
+                tableData={tableData}
+                closeDialog={() => setIsPrintAllOpen(false)}
+              />
+          </div>
         </DialogContent>
       </Dialog>
 

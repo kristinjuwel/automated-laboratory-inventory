@@ -42,6 +42,8 @@ interface ReagentDispenseValues {
   analyst: string;
   laboratory: string;
   remainingQuantity: number;
+  creationDate: string;
+  dateUpdated: string;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -163,6 +165,8 @@ const ReagentDispense = () => {
               <TableHead>Remaining Quantity</TableHead>
               <TableHead>Remarks</TableHead>
               <TableHead>Analyst</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -197,6 +201,30 @@ const ReagentDispense = () => {
                   </TableCell>
                   <TableCell>{dispense.analyst}</TableCell>
                   <TableCell>
+                    {new Date(dispense.creationDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(dispense.dateUpdated).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -223,7 +251,7 @@ const ReagentDispense = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-gray-500">
+                <TableCell colSpan={12} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

@@ -16,6 +16,7 @@ import { Edit, Search, FilePlus, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -45,12 +46,15 @@ interface LabPurchaseValues {
 const PurchaseOrder = () => {
   const router = useRouter();
   const [purchases, setPurchases] = useState<LabPurchaseValues[]>([]);
-  const [filteredPurchases, setFilteredPurchases] = useState<LabPurchaseValues[]>([]);
+  const [filteredPurchases, setFilteredPurchases] = useState<
+    LabPurchaseValues[]
+  >([]);
   const [search, setSearch] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedPurchase, setSelectedPurchase] = useState<LabPurchaseValues | null>(null);
+  const [selectedPurchase, setSelectedPurchase] =
+    useState<LabPurchaseValues | null>(null);
 
   useEffect(() => {
     const fetchData: LabPurchaseValues[] = [
@@ -155,7 +159,7 @@ const PurchaseOrder = () => {
             )}
             onClick={() => {
               setSelectedPurchase(null);
-              router.push("/laboratory-purchase-order")
+              router.push("/laboratory-purchase-order");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
@@ -167,7 +171,7 @@ const PurchaseOrder = () => {
       <Toaster />
 
       <Table className="items-center justify-center">
-      <TableHeader className="text-center justify-center">
+        <TableHeader className="text-center justify-center">
           <TableRow>
             <TableHead>Purchase Order No</TableHead>
             <TableHead>Date</TableHead>
@@ -183,43 +187,75 @@ const PurchaseOrder = () => {
         <TableBody>
           {filteredPurchases.length > 0 ? (
             filteredPurchases.map((purchase) => (
-              <TableRow key={purchase.purchaseOrderNo} >
-                <TableCell 
-                onClick={() => {
-                setSelectedPurchase(purchase);
-                setIsViewDialogOpen(true);
-                }}> {purchase.purchaseOrderNo}</TableCell>
-                <TableCell onClick={() => {
-                setSelectedPurchase(purchase);
-                setIsViewDialogOpen(true);
-                }}>{purchase.date}</TableCell>
-                <TableCell onClick={() => {
-                setSelectedPurchase(purchase);
-                setIsViewDialogOpen(true);
-                }}>{purchase.status}</TableCell>
-                <TableCell onClick={() => {
-                setSelectedPurchase(purchase);
-                setIsViewDialogOpen(true);
-                }}>{purchase.supplierName}</TableCell>
-                <TableCell onClick={() => {
-                setSelectedPurchase(purchase);
-                setIsViewDialogOpen(true);
-                }}>{purchase.labName}</TableCell>
-                <TableCell className="text-center" 
-                onClick={() => {
-                  setSelectedPurchase(purchase);
-                  setIsViewDialogOpen(true);
-                }}>{purchase.quantity}</TableCell>
-                <TableCell className="text-center"
-                onClick={() => {
-                  setSelectedPurchase(purchase);
-                  setIsViewDialogOpen(true);
-                }}>{purchase.unitPrice.toFixed(2)}</TableCell>
-                <TableCell className="text-center"
-                onClick={() => {
-                  setSelectedPurchase(purchase);
-                  setIsViewDialogOpen(true);
-                }}>{purchase.totalPrice.toFixed(2)}</TableCell>
+              <TableRow key={purchase.purchaseOrderNo}>
+                <TableCell
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {" "}
+                  {purchase.purchaseOrderNo}
+                </TableCell>
+                <TableCell
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.date}
+                </TableCell>
+                <TableCell
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.status}
+                </TableCell>
+                <TableCell
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.supplierName}
+                </TableCell>
+                <TableCell
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.labName}
+                </TableCell>
+                <TableCell
+                  className="text-center"
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.quantity}
+                </TableCell>
+                <TableCell
+                  className="text-center"
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.unitPrice.toFixed(2)}
+                </TableCell>
+                <TableCell
+                  className="text-center"
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setIsViewDialogOpen(true);
+                  }}
+                >
+                  {purchase.totalPrice.toFixed(2)}
+                </TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
@@ -260,145 +296,280 @@ const PurchaseOrder = () => {
         <DialogContent className="bg-white max-w-[1000px] max-h-[700px] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle>Edit Purchase Order</DialogTitle>
+            <DialogDescription />
           </DialogHeader>
 
           <div className="grid grid-cols-2 gap-4">
-
-            {/* Supplier Information Section */}
-            <div className="col-span-2 font-semibold text-gray-800">Supplier Information</div>
+            <div className="col-span-2 font-semibold text-gray-800">
+              Supplier Information
+            </div>
             <div className="mb-4">
-              <label htmlFor="supplierName" className="block text-sm font-medium text-gray-700 mb-1">Supplier Name</label>
+              <label
+                htmlFor="supplierName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Name
+              </label>
               <Input
                 id="supplierName"
                 value={selectedPurchase?.supplierName}
                 placeholder="Supplier Name"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, supplierName: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, supplierName: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="supplierAddress" className="block text-sm font-medium text-gray-700 mb-1">Supplier Address</label>
+              <label
+                htmlFor="supplierAddress"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Address
+              </label>
               <Input
                 id="supplierAddress"
                 value={selectedPurchase?.supplierAddress}
                 placeholder="Supplier Address"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, supplierAddress: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, supplierAddress: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="supplierPhoneNo" className="block text-sm font-medium text-gray-700 mb-1">Supplier Phone No</label>
+              <label
+                htmlFor="supplierPhoneNo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Phone No
+              </label>
               <Input
                 id="supplierPhoneNo"
                 value={selectedPurchase?.supplierPhoneNo}
                 placeholder="Supplier Phone No"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, supplierPhoneNo: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, supplierPhoneNo: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="supplierEmail" className="block text-sm font-medium text-gray-700 mb-1">Supplier Email</label>
+              <label
+                htmlFor="supplierEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Email
+              </label>
               <Input
                 id="supplierEmail"
                 value={selectedPurchase?.supplierEmail}
                 placeholder="Supplier Email"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, supplierEmail: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, supplierEmail: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4 col-span-2">
-              <label htmlFor="supplierContactPerson" className="block text-sm font-medium text-gray-700 mb-1">Supplier Contact Person</label>
+              <label
+                htmlFor="supplierContactPerson"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Contact Person
+              </label>
               <Input
                 id="supplierContactPerson"
                 value={selectedPurchase?.supplierContactPerson}
                 placeholder="Supplier Contact Person"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, supplierContactPerson: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev
+                      ? { ...prev, supplierContactPerson: e.target.value }
+                      : null
+                  )
+                }
               />
             </div>
 
             {/* Lab Information Section */}
-            <div className="col-span-2 font-semibold text-gray-800 mt-4">Lab Information</div>
+            <div className="col-span-2 font-semibold text-gray-800 mt-4">
+              Lab Information
+            </div>
             <div className="mb-4">
-              <label htmlFor="labName" className="block text-sm font-medium text-gray-700 mb-1">Lab Name</label>
+              <label
+                htmlFor="labName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Name
+              </label>
               <Input
                 id="labName"
                 value={selectedPurchase?.labName}
                 placeholder="Lab Name"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, labName: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, labName: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="labAddress" className="block text-sm font-medium text-gray-700 mb-1">Lab Address</label>
+              <label
+                htmlFor="labAddress"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Address
+              </label>
               <Input
                 id="labAddress"
                 value={selectedPurchase?.labAddress}
                 placeholder="Lab Address"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, labAddress: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, labAddress: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="labPhoneNo" className="block text-sm font-medium text-gray-700 mb-1">Lab Phone No</label>
+              <label
+                htmlFor="labPhoneNo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Phone No
+              </label>
               <Input
                 id="labPhoneNo"
                 value={selectedPurchase?.labPhoneNo}
                 placeholder="Lab Phone No"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, labPhoneNo: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, labPhoneNo: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="labEmail" className="block text-sm font-medium text-gray-700 mb-1">Lab Email</label>
+              <label
+                htmlFor="labEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Email
+              </label>
               <Input
                 id="labEmail"
                 value={selectedPurchase?.labEmail}
                 placeholder="Lab Email"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, labEmail: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, labEmail: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4 col-span-2">
-              <label htmlFor="labContactPerson" className="block text-sm font-medium text-gray-700 mb-1">Lab Contact Person</label>
+              <label
+                htmlFor="labContactPerson"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Contact Person
+              </label>
               <Input
                 id="labContactPerson"
                 value={selectedPurchase?.labContactPerson}
                 placeholder="Lab Contact Person"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, labContactPerson: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, labContactPerson: e.target.value } : null
+                  )
+                }
               />
             </div>
 
             {/* Order Details Section */}
-            <div className="col-span-2 font-semibold text-gray-800 mt-4">Order Details</div>
+            <div className="col-span-2 font-semibold text-gray-800 mt-4">
+              Order Details
+            </div>
             <div className="mb-4 col-span-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Description
+              </label>
               <Input
                 id="description"
                 value={selectedPurchase?.description}
                 placeholder="Description"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, description: e.target.value } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, description: e.target.value } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+              <label
+                htmlFor="quantity"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Quantity
+              </label>
               <Input
                 id="quantity"
                 type="number"
                 value={selectedPurchase?.quantity}
                 placeholder="Quantity"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, quantity: Number(e.target.value) } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, quantity: Number(e.target.value) } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="unitPrice" className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
+              <label
+                htmlFor="unitPrice"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Unit Price
+              </label>
               <Input
                 id="unitPrice"
                 type="number"
                 value={selectedPurchase?.unitPrice}
                 placeholder="Unit Price"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, unitPrice: Number(e.target.value) } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev ? { ...prev, unitPrice: Number(e.target.value) } : null
+                  )
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="totalPrice" className="block text-sm font-medium text-gray-700 mb-1">Total Price</label>
+              <label
+                htmlFor="totalPrice"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Total Price
+              </label>
               <Input
                 id="totalPrice"
                 type="number"
                 value={selectedPurchase?.totalPrice}
                 placeholder="Total Price"
-                onChange={(e) => setSelectedPurchase((prev) => prev ? { ...prev, totalPrice: Number(e.target.value) } : null)}
+                onChange={(e) =>
+                  setSelectedPurchase((prev) =>
+                    prev
+                      ? { ...prev, totalPrice: Number(e.target.value) }
+                      : null
+                  )
+                }
               />
             </div>
 
@@ -410,7 +581,8 @@ const PurchaseOrder = () => {
                   if (selectedPurchase) {
                     setPurchases((prev) =>
                       prev.map((purchase) =>
-                        purchase.purchaseOrderNo === selectedPurchase.purchaseOrderNo
+                        purchase.purchaseOrderNo ===
+                        selectedPurchase.purchaseOrderNo
                           ? selectedPurchase
                           : purchase
                       )
@@ -427,180 +599,270 @@ const PurchaseOrder = () => {
       </Dialog>
 
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-      <DialogContent className="bg-white max-w-[1000px] max-h-[700px] overflow-y-auto p-6">
-        <DialogHeader>
-          <DialogTitle>View Purchase Order</DialogTitle>
-        </DialogHeader>
+        <DialogContent className="bg-white max-w-[1000px] max-h-[700px] overflow-y-auto p-6">
+          <DialogHeader>
+            <DialogTitle>View Purchase Order</DialogTitle>
+          </DialogHeader>
 
-    <div className="grid grid-cols-2 gap-4">
-      <div className="mb-4">
-        <label htmlFor="purchaseOrderNo" className="block text-sm font-medium text-gray-700 mb-1">Purchase Order Number</label>
-        <Input
-          id="purchaseOrderNo"
-          value={selectedPurchase?.purchaseOrderNo}
-          placeholder="Purchase Order Number"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
-        <Input
-          id="date"
-          value={selectedPurchase?.date}
-          placeholder="Purchase Date"
-          readOnly
-        />
-      </div>
-      <div className="mb-4 col-span-2">
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Purchase Status</label>
-        <Input
-          id="status"
-          value={selectedPurchase?.status}
-          placeholder="Purchase Status"
-          readOnly
-        />
-      </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="mb-4">
+              <label
+                htmlFor="purchaseOrderNo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Purchase Order Number
+              </label>
+              <Input
+                id="purchaseOrderNo"
+                value={selectedPurchase?.purchaseOrderNo}
+                placeholder="Purchase Order Number"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="date"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Purchase Date
+              </label>
+              <Input
+                id="date"
+                value={selectedPurchase?.date}
+                placeholder="Purchase Date"
+                readOnly
+              />
+            </div>
+            <div className="mb-4 col-span-2">
+              <label
+                htmlFor="status"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Purchase Status
+              </label>
+              <Input
+                id="status"
+                value={selectedPurchase?.status}
+                placeholder="Purchase Status"
+                readOnly
+              />
+            </div>
 
-      {/* Supplier Information Section */}
-      <div className="col-span-2 font-semibold text-gray-800">Supplier Information</div>
-      <div className="mb-4">
-        <label htmlFor="supplierName" className="block text-sm font-medium text-gray-700 mb-1">Supplier Name</label>
-        <Input
-          id="supplierName"
-          value={selectedPurchase?.supplierName}
-          placeholder="Supplier Name"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="supplierAddress" className="block text-sm font-medium text-gray-700 mb-1">Supplier Address</label>
-        <Input
-          id="supplierAddress"
-          value={selectedPurchase?.supplierAddress}
-          placeholder="Supplier Address"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="supplierPhoneNo" className="block text-sm font-medium text-gray-700 mb-1">Supplier Phone No</label>
-        <Input
-          id="supplierPhoneNo"
-          value={selectedPurchase?.supplierPhoneNo}
-          placeholder="Supplier Phone No"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="supplierEmail" className="block text-sm font-medium text-gray-700 mb-1">Supplier Email</label>
-        <Input
-          id="supplierEmail"
-          value={selectedPurchase?.supplierEmail}
-          placeholder="Supplier Email"
-          readOnly
-        />
-      </div>
-      <div className="mb-4 col-span-2">
-        <label htmlFor="supplierContactPerson" className="block text-sm font-medium text-gray-700 mb-1">Supplier Contact Person</label>
-        <Input
-          id="supplierContactPerson"
-          value={selectedPurchase?.supplierContactPerson}
-          placeholder="Supplier Contact Person"
-          readOnly
-        />
-      </div>
+            {/* Supplier Information Section */}
+            <div className="col-span-2 font-semibold text-gray-800">
+              Supplier Information
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="supplierName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Name
+              </label>
+              <Input
+                id="supplierName"
+                value={selectedPurchase?.supplierName}
+                placeholder="Supplier Name"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="supplierAddress"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Address
+              </label>
+              <Input
+                id="supplierAddress"
+                value={selectedPurchase?.supplierAddress}
+                placeholder="Supplier Address"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="supplierPhoneNo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Phone No
+              </label>
+              <Input
+                id="supplierPhoneNo"
+                value={selectedPurchase?.supplierPhoneNo}
+                placeholder="Supplier Phone No"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="supplierEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Email
+              </label>
+              <Input
+                id="supplierEmail"
+                value={selectedPurchase?.supplierEmail}
+                placeholder="Supplier Email"
+                readOnly
+              />
+            </div>
+            <div className="mb-4 col-span-2">
+              <label
+                htmlFor="supplierContactPerson"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Supplier Contact Person
+              </label>
+              <Input
+                id="supplierContactPerson"
+                value={selectedPurchase?.supplierContactPerson}
+                placeholder="Supplier Contact Person"
+                readOnly
+              />
+            </div>
 
-      {/* Lab Information Section */}
-      <div className="col-span-2 font-semibold text-gray-800 mt-4">Lab Information</div>
-      <div className="mb-4">
-        <label htmlFor="labName" className="block text-sm font-medium text-gray-700 mb-1">Lab Name</label>
-        <Input
-          id="labName"
-          value={selectedPurchase?.labName}
-          placeholder="Lab Name"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="labAddress" className="block text-sm font-medium text-gray-700 mb-1">Lab Address</label>
-        <Input
-          id="labAddress"
-          value={selectedPurchase?.labAddress}
-          placeholder="Lab Address"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="labPhoneNo" className="block text-sm font-medium text-gray-700 mb-1">Lab Phone No</label>
-        <Input
-          id="labPhoneNo"
-          value={selectedPurchase?.labPhoneNo}
-          placeholder="Lab Phone No"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="labEmail" className="block text-sm font-medium text-gray-700 mb-1">Lab Email</label>
-        <Input
-          id="labEmail"
-          value={selectedPurchase?.labEmail}
-          placeholder="Lab Email"
-          readOnly
-        />
-      </div>
-      <div className="mb-4 col-span-2">
-        <label htmlFor="labContactPerson" className="block text-sm font-medium text-gray-700 mb-1">Lab Contact Person</label>
-        <Input
-          id="labContactPerson"
-          value={selectedPurchase?.labContactPerson}
-          placeholder="Lab Contact Person"
-          readOnly
-        />
-      </div>
+            {/* Lab Information Section */}
+            <div className="col-span-2 font-semibold text-gray-800 mt-4">
+              Lab Information
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="labName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Name
+              </label>
+              <Input
+                id="labName"
+                value={selectedPurchase?.labName}
+                placeholder="Lab Name"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="labAddress"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Address
+              </label>
+              <Input
+                id="labAddress"
+                value={selectedPurchase?.labAddress}
+                placeholder="Lab Address"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="labPhoneNo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Phone No
+              </label>
+              <Input
+                id="labPhoneNo"
+                value={selectedPurchase?.labPhoneNo}
+                placeholder="Lab Phone No"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="labEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Email
+              </label>
+              <Input
+                id="labEmail"
+                value={selectedPurchase?.labEmail}
+                placeholder="Lab Email"
+                readOnly
+              />
+            </div>
+            <div className="mb-4 col-span-2">
+              <label
+                htmlFor="labContactPerson"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Lab Contact Person
+              </label>
+              <Input
+                id="labContactPerson"
+                value={selectedPurchase?.labContactPerson}
+                placeholder="Lab Contact Person"
+                readOnly
+              />
+            </div>
 
-      {/* Order Details Section */}
-      <div className="col-span-2 font-semibold text-gray-800 mt-4">Order Details</div>
-      <div className="mb-4 col-span-2">
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-        <Input
-          id="description"
-          value={selectedPurchase?.description}
-          placeholder="Description"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-        <Input
-          id="quantity"
-          type="number"
-          value={selectedPurchase?.quantity}
-          placeholder="Quantity"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="unitPrice" className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
-        <Input
-          id="unitPrice"
-          type="number"
-          value={selectedPurchase?.unitPrice}
-          placeholder="Unit Price"
-          readOnly
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="totalPrice" className="block text-sm font-medium text-gray-700 mb-1">Total Price</label>
-        <Input
-          id="totalPrice"
-          type="number"
-          value={selectedPurchase?.totalPrice}
-          placeholder="Total Price"
-          readOnly
-        />
-      </div>
-
-    </div>
-  </DialogContent>
+            {/* Order Details Section */}
+            <div className="col-span-2 font-semibold text-gray-800 mt-4">
+              Order Details
+            </div>
+            <div className="mb-4 col-span-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Description
+              </label>
+              <Input
+                id="description"
+                value={selectedPurchase?.description}
+                placeholder="Description"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="quantity"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Quantity
+              </label>
+              <Input
+                id="quantity"
+                type="number"
+                value={selectedPurchase?.quantity}
+                placeholder="Quantity"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="unitPrice"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Unit Price
+              </label>
+              <Input
+                id="unitPrice"
+                type="number"
+                value={selectedPurchase?.unitPrice}
+                placeholder="Unit Price"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="totalPrice"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Total Price
+              </label>
+              <Input
+                id="totalPrice"
+                type="number"
+                value={selectedPurchase?.totalPrice}
+                placeholder="Total Price"
+                readOnly
+              />
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -621,9 +883,7 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            <Button
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
+            <Button onClick={() => setIsDeleteDialogOpen(false)}>
               Confirm
             </Button>
           </div>

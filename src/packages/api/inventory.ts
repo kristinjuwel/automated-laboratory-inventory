@@ -24,6 +24,8 @@ export const materialSchema = z.object({
   lotNo: z.string().optional(),
   totalNoContainers: z.number().optional(),
   qtyPerContainer: z.number().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 export const inventoryLogSchema = z.object({
@@ -57,6 +59,8 @@ export const borrowSchema = z.object({
   remarks: z.string().optional(),
   damageMaterials: z.string().optional(),
   status: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
 });
 
 export const dispositionSchema = z.object({
@@ -72,6 +76,8 @@ export const dispositionSchema = z.object({
   disposedBy: z.string().optional(),
   dateDisposed: z.string().optional(),
   comments: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
 });
 
 export const calibrationSchema = z.object({
@@ -86,8 +92,26 @@ export const calibrationSchema = z.object({
   file: z.string(),
   attachments: z.string(),
   fileType: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
 });
-
+export const incidentSchema = z.object({
+  incidentId: z.number().optional(),
+  date: z.string(),
+  time: z.string(),
+  userId: z.string(),
+  materialId: z.string(),
+  natureOfIncident: z.string(),
+  materialsInvolved: z.string(),
+  qty: z.string(),
+  brand: z.string(),
+  remarks: z.string().optional(),
+  files: z.array(z.string()),
+  attachments: z.string().optional(),
+  fileType: z.string().optional(),
+  creationDate: z.string().optional(),
+  dateUpdated: z.string().optional(),
+});
 export const reagentDispenseSchema = z.object({
   dispenseId: z.number().optional(),
   userId: z.number(),
@@ -109,3 +133,4 @@ export type InventoryLogSchema = z.infer<typeof inventoryLogSchema>;
 export type MaterialSchema = z.infer<typeof materialSchema>;
 export type CalibrationSchema = z.infer<typeof calibrationSchema>;
 export type ReagentDispenseSchema = z.infer<typeof reagentDispenseSchema>;
+export type IncidentSchema = z.infer<typeof incidentSchema>;
