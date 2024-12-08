@@ -204,7 +204,7 @@ const Incident = () => {
     "ID",
     "Date",
     "Time",
-    "Involved Material/s",
+    "Involved Material/s \nItem name (Brand) - Quantity",
     "Quantity",
     "Brand",
     "Nature of Incident",
@@ -226,7 +226,18 @@ const Incident = () => {
       minute: "2-digit",
       hour12: true,
     }),
-    incident.materialsInvolved,
+    incident.materialsInvolved
+    .split(",")
+    .map((material, index) => {
+      const brands = incident.brand.split(",");
+      const quantities = incident.qty.split(",");
+
+      // Return plain text for PDF-friendly output
+      return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
+        quantities[index]?.trim() || "N/A"
+      }`;
+    })
+    .join("\n"),
     incident.qty,
     incident.brand,
     incident.natureOfIncident,
@@ -269,7 +280,18 @@ const Incident = () => {
               hour12: true,
             }
           ),
-          selectedIncident.materialsInvolved,
+          selectedIncident.materialsInvolved
+          .split(",")
+          .map((material, index) => {
+            const brands = selectedIncident.brand.split(",");
+            const quantities = selectedIncident.qty.split(",");
+
+            // Return plain text for PDF-friendly output
+            return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
+              quantities[index]?.trim() || "N/A"
+            }`;
+          })
+          .join("\n"),
           selectedIncident.qty,
           selectedIncident.brand,
           selectedIncident.natureOfIncident,

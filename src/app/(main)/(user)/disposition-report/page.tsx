@@ -110,8 +110,9 @@ const DispositionReportForm = () => {
         : "",
     };
     const laboratory = selectedMaterialId
-      ? materials.find((material) => material.materialId === selectedMaterialId)
-          ?.laboratory || ""
+      ? materials
+          .find((material) => material.materialId === selectedMaterialId)
+          ?.laboratory.toLowerCase() || ""
       : "";
     try {
       const dispositionResponse = await fetch(

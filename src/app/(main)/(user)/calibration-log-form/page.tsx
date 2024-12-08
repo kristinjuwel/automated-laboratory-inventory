@@ -138,8 +138,9 @@ const CalibrationLogForms = () => {
       formData.append("file", file);
     }
     const laboratory = selectedMaterialId
-      ? materials.find((material) => material.materialId === selectedMaterialId)
-          ?.laboratory || ""
+      ? materials
+          .find((material) => material.materialId === selectedMaterialId)
+          ?.laboratory.toLowerCase() || ""
       : "";
     try {
       const response = await fetch(
