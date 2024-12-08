@@ -138,7 +138,7 @@ const ReagentDispense = () => {
     "Remarks",
     "Analyst",
     "Date Created",
-    "Date Updated"
+    "Date Updated",
   ];
   const tableData = dispenses.map((dispense) => [
     dispense.dispenseId,
@@ -223,7 +223,7 @@ const ReagentDispense = () => {
           <Button
             className="bg-teal-500 text-white w-40 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
-              router.push("/reagents-inventory-form");
+              router.push("/reagents-dispense-form");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
