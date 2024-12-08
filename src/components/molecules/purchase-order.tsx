@@ -199,6 +199,7 @@ const PurchaseOrder = () => {
   };
 
   const tableHeaders = [
+    "PO ID",
     "Purchase Order Number",
     "Personnel",
     "Laboratory",
@@ -212,6 +213,7 @@ const PurchaseOrder = () => {
     "Updated At"
   ];
   const tableData = purchases.map((purchase) => [
+    purchase.purchaseOrderId,
     purchase.purchaseOrderNumber,
     purchase.userFullName,
     purchase.laboratory,
@@ -244,6 +246,8 @@ const PurchaseOrder = () => {
   const singleTableData = selectedPurchase
     ? [
         [
+          selectedPurchase.purchaseOrderId,
+          selectedPurchase.purchaseOrderNumber,
           selectedPurchase.userFullName,
           selectedPurchase.laboratory,
           new Date(selectedPurchase.date).toLocaleDateString("en-US", {

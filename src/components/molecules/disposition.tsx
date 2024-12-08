@@ -228,7 +228,7 @@ const Disposition = () => {
           <Button
             className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
             onClick={() => {
-              setIsPrintDialogOpen(true);
+              setIsPrintAllOpen(true);
             }}
           >
             <Printer className="w-4 h-4" strokeWidth={1.5} />
