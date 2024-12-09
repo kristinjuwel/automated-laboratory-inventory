@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "sonner";
@@ -10,7 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Paperclip, Printer, Filter, ChevronsUpDown} from "lucide-react";
+import {
+  Edit,
+  Search,
+  FilePlus,
+  Paperclip,
+  Printer,
+  Filter,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -127,17 +135,25 @@ const Incident = () => {
     }
     return byteArray;
   }
-  const [sortColumn, setSortColumn] = useState<keyof IncidentValues | null>(null);
+  const [sortColumn, setSortColumn] = useState<keyof IncidentValues | null>(
+    null
+  );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
     null
   );
-  
+
   const [isMaterialOpen, setIsMaterialOpen] = useState(false);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [isPersonnelOpen, setIsPersonnelOpen] = useState(false);
-  const [selectedMaterials, setSelectedMaterials] = useState<Set<string>>(new Set());
-  const [selectedIncidents, setSelectedIncidents] = useState<Set<string>>(new Set());
-  const [selectedPersonnels, setSelectedPersonnels] = useState<Set<string>>(new Set());
+  const [selectedMaterials, setSelectedMaterials] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedIncidents, setSelectedIncidents] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedPersonnels, setSelectedPersonnels] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -207,30 +223,27 @@ const Incident = () => {
     }
   }, [labSlug, isEditDialogOpen]);
 
-  const filterMaterials = () => {
-    const query = search.toLowerCase();
-  
+  const filterMaterials = useCallback(() => {
     const filtered = incidents.filter((material) => {
-  
       const matchesMaterial =
         selectedMaterials.size === 0 ||
         selectedMaterials.has(material.materialsInvolved);
-  
+
       const matchesIncidents =
         selectedIncidents.size === 0 ||
         selectedIncidents.has(material.natureOfIncident);
-  
+
       const matchesPersonnels =
-        selectedPersonnels.size === 0 || selectedPersonnels.has(material.involvedIndividuals);
-  
+        selectedPersonnels.size === 0 ||
+        selectedPersonnels.has(material.involvedIndividuals);
+
       return matchesMaterial && matchesIncidents && matchesPersonnels;
     });
-  
+
     setFilteredIncidents(filtered);
     setCurrentPage(1); // Reset pagination
-  };
-  
-  
+  }, [incidents, selectedMaterials, selectedIncidents, selectedPersonnels]);
+
   const handleMaterialsChange = (materials: string) => {
     setSelectedMaterials((prev) => {
       const updated = new Set(prev);
@@ -242,7 +255,7 @@ const Incident = () => {
       return updated;
     });
   };
-  
+
   const handleIncidentsChange = (incidents: string) => {
     setSelectedIncidents((prev) => {
       const updated = new Set(prev);
@@ -254,7 +267,7 @@ const Incident = () => {
       return updated;
     });
   };
-  
+
   const handlePersonnelsChange = (personnels: string) => {
     setSelectedPersonnels((prev) => {
       const updated = new Set(prev);
@@ -269,7 +282,12 @@ const Incident = () => {
 
   useEffect(() => {
     filterMaterials();
-  }, [selectedMaterials, selectedIncidents, selectedPersonnels]);
+  }, [
+    selectedMaterials,
+    selectedIncidents,
+    selectedPersonnels,
+    filterMaterials,
+  ]);
 
   const sortMaterials = (
     materials: IncidentValues[],
@@ -347,17 +365,17 @@ const Incident = () => {
       hour12: true,
     }),
     incident.materialsInvolved
-    .split(",")
-    .map((material, index) => {
-      const brands = incident.brand.split(",");
-      const quantities = incident.qty.split(",");
+      .split(",")
+      .map((material, index) => {
+        const brands = incident.brand.split(",");
+        const quantities = incident.qty.split(",");
 
-      // Return plain text for PDF-friendly output
-      return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
-        quantities[index]?.trim() || "N/A"
-      }`;
-    })
-    .join("\n"),
+        // Return plain text for PDF-friendly output
+        return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
+          quantities[index]?.trim() || "N/A"
+        }`;
+      })
+      .join("\n"),
     incident.qty,
     incident.brand,
     incident.natureOfIncident,
@@ -401,17 +419,17 @@ const Incident = () => {
             }
           ),
           selectedIncident.materialsInvolved
-          .split(",")
-          .map((material, index) => {
-            const brands = selectedIncident.brand.split(",");
-            const quantities = selectedIncident.qty.split(",");
+            .split(",")
+            .map((material, index) => {
+              const brands = selectedIncident.brand.split(",");
+              const quantities = selectedIncident.qty.split(",");
 
-            // Return plain text for PDF-friendly output
-            return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
-              quantities[index]?.trim() || "N/A"
-            }`;
-          })
-          .join("\n"),
+              // Return plain text for PDF-friendly output
+              return `${material.trim()} (${
+                brands[index]?.trim() || "N/A"
+              }) - ${quantities[index]?.trim() || "N/A"}`;
+            })
+            .join("\n"),
           selectedIncident.qty,
           selectedIncident.brand,
           selectedIncident.natureOfIncident,
@@ -522,39 +540,47 @@ const Incident = () => {
             </PopoverTrigger>
             <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg max-h-96 overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col items-start">
-                <Collapsible open={isMaterialOpen} onOpenChange={setIsMaterialOpen}>
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                      >
-                        <ChevronsUpDown className="h-4 w-4" />
-                        <span className="text-black">Materials</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="px-4 transition-all text-sm">
-                        {Array.from(
-                          new Set(incidents.map((m) => m.materialsInvolved))
-                        ).map((materialsInvolved) => (
-                          <label
-                            key={materialsInvolved}
-                            className="flex items-center space-x-2 whitespace-nowrap"
-                          >
-                            <Input
-                              type="checkbox"
-                              value={materialsInvolved}
-                              checked={selectedMaterials.has(materialsInvolved)}
-                              className="text-teal-500 accent-teal-200"
-                              onChange={() => handleMaterialsChange(materialsInvolved)}
-                            />
-                            <span>{materialsInvolved}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                <Collapsible open={isIncidentOpen} onOpenChange={setIsIncidentOpen}>
+                <Collapsible
+                  open={isMaterialOpen}
+                  onOpenChange={setIsMaterialOpen}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Materials</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                        new Set(incidents.map((m) => m.materialsInvolved))
+                      ).map((materialsInvolved) => (
+                        <label
+                          key={materialsInvolved}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={materialsInvolved}
+                            checked={selectedMaterials.has(materialsInvolved)}
+                            className="text-teal-500 accent-teal-200"
+                            onChange={() =>
+                              handleMaterialsChange(materialsInvolved)
+                            }
+                          />
+                          <span>{materialsInvolved}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible
+                  open={isIncidentOpen}
+                  onOpenChange={setIsIncidentOpen}
+                >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -578,7 +604,9 @@ const Incident = () => {
                             value={natureOfIncident}
                             checked={selectedIncidents.has(natureOfIncident)}
                             className="text-teal-500 accent-teal-200"
-                            onChange={() => handleIncidentsChange(natureOfIncident)}
+                            onChange={() =>
+                              handleIncidentsChange(natureOfIncident)
+                            }
                           />
                           <span>{natureOfIncident}</span>
                         </label>
@@ -586,7 +614,10 @@ const Incident = () => {
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
-                <Collapsible open={isPersonnelOpen} onOpenChange={setIsPersonnelOpen}>
+                <Collapsible
+                  open={isPersonnelOpen}
+                  onOpenChange={setIsPersonnelOpen}
+                >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -599,7 +630,11 @@ const Incident = () => {
                   <CollapsibleContent>
                     <div className="px-4 transition-all text-sm">
                       {Array.from(
-                        new Set(incidents.map((m) => m.involvedIndividuals).filter(Boolean)) // Filter out undefined/null
+                        new Set(
+                          incidents
+                            .map((m) => m.involvedIndividuals)
+                            .filter(Boolean)
+                        ) // Filter out undefined/null
                       ).map((involvedIndividuals) => (
                         <label
                           key={involvedIndividuals}
@@ -608,9 +643,13 @@ const Incident = () => {
                           <Input
                             type="checkbox"
                             value={involvedIndividuals}
-                            checked={selectedPersonnels.has(involvedIndividuals)}
+                            checked={selectedPersonnels.has(
+                              involvedIndividuals
+                            )}
                             className="text-teal-500 accent-teal-200"
-                            onChange={() => handlePersonnelsChange(involvedIndividuals)}
+                            onChange={() =>
+                              handlePersonnelsChange(involvedIndividuals)
+                            }
                           />
                           <span>{involvedIndividuals}</span>
                         </label>
@@ -630,7 +669,6 @@ const Incident = () => {
                 >
                   Clear Filters
                 </Button>
-
               </div>
             </PopoverContent>
           </Popover>
@@ -643,39 +681,62 @@ const Incident = () => {
         <TableHeader className="text-center justify-center">
           <TableRow>
             <TableHead onClick={() => handleSort("incidentFormId")}>
-              ID{" "} {sortColumn === "incidentFormId" && (sortDirection === "asc" ? "↑" : "↓")}
+              ID{" "}
+              {sortColumn === "incidentFormId" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("date")}>
-              Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}
+              Date{" "}
+              {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("time")}>
-              Time{" "} {sortColumn === "time" && (sortDirection === "asc" ? "↑" : "↓")}
+              Time{" "}
+              {sortColumn === "time" && (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("materialsInvolved")}>
               <div className="flex flex-col">
-                <Label className="text-sm font-bold">Material{" "} {sortColumn === "materialsInvolved" && (sortDirection === "asc" ? "↑" : "↓")}</Label>
+                <Label className="text-sm font-bold">
+                  Material{" "}
+                  {sortColumn === "materialsInvolved" &&
+                    (sortDirection === "asc" ? "↑" : "↓")}
+                </Label>
                 <Label className="text-xs text-teal-600 text-nowrap">
                   Item name (Brand) - Quantity
                 </Label>
               </div>
             </TableHead>
             <TableHead onClick={() => handleSort("natureOfIncident")}>
-              Nature of Incident{" "} {sortColumn === "natureOfIncident" && (sortDirection === "asc" ? "↑" : "↓")}
+              Nature of Incident{" "}
+              {sortColumn === "natureOfIncident" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("involvedIndividuals")}>
-              Involved Personnel/s{" "} {sortColumn === "involvedIndividuals" && (sortDirection === "asc" ? "↑" : "↓")}
+              Involved Personnel/s{" "}
+              {sortColumn === "involvedIndividuals" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("attachments")}>
-              Attachment{" "} {sortColumn === "attachments" && (sortDirection === "asc" ? "↑" : "↓")}
+              Attachment{" "}
+              {sortColumn === "attachments" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("remarks")}>
-              Remarks{" "} {sortColumn === "remarks" && (sortDirection === "asc" ? "↑" : "↓")}
+              Remarks{" "}
+              {sortColumn === "remarks" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead onClick={() => handleSort("creationDate")}>
-              Created At{" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}
+              Created At{" "}
+              {sortColumn === "creationDate" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
-            <TableHead onClick={() => handleSort("dateUpdated")} className="text-nowrap">
-              Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}
+            <TableHead
+              onClick={() => handleSort("dateUpdated")}
+              className="text-nowrap"
+            >
+              Updated At{" "}
+              {sortColumn === "dateUpdated" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
             </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>

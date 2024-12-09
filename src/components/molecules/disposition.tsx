@@ -11,7 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer, History, Filter, ChevronsUpDown } from "lucide-react";
+import {
+  Edit,
+  Search,
+  FilePlus,
+  Printer,
+  Filter,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -83,17 +90,23 @@ const Disposition = () => {
   const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
   const [pageSize, setPageSize] = useState("a4");
   const [orientation, setOrientation] = useState<
-      "portrait" | "landscape" | undefined
-    >(undefined);
-  const [sortColumn, setSortColumn] = useState<keyof DispositionValues | null>(null);
+    "portrait" | "landscape" | undefined
+  >(undefined);
+  const [sortColumn, setSortColumn] = useState<keyof DispositionValues | null>(
+    null
+  );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
     null
   );
 
   const [isMaterialOpen, setIsMaterialOpen] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<Set<string>>(new Set());
+  const [selectedMaterial, setSelectedMaterial] = useState<Set<string>>(
+    new Set()
+  );
   const [isDisposedByOpen, setIsDisposedByOpen] = useState(false);
-  const [selectedDisposedBy, setSelectedDisposedBy] = useState<Set<string>>(new Set());
+  const [selectedDisposedBy, setSelectedDisposedBy] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -164,9 +177,11 @@ const Disposition = () => {
     const applyFilters = () => {
       const filtered = dispositions.filter((disposition) => {
         const matchesDisposedBy =
-          selectedDisposedBy.size === 0 || selectedDisposedBy.has(disposition.disposedBy);
-        const matchesMaterial = 
-          selectedMaterial.size === 0 || selectedMaterial.has(disposition.material);
+          selectedDisposedBy.size === 0 ||
+          selectedDisposedBy.has(disposition.disposedBy);
+        const matchesMaterial =
+          selectedMaterial.size === 0 ||
+          selectedMaterial.has(disposition.material);
         return matchesDisposedBy && matchesMaterial;
       });
 
@@ -175,7 +190,7 @@ const Disposition = () => {
     };
     applyFilters();
   }, [selectedDisposedBy, selectedMaterial, dispositions]);
-  
+
   const handleDisposedByChange = (disposedBy: string) => {
     setSelectedDisposedBy((prev) => {
       const updated = new Set(prev);
@@ -227,7 +242,7 @@ const Disposition = () => {
     "Date Disposed",
     "Disposed by",
     "Date Created",
-    "Date Updated"
+    "Date Updated",
   ];
   const tableData = dispositions.map((disposition) => [
     disposition.disposalId,
@@ -267,11 +282,14 @@ const Disposition = () => {
           selectedDisposition.qty,
           selectedDisposition.reasonForDisposal,
           selectedDisposition.disposalMethod,
-          new Date(selectedDisposition.dateDisposed).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }),
+          new Date(selectedDisposition.dateDisposed).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }
+          ),
           selectedDisposition.disposedBy,
           new Date(selectedDisposition.creationDate).toLocaleString("en-US", {
             year: "numeric",
@@ -341,7 +359,10 @@ const Disposition = () => {
             </PopoverTrigger>
             <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col items-start">
-              <Collapsible open={isDisposedByOpen} onOpenChange={setIsDisposedByOpen}>
+                <Collapsible
+                  open={isDisposedByOpen}
+                  onOpenChange={setIsDisposedByOpen}
+                >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -354,8 +375,8 @@ const Disposition = () => {
                   <CollapsibleContent>
                     <div className="px-4 transition-all text-sm">
                       {Array.from(
-                          new Set(dispositions.map((m) => m.disposedBy))
-                        ).map((disposedBy) => (
+                        new Set(dispositions.map((m) => m.disposedBy))
+                      ).map((disposedBy) => (
                         <label
                           key={disposedBy}
                           className="flex items-center space-x-2 whitespace-nowrap"
@@ -372,8 +393,11 @@ const Disposition = () => {
                       ))}
                     </div>
                   </CollapsibleContent>
-              </Collapsible>
-              <Collapsible open={isMaterialOpen} onOpenChange={setIsMaterialOpen}>
+                </Collapsible>
+                <Collapsible
+                  open={isMaterialOpen}
+                  onOpenChange={setIsMaterialOpen}
+                >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -386,8 +410,8 @@ const Disposition = () => {
                   <CollapsibleContent>
                     <div className="px-4 transition-all text-sm">
                       {Array.from(
-                          new Set(dispositions.map((m) => m.material))
-                        ).map((material) => (
+                        new Set(dispositions.map((m) => m.material))
+                      ).map((material) => (
                         <label
                           key={material}
                           className="flex items-center space-x-2 whitespace-nowrap"
@@ -464,34 +488,53 @@ const Disposition = () => {
           <TableHeader className="text-center justify-center">
             <TableRow>
               <TableHead onClick={() => handleSort("disposalId")}>
-                ID{" "} {sortColumn === "disposalId" && (sortDirection === "asc" ? "↑" : "↓")}
+                ID{" "}
+                {sortColumn === "disposalId" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("material")}>
-                Material{" "} {sortColumn === "material" && (sortDirection === "asc" ? "↑" : "↓")}
+                Material{" "}
+                {sortColumn === "material" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("itemDescription")}>
-                Description{" "} {sortColumn === "itemDescription" && (sortDirection === "asc" ? "↑" : "↓")}
+                Description{" "}
+                {sortColumn === "itemDescription" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("qty")}>
-                Quantity{" "} {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
+                Quantity{" "}
+                {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("reasonForDisposal")}>
-                Reason for Disposal{" "} {sortColumn === "reasonForDisposal" && (sortDirection === "asc" ? "↑" : "↓")}
+                Reason for Disposal{" "}
+                {sortColumn === "reasonForDisposal" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("disposalMethod")}>
-                Disposal Method{" "} {sortColumn === "disposalMethod" && (sortDirection === "asc" ? "↑" : "↓")}
+                Disposal Method{" "}
+                {sortColumn === "disposalMethod" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("dateDisposed")}>
-                Date Disposed{" "} {sortColumn === "dateDisposed" && (sortDirection === "asc" ? "↑" : "↓")}
+                Date Disposed{" "}
+                {sortColumn === "dateDisposed" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("userId")}>
-                Disposed by{" "} {sortColumn === "userId" && (sortDirection === "asc" ? "↑" : "↓")}
+                Disposed by{" "}
+                {sortColumn === "userId" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("creationDate")}>
-                Created At{" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}
+                Created At{" "}
+                {sortColumn === "creationDate" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("dateUpdated")}>
-                Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}
+                Updated At{" "}
+                {sortColumn === "dateUpdated" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>

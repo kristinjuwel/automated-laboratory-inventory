@@ -10,7 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer, SquarePen, Filter, ChevronsUpDown} from "lucide-react";
+import {
+  Edit,
+  Search,
+  FilePlus,
+  Printer,
+  SquarePen,
+  Filter,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -105,9 +113,13 @@ const Borrow = () => {
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
   const [isEquipmentOpen, setIsEquipmentOpen] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(new Set());
+  const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(
+    new Set()
+  );
   const [isDepartmentOpen, setIsDepartmentOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<Set<string>>(new Set());
+  const [selectedDepartment, setSelectedDepartment] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -136,7 +148,7 @@ const Borrow = () => {
           const uniqueEquipment = Array.from(
             new Set(borrowedMaterials.map((m: Borrow) => m.equipment))
           );
-          console.log("Unique Equipment: ", uniqueEquipment)
+          console.log("Unique Equipment: ", uniqueEquipment);
 
           setBorrows(mappedBorrows);
           setFilteredBorrows(mappedBorrows);
@@ -182,7 +194,7 @@ const Borrow = () => {
     "Damage Materials",
     "Status",
     "Date Created",
-    "Date Updated"
+    "Date Updated",
   ];
   const tableData = borrows.map((borrow) => [
     borrow.materialId,
@@ -286,96 +298,94 @@ const Borrow = () => {
       ]
     : [];
 
-    const sortMaterials = (
-      materials: Borrow[],
-      key: string, // Allow nested keys like "material.itemName"
-      order: "asc" | "desc"
-    ) => {
-      return [...materials].sort((a, b) => {
-        const getNestedValue = (obj: any, path: string) =>
-          path.split('.').reduce((acc, part) => acc && acc[part], obj);
-    
-        const valueA = getNestedValue(a, key);
-        const valueB = getNestedValue(b, key);
-    
-        if (typeof valueA === "string" && typeof valueB === "string") {
-          return order === "asc"
-            ? valueA.localeCompare(valueB)
-            : valueB.localeCompare(valueA);
-        }
-        if (typeof valueA === "number" && typeof valueB === "number") {
-          return order === "asc" ? valueA - valueB : valueB - valueA;
-        }
-        return 0;
-      });
-    };
-    
-    const handleSort = (column: string) => {
-      const newDirection =
-        sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
-    
-      setSortColumn(column as keyof Borrow);
-      setSortDirection(newDirection);
-    
-      const sorted = sortMaterials(filteredBorrows, column, newDirection);
-      setFilteredBorrows(sorted);
-    };
-    useEffect(() => {
-      const applyFilters = () => {
-        const filtered = borrows.filter((borrow) => {
-          const matchesEquipment =
-            selectedEquipment.size === 0 || selectedEquipment.has(borrow.equipment);
-          const matchesDepartment = 
-            selectedDepartment.size === 0 || selectedDepartment.has(borrow.department);
-          const matchesStatus =
-            selectedStatus.size === 0 || selectedStatus.has(borrow.status);
-  
-          return matchesEquipment && matchesDepartment && matchesStatus;
-        });
-  
-        setFilteredBorrows(filtered);
-        setCurrentPage(1);
-      };
-      applyFilters();
-    }, [selectedEquipment, selectedDepartment, selectedStatus, borrows]);
-    
-    const handleEquipmentChange = (equipment: string) => {
-      setSelectedEquipment((prev) => {
-        const updated = new Set(prev);
-        if (updated.has(equipment)) {
-          updated.delete(equipment);
-        } else {
-          updated.add(equipment);
-        }
-        return updated;
-      });
-    };
-    
-    const handleDepartmentChange = (department: string) => {
-      setSelectedDepartment((prev) => {
-        const updated = new Set(prev);
-        if (updated.has(department)) {
-          updated.delete(department);
-        } else {
-          updated.add(department);
-        }
-        return updated;
-      });
-    };
-    
+  const sortMaterials = (
+    materials: Borrow[],
+    key: keyof Borrow,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
 
-    const handleStatusChange = (status: string) => {
-      setSelectedStatus((prev) => {
-        const newSet = new Set(prev);
-        if (newSet.has(status)) {
-          newSet.delete(status);
-        } else {
-          newSet.add(status);
-        }
-        return newSet;
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof Borrow) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column as keyof Borrow);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredBorrows, column, newDirection);
+    setFilteredBorrows(sorted);
+  };
+  useEffect(() => {
+    const applyFilters = () => {
+      const filtered = borrows.filter((borrow) => {
+        const matchesEquipment =
+          selectedEquipment.size === 0 ||
+          selectedEquipment.has(borrow.equipment);
+        const matchesDepartment =
+          selectedDepartment.size === 0 ||
+          selectedDepartment.has(borrow.department);
+        const matchesStatus =
+          selectedStatus.size === 0 || selectedStatus.has(borrow.status);
+
+        return matchesEquipment && matchesDepartment && matchesStatus;
       });
+
+      setFilteredBorrows(filtered);
+      setCurrentPage(1);
     };
-    
+    applyFilters();
+  }, [selectedEquipment, selectedDepartment, selectedStatus, borrows]);
+
+  const handleEquipmentChange = (equipment: string) => {
+    setSelectedEquipment((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(equipment)) {
+        updated.delete(equipment);
+      } else {
+        updated.add(equipment);
+      }
+      return updated;
+    });
+  };
+
+  const handleDepartmentChange = (department: string) => {
+    setSelectedDepartment((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(department)) {
+        updated.delete(department);
+      } else {
+        updated.add(department);
+      }
+      return updated;
+    });
+  };
+
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(status)) {
+        newSet.delete(status);
+      } else {
+        newSet.add(status);
+      }
+      return newSet;
+    });
+  };
+
   const handleReturn = async () => {
     if (selectedBorrow) {
       try {
@@ -463,7 +473,10 @@ const Borrow = () => {
             </PopoverTrigger>
             <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col items-start">
-              <Collapsible open={isEquipmentOpen} onOpenChange={setIsEquipmentOpen}>
+                <Collapsible
+                  open={isEquipmentOpen}
+                  onOpenChange={setIsEquipmentOpen}
+                >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -475,27 +488,30 @@ const Borrow = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                          new Set(borrows.map((m) => m.equipment))
-                        ).map((equipment) => (
-                        <label
-                          key={equipment}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={equipment}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedEquipment.has(equipment)}
-                            onChange={() => handleEquipmentChange(equipment)}
-                          />
-                          <span>{equipment}</span>
-                        </label>
-                      ))}
+                      {Array.from(new Set(borrows.map((m) => m.equipment))).map(
+                        (equipment) => (
+                          <label
+                            key={equipment}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={equipment}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedEquipment.has(equipment)}
+                              onChange={() => handleEquipmentChange(equipment)}
+                            />
+                            <span>{equipment}</span>
+                          </label>
+                        )
+                      )}
                     </div>
                   </CollapsibleContent>
-              </Collapsible>
-              <Collapsible open={isDepartmentOpen} onOpenChange={setIsDepartmentOpen}>
+                </Collapsible>
+                <Collapsible
+                  open={isDepartmentOpen}
+                  onOpenChange={setIsDepartmentOpen}
+                >
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
@@ -507,25 +523,25 @@ const Borrow = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="px-4 transition-all text-sm">
-                      {[
-                        "Pathology",
-                        "Immunology",
-                        "Microbiology",
-                      ].map((department) => (
-                        <label
-                          key={department}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={department}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedDepartment.has(department)}
-                            onChange={() => handleDepartmentChange(department)}
-                          />
-                          <span>{department}</span>
-                        </label>
-                      ))}
+                      {["Pathology", "Immunology", "Microbiology"].map(
+                        (department) => (
+                          <label
+                            key={department}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={department}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedDepartment.has(department)}
+                              onChange={() =>
+                                handleDepartmentChange(department)
+                              }
+                            />
+                            <span>{department}</span>
+                          </label>
+                        )
+                      )}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
@@ -541,10 +557,7 @@ const Borrow = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="px-4 transition-all text-sm">
-                      {[
-                        "Borrowed",
-                        "Returned",
-                      ].map((status) => (
+                      {["Borrowed", "Returned"].map((status) => (
                         <label
                           key={status}
                           className="flex items-center space-x-2 whitespace-nowrap"
@@ -620,52 +633,82 @@ const Borrow = () => {
           <TableHeader className="text-center justify-center">
             <TableRow>
               <TableHead onClick={() => handleSort("borrowId")}>
-                ID {" "} {sortColumn === "borrowId" && (sortDirection === "asc" ? "↑" : "↓")}
+                ID{" "}
+                {sortColumn === "borrowId" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("material.itemName")}>
-                Item Name{" "} {sortColumn === "material.itemName" && (sortDirection === "asc" ? "↑" : "↓")}
+              <TableHead onClick={() => handleSort("material")}>
+                Item Name{" "}
+                {sortColumn === "material.itemName" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("material.itemCode")}>
-                Item Code{" "} {sortColumn === "material.itemCode" && (sortDirection === "asc" ? "↑" : "↓")}
+              <TableHead onClick={() => handleSort("material")}>
+                Item Code{" "}
+                {sortColumn === "material.itemCode" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("qty")}>
-                Quantity Borrowed{" "} {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
+                Quantity Borrowed{" "}
+                {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("user")}>
-                Borrower{" "} {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}
+                Borrower{" "}
+                {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("borrowerDetail")}>
-                Borrower Details{" "} {sortColumn === "borrowerDetail" && (sortDirection === "asc" ? "↑" : "↓")}
+                Borrower Details{" "}
+                {sortColumn === "borrowerDetail" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("department")}>
-                Department{" "} {sortColumn === "department" && (sortDirection === "asc" ? "↑" : "↓")}
+                Department{" "}
+                {sortColumn === "department" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("dateBorrowed")}>
-                Date Borrowed{" "} {sortColumn === "dateBorrowed" && (sortDirection === "asc" ? "↑" : "↓")}
+                Date Borrowed{" "}
+                {sortColumn === "dateBorrowed" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("timeBorrowed")}>
-                Time Borrowed{" "} {sortColumn === "timeBorrowed" && (sortDirection === "asc" ? "↑" : "↓")}
+                Time Borrowed{" "}
+                {sortColumn === "timeBorrowed" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("dateReturned")}>
-                Date Returned{" "} {sortColumn === "dateReturned" && (sortDirection === "asc" ? "↑" : "↓")}
+                Date Returned{" "}
+                {sortColumn === "dateReturned" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("timeReturned")}>
-                Time Returned{" "} {sortColumn === "timeReturned" && (sortDirection === "asc" ? "↑" : "↓")}
+                Time Returned{" "}
+                {sortColumn === "timeReturned" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("remarks")}>
-                Remarks{" "} {sortColumn === "remarks" && (sortDirection === "asc" ? "↑" : "↓")}
+                Remarks{" "}
+                {sortColumn === "remarks" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("damageMaterials")}>
-                Damage Materials{" "} {sortColumn === "damageMaterials" && (sortDirection === "asc" ? "↑" : "↓")}
+                Damage Materials{" "}
+                {sortColumn === "damageMaterials" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("status")}>
-                Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+                Status{" "}
+                {sortColumn === "status" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("createdAt")}>
-                Created At{" "} {sortColumn === "createdAt" && (sortDirection === "asc" ? "↑" : "↓")}
+              <TableHead onClick={() => handleSort("creationDate")}>
+                Created At{" "}
+                {sortColumn === "creationDate" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("updatedAt")}>
-                Updated At{" "} {sortColumn === "updatedAt" && (sortDirection === "asc" ? "↑" : "↓")}
+              <TableHead onClick={() => handleSort("dateUpdated")}>
+                Updated At{" "}
+                {sortColumn === "dateUpdated" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
