@@ -288,6 +288,86 @@ const PurchaseOrder = () => {
     }
   };
 
+  const tableHeaders = [
+    "PO ID",
+    "Purchase Order Number",
+    "Personnel",
+    "Laboratory",
+    "Date",
+    "Shipping Cost",
+    "Tax",
+    "Total Price",
+    "Supplier",
+    "Status",
+    "Created At",
+    "Updated At"
+  ];
+  const tableData = purchases.map((purchase) => [
+    purchase.purchaseOrderId,
+    purchase.purchaseOrderNumber,
+    purchase.userFullName,
+    purchase.laboratory,
+    new Date(purchase.date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
+      purchase.shippingCost,
+      purchase.tax,
+      purchase.totalPrice,
+      purchase.supplierName,
+      purchase.status,
+      new Date(purchase.creationDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+  ]);
+
+  const singleTableData = selectedPurchase
+    ? [
+        [
+          selectedPurchase.purchaseOrderId,
+          selectedPurchase.purchaseOrderNumber,
+          selectedPurchase.userFullName,
+          selectedPurchase.laboratory,
+          new Date(selectedPurchase.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }),
+            selectedPurchase.shippingCost,
+            selectedPurchase.tax,
+            selectedPurchase.totalPrice,
+            selectedPurchase.supplierName,
+            selectedPurchase.status,
+            new Date(selectedPurchase.creationDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            new Date(selectedPurchase.dateUpdated).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+        ],
+      ]
+    : [];
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
@@ -422,7 +502,7 @@ const PurchaseOrder = () => {
         <TableHeader className="text-center justify-center">
           <TableRow>
             <TableHead onClick={() => handleSort("purchaseOrderId")}>Purchase Order Number{" "} {sortColumn === "purchaseOrderId" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("user")}>Personnel{" "} {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("userFullName")}>Personnel{" "} {sortColumn === "userFullName" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
             <TableHead onClick={() => handleSort("laboratory")}>Laboratory{" "} {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
             <TableHead onClick={() => handleSort("date")}>Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
             <TableHead onClick={() => handleSort("shippingCost")}>Shipping Cost{" "} {sortColumn === "shippingCost" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
