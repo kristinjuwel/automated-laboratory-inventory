@@ -107,7 +107,62 @@ const ChemicalInventoryForm = () => {
     number | null
   >(null);
 
-  const form = useForm<ChemicalFormValues>({});
+  const validateForm = (values: ChemicalFormValues) => {
+    const errors: Partial<Record<keyof ChemicalFormValues, string>> = {};
+
+    if (!values.date) errors.date = "Date is required";
+    if (!values.labId) errors.labId = "Laboratory is required";
+    if (!values.category) errors.category = "Category is required";
+    if (!values.personnel) errors.personnel = "Personnel is required";
+    if (!values.itemName) errors.itemName = "Item Name is required";
+    if (!values.itemCode) errors.itemCode = "Item Code is required";
+    if (!values.quantity || values.quantity < 0)
+      errors.quantity = "Quantity must be a positive number";
+    if (!values.unit) errors.unit = "Unit is required";
+    if (!values.location) errors.location = "Location is required";
+    if (!values.expiryDate) errors.expiryDate = "Expiry Date is required";
+    if (!values.supplier) errors.supplier = "Supplier is required";
+    if (!values.cost || values.cost <= 0)
+      errors.cost = "Cost must be a positive number";
+    if (!values.reorderThreshold || values.reorderThreshold < 0)
+      errors.reorderThreshold = "Reorder Threshold must be a positive number";
+    if (!values.maxThreshold || values.maxThreshold < 0)
+      errors.maxThreshold = "Max Threshold must be a positive number";
+
+    return errors;
+  };
+  const form = useForm<ChemicalFormValues>({
+    mode: "onChange",
+    defaultValues: {
+      date: "",
+      labId: "",
+      category: 0,
+      personnel: 0,
+      itemName: "",
+      itemCode: "",
+      quantity: 0,
+      unit: "",
+      location: "",
+      expiryDate: "",
+      supplier: 0,
+      cost: 0,
+      notes: "",
+      reorderThreshold: 0,
+      maxThreshold: 0,
+    },
+    resolver: async (values) => {
+      const errors = validateForm(values);
+      return {
+        values: Object.keys(errors).length ? {} : values,
+        errors: Object.keys(errors).reduce((acc, key) => {
+          acc[key as keyof ChemicalFormValues] = {
+            message: errors[key as keyof ChemicalFormValues],
+          };
+          return acc;
+        }, {} as any),
+      };
+    },
+  });
 
   const addFilteredSupplier = async () => {
     if (!selectedUserId) {
@@ -264,7 +319,13 @@ const ChemicalInventoryForm = () => {
 
       toast.success("Material and inventory log added successfully!");
       form.reset();
-      router.push("/lab/pathology");
+      const labName =
+        parsedValues.labId === "1"
+          ? "pathology"
+          : parsedValues.labId === "2"
+          ? "immunology"
+          : "microbiology";
+      router.push(`/lab/${labName}`);
     } catch (error) {
       toast.error("Submission failed. Please try again.");
     }
