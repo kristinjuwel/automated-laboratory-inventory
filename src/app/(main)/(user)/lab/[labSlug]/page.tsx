@@ -21,11 +21,18 @@ import {
   Microscope,
   FileMinus,
   FlaskConicalOff,
+  Boxes,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Incident from "@/components/molecules/incident";
 import Borrow from "@/components/molecules/borrow";
+//import StockLevel from "@/components/molecules/stock-level";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const DashboardPage = () => {
   const pathname = usePathname();
@@ -36,6 +43,7 @@ const DashboardPage = () => {
   const [activeInventoryTab, setActiveInventoryTab] = useState(
     savedInventoryTab || "biological"
   );
+  const [showSidebar, setShowSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState(savedActiveTab || "inventory");
 
   useEffect(() => {
@@ -71,11 +79,11 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="h-full w-full max-w-screen overflow-auto flex">
-      <div className="flex-grow">
-        <div className="flex items-center justify-center mb-8 pt-8">
+    <div className="h-full w-full max-w-screen overflow-auto flex flex-col items-center md:items-start">
+      <div className="flex-grow w-full">
+        <div className="flex flex-col md:flex-row items-center justify-center mb-8 pt-8 text-center md:text-left space-y-4 md:space-y-0 md:space-x-4">
           {getIconByLab(labSlug)}
-          <h1 className="text-4xl font-bold text-teal-700 capitalize">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-teal-700 capitalize">
             {cn(labSlug ? `${labSlug} Laboratory` : "Loading...")}
           </h1>
         </div>
@@ -83,9 +91,15 @@ const DashboardPage = () => {
         <Tabs
           value={activeTab}
           onValueChange={(value) => setActiveTab(value)}
-          className="rounded-xl overflow-auto max-w-screen bg-white border-2 border-teal-100 lg:w-[1445px] max-w-[1445px] place-self-center"
+          className="rounded-xl bg-white border-2 border-teal-100 w-full max-w-[1445px] place-self-center overflow-hidden"
         >
-          <TabsList className="flex justify-around bg-teal-50 text-black rounded-b-none py-6">
+          <TabsList
+            className="flex justify-around bg-teal-50 text-black rounded-b-none py-6 overflow-x-auto"
+            style={{
+              overflowY: "hidden",
+              scrollbarWidth: "thin", // For Firefox
+            }}
+          >
             <TabsTrigger
               value="inventory"
               onClick={() => setActiveTab("inventory")}
@@ -145,21 +159,21 @@ const DashboardPage = () => {
           </TabsList>
 
           <TabsContent value="inventory">
-            <div className="flex gap-2 overflow-hidden">
-              <div className="w-1/12 border-teal-100 border-r-2 px-4">
+            <div className="flex flex-col sm:flex-row gap-2 overflow-hidden">
+              <div className="sm:w-1/12 w-full sm:border-r-2 border-teal-100 sm:px-4 px-2 sm:block hidden overflow-hidden">
                 <ul className="space-y-2 py-4">
-                  <li
-                    className={cn(
-                      `cursor-pointer p-2 rounded-md ${
-                        activeInventoryTab === "biological"
-                          ? "bg-teal-100 text-black"
-                          : "hover:bg-teal-50"
-                      }`
-                    )}
-                    onClick={() => setActiveInventoryTab("biological")}
-                  >
-                    Biological
-                  </li>
+                <li
+                  className={cn(
+                    `cursor-pointer p-2 rounded-md ${
+                      activeInventoryTab === "biological"
+                        ? "bg-teal-100 text-black"
+                        : "hover:bg-teal-50"
+                    }`
+                  )}
+                  onClick={() => setActiveInventoryTab("biological")}
+                >
+                  Biological
+                </li>
                   <li
                     className={cn(
                       `cursor-pointer p-2 rounded-md ${
@@ -198,6 +212,63 @@ const DashboardPage = () => {
                   </li>
                 </ul>
               </div>
+
+              <div className="sm:hidden">
+                <Popover>
+                  <PopoverTrigger className="flex items-center px-4 py-2 bg-teal-100 text-black rounded-lg ml-8">
+                    <Boxes size={30} />
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto">
+                    <ul className="space-y-2">
+                      <li>
+                        <button
+                          onClick={() => setActiveInventoryTab("biological")}
+                          className={cn(
+                            "w-full text-left px-4 py-2 rounded-lg",
+                            activeInventoryTab === "biological" ? "bg-teal-50" : ""
+                          )}
+                        >
+                          Biological
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => setActiveInventoryTab("chemical")}
+                          className={cn(
+                            "w-full text-left px-4 py-2 rounded-lg",
+                            activeInventoryTab === "chemical" ? "bg-teal-50" : ""
+                          )}
+                        >
+                          Chemical
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => setActiveInventoryTab("general")}
+                          className={cn(
+                            "w-full text-left px-4 py-2 rounded-lg",
+                            activeInventoryTab === "general" ? "bg-teal-50" : ""
+                          )}
+                        >
+                          General
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => setActiveInventoryTab("reagent")}
+                          className={cn(
+                            "w-full text-left px-4 py-2 rounded-lg",
+                            activeInventoryTab === "reagent" ? "bg-teal-50" : ""
+                          )}
+                        >
+                          Reagent
+                        </button>
+                      </li>
+                    </ul>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               <div className="w-11/12">
                 {activeInventoryTab === "biological" && <Biological />}
                 {activeInventoryTab === "chemical" && <Chemical />}
@@ -224,9 +295,11 @@ const DashboardPage = () => {
           <TabsContent value="reagentsDispense">
             <ReagentDispense />
           </TabsContent>
+
         </Tabs>
       </div>
     </div>
+
   );
 };
 
