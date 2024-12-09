@@ -66,10 +66,78 @@ const Navbar = () => {
   >(undefined);
   const [isPrintDialogOpen, setisPrintDialogOpen] = useState(false);
   const [pageSize, setPageSize] = useState("a4");
+  const [query, setQuery] = useState("");
+  const [filteredForms, setFilteredForms] = useState<FormData[]>([]);
+  const [allForms, setAllForms] = useState<FormData[]>([]);
+
+  interface FormData {
+    id: string;
+    name: string;
+    path: string;
+  }
 
   useEffect(() => {
     fetchStockLevels();
   }, []);
+
+  useEffect(() => {
+    const fetchForms = async () => {
+      const data: FormData[] = [
+        {
+          id: "1",
+          name: "Biological Inventory Form",
+          path: "/biological-inventory-form",
+        },
+        {
+          id: "2",
+          name: "Chemical Inventory Form",
+          path: "/chemical-inventory-form",
+        },
+        {
+          id: "3",
+          name: "General Supplier Inventory Form",
+          path: "/gensupplies-inventory-form",
+        },
+        {
+          id: "4",
+          name: "Reagents Inventory Form",
+          path: "/reagents-inventory-form",
+        },
+        {
+          id: "5",
+          name: "Purchase Order Form",
+          path: "/laboratory-purchase-order",
+        },
+        { id: "6", name: "Borrow Form", path: "/borrow-form" },
+        { id: "7", name: "Incident Form", path: "/incident-form" },
+        { id: "8", name: "Disposition Form", path: "/disposition-report" },
+        {
+          id: "9",
+          name: "Calibration Log Form",
+          path: "/calibration-log-form",
+        },
+        {
+          id: "10",
+          name: "Reagents Dispense Form",
+          path: "/reagents-dispense-form",
+        },
+      ];
+      setAllForms(data);
+    };
+    fetchForms();
+  }, []);
+
+  useEffect(() => {
+    if (query === "") {
+      setFilteredForms([]);
+    } else {
+      setFilteredForms(
+        allForms.filter((form) =>
+          form.name.toLowerCase().includes(query.toLowerCase())
+        )
+      );
+    }
+  }, [query, allForms]);
 
   const fetchStockLevels = () => {
     const fetchData = [
@@ -211,19 +279,42 @@ const Navbar = () => {
       </NavigationMenu>
 
       <div className="flex mr-1">
-        <div className="relative hidden md:flex items-center max-w-xs">
-          <Input
-            type="text"
-            placeholder="Search..."
-            className="w-full pl-5 pr-4 bg-white rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-          />
-          <button
-            className="absolute right-2 bg-teal-500 text-white p-1 rounded-full hover:bg-teal-600 transition"
-            aria-label="Search"
-          >
-            <Search className="w-4 h-4" />
-          </button>
+        <div className="relative hidden md:flex flex-col items-center max-w-xs">
+          <div className="relative w-full">
+            <Input
+              type="text"
+              placeholder="Search..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full pl-5 pr-4 bg-white rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            />
+            <button
+              className="absolute right-2 top-2 bg-teal-500 text-white p-1 rounded-full hover:bg-teal-600 transition"
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+
+          {query && (
+            <div className="absolute top-full mt-2 z-10 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+              {filteredForms.length > 0 ? (
+                filteredForms.map((form) => (
+                  <div
+                    key={form.id}
+                    className="p-2 cursor-pointer hover:bg-teal-100 transition"
+                    onClick={() => router.push(form.path)}
+                  >
+                    {form.name}
+                  </div>
+                ))
+              ) : (
+                <div className="p-2 text-gray-500">No results found</div>
+              )}
+            </div>
+          )}
         </div>
+
         <Popover>
           <PopoverTrigger className="lg:hidden p-2 text-teal-900 rounded-full transition">
             <Menu className="w-6 h-6" />
@@ -232,14 +323,33 @@ const Navbar = () => {
             align="end"
             side="right"
             sideOffset={10}
-            className="bg-white shadow-lg rounded-md p-4"
+            className="bg-white shadow-lg rounded-md p-4 lg:hidden"
           >
             <div className="relative p-4 md:hidden flex">
               <Input
                 type="text"
                 placeholder="Search..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 className="w-full pl-5 pr-10 bg-white rounded-full shadow-sm focus:outline-none focus:ring-1 focus:ring-teal-600"
               />
+              {query && (
+                <div className="absolute top-full z-10 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                  {filteredForms.length > 0 ? (
+                    filteredForms.map((form) => (
+                      <div
+                        key={form.id}
+                        className="p-2 cursor-pointer hover:bg-teal-100 transition"
+                        onClick={() => router.push(form.path)}
+                      >
+                        {form.name}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-gray-500">No results found</div>
+                  )}
+                </div>
+              )}
               <button
                 className="absolute top-1/2 transform -translate-y-1/2 right-5 bg-teal-500 text-white p-2 rounded-full hover:bg-teal-600 transition"
                 aria-label="Search"

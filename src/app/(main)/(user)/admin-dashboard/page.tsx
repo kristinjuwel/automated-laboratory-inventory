@@ -768,7 +768,7 @@ const AdminView = () => {
           <button onClick={() => setIsCreateDialogOpen(true)}>
             <Card
               key="add-user-card"
-              className="flex justify-center items-center bg-white hover:bg-teal-100 h-80"
+              className="flex justify-center items-center bg-white hover:bg-teal-100 h-96"
             >
               <CardContent className="text-center w-full">
                 <UserPlus

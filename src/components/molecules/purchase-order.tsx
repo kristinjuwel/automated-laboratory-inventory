@@ -45,6 +45,9 @@ import {
 import { UserSchema } from "@/packages/api/user";
 import { Supplier } from "@/packages/api/lab";
 import EditPurchaseOrder from "../dialogs/edit-purchase-order";
+import PdfGenerator from "../templates/pdf-generator";
+import PdfForm from "../templates/pdf-form";
+
 interface PurchaseOrderValues {
   purchaseOrderId: number;
   purchaseOrderNumber: string;
@@ -195,24 +198,138 @@ const PurchaseOrder = () => {
     }
   };
 
+  const tableHeaders = [
+    "PO ID",
+    "Purchase Order Number",
+    "Personnel",
+    "Laboratory",
+    "Date",
+    "Shipping Cost",
+    "Tax",
+    "Total Price",
+    "Supplier",
+    "Status",
+    "Created At",
+    "Updated At"
+  ];
+  const tableData = purchases.map((purchase) => [
+    purchase.purchaseOrderId,
+    purchase.purchaseOrderNumber,
+    purchase.userFullName,
+    purchase.laboratory,
+    new Date(purchase.date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
+      purchase.shippingCost,
+      purchase.tax,
+      purchase.totalPrice,
+      purchase.supplierName,
+      purchase.status,
+      new Date(purchase.creationDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+  ]);
+
+  const singleTableData = selectedPurchase
+    ? [
+        [
+          selectedPurchase.purchaseOrderId,
+          selectedPurchase.purchaseOrderNumber,
+          selectedPurchase.userFullName,
+          selectedPurchase.laboratory,
+          new Date(selectedPurchase.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }),
+            selectedPurchase.shippingCost,
+            selectedPurchase.tax,
+            selectedPurchase.totalPrice,
+            selectedPurchase.supplierName,
+            selectedPurchase.status,
+            new Date(selectedPurchase.creationDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            new Date(selectedPurchase.dateUpdated).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+        ],
+      ]
+    : [];
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold text-teal-700 mb-4">
+      <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Purchase Order Forms
       </h1>
       <Toaster />
-      <div className="flex text-right justify-left items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search form"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
+          <div className="relative flex-grow w-full">
+            <Input
+              placeholder="Search for a material"
+              value={search}
+              onChange={handleSearch}
+              className="w-full pr-10"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Search className="w-5 h-5 text-gray-500" />
+            </span>
+          </div>
+
           <Button
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            onClick={() => {
+              router.push("/laboratory-purchase-order");
+            }}
+          >
+            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+            Purchase Materials
+          </Button>
+          <Button
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            onClick={() => {
+              setIsPrintAllOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
+          </Button>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="flex items-center">
+            <Input
+              placeholder="Search for an entry"
+              value={search}
+              onChange={handleSearch}
+              className="w-80 pr-8"
+            />
+            <span className="relative -ml-8">
+              <Search className="size-5 text-gray-500" />
+            </span>
+            <Button
             className="bg-teal-500 text-white w-42 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
               router.push("/laboratory-purchase-order");
@@ -222,7 +339,7 @@ const PurchaseOrder = () => {
             Purchase Materials
           </Button>
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in- ml-2"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}
@@ -230,6 +347,7 @@ const PurchaseOrder = () => {
             <Printer className="w-4 h-4" strokeWidth={1.5} />
             Print Forms
           </Button>
+          </div>
         </div>
       </div>
 
@@ -512,7 +630,7 @@ const PurchaseOrder = () => {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Borrow Report
+              Print Purchase Order Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -530,14 +648,14 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {/* <PdfGenerator
-              pdfTitle="Borrow Forms Report"
+            <PdfGenerator
+              pdfTitle="Purchase Order Report"
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
               tableData={tableData}
               closeDialog={() => setIsPrintAllOpen(false)}
-            ></PdfGenerator> */}
+            ></PdfGenerator>
           </div>
         </DialogContent>
       </Dialog>
@@ -639,17 +757,17 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {/* {selectedBorrow && (
+            {selectedPurchase && (
               <PdfForm
-                pdfTitle="Borrow Form"
+                pdfTitle="Purchase Order Form"
                 pageSize={pageSize}
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
-                materialName={selectedBorrow.material.itemName}
+                materialName={selectedPurchase.purchaseOrderNumber}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
-            )} */}
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -687,6 +805,7 @@ const PurchaseOrder = () => {
         </DialogContent>
       </Dialog>
     </div>
+    
   );
 };
 

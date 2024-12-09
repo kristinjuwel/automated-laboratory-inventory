@@ -52,8 +52,8 @@ interface Material {
   description?: string;
   notes?: string;
   quantityAvailable: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   reorderThreshold: number;
   maxThreshold: number;
 }
@@ -89,7 +89,8 @@ const Biological = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
   const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
   const [pageSize, setPageSize] = useState("a4");
-  const [orientation, setOrientation] = useState<"portrait" | "landscape" | undefined
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
   >(undefined);
 
   useEffect(() => {
@@ -103,7 +104,6 @@ const Biological = () => {
             throw new Error("Failed to fetch materials");
           }
           const data = await response.json();
-          console.log(data);
           const biologicalMaterials = data.filter(
             (material: Material) =>
               material.category.shortName.toLowerCase() === "biological" &&
@@ -163,11 +163,11 @@ const Biological = () => {
     "Item Code",
     "Minimum",
     "Maximum",
-    "Status", 
+    "Status",
     "Date Created",
     "Date Updated",
   ];
-  
+
   const tableData = materials.map((material) => [
     material.materialId,
     material.itemName,
@@ -180,51 +180,90 @@ const Biological = () => {
       ? "Below Reorder Level"
       : material.quantityAvailable < material.maxThreshold
       ? "Sufficient"
-      : "Maximum Threshold", 
-    new Date(material.createdAt).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    new Date(material.updatedAt).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+      : "Maximum Threshold",
+    material.createdAt
+      ? new Date(material.createdAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A",
+    material.updatedAt
+      ? new Date(material.updatedAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A",
   ]);
-  
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold text-teal-700 mb-4">
+      <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Biological Inventory
       </h1>
-      <div className="flex text-right justify-left items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search for a material"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
+          <div className="relative flex-grow w-full">
+            <Input
+              placeholder="Search for a material"
+              value={search}
+              onChange={handleSearch}
+              className="w-full pr-10"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Search className="w-5 h-5 text-gray-500" />
+            </span>
+          </div>
+
           <Button
-            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               router.push("/biological-inventory-form");
             }}
           >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+            <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
             Add Material
           </Button>
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            onClick={() => {
+              setIsPrintAllOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
+          </Button>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="relative">
+            <Input
+              placeholder="Search for an entry"
+              value={search}
+              onChange={handleSearch}
+              className="w-80 pr-10"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Search className="w-5 h-5 text-gray-500" />
+            </span>
+          </div>
+
+          <Button
+            className="flex items-center bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            onClick={() => {
+              router.push("/biological-inventory-form");
+            }}
+          >
+            <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
+            Add Material
+          </Button>
+          <Button
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}
@@ -255,8 +294,6 @@ const Biological = () => {
               <TableHead>Cost</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -301,43 +338,26 @@ const Biological = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                  <div
-                    className={`w-full px-4 py-2 rounded-md font-semibold ${
-                      material.quantityAvailable === 0
-                        ? "bg-red-300 text-red-950"
+                    <div
+                      className={`w-full px-4 py-2 rounded-md font-semibold ${
+                        material.quantityAvailable === 0
+                          ? "bg-red-300 text-red-950"
+                          : material.quantityAvailable <
+                            material.reorderThreshold
+                          ? "bg-yellow-300 text-yellow-950"
+                          : material.quantityAvailable < material.maxThreshold
+                          ? "bg-emerald-300 text-emerald-950"
+                          : "bg-green-300 text-green-950"
+                      }`}
+                    >
+                      {material.quantityAvailable === 0
+                        ? "Critical Stockout"
                         : material.quantityAvailable < material.reorderThreshold
-                        ? "bg-yellow-300 text-yellow-950"
+                        ? "Below Reorder Level"
                         : material.quantityAvailable < material.maxThreshold
-                        ? "bg-emerald-300 text-emerald-950"
-                        : "bg-green-300 text-green-950"
-                    }`}
-                  >
-                    {material.quantityAvailable === 0
-                      ? "Critical Stockout"
-                      : material.quantityAvailable < material.reorderThreshold
-                      ? "Below Reorder Level"
-                      : material.quantityAvailable < material.maxThreshold
-                      ? "Sufficient"
-                      : "Maximum Threshold"}
-                  </div>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(material.createdAt).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(material.updatedAt).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                        ? "Sufficient"
+                        : "Maximum Threshold"}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Button
@@ -368,7 +388,7 @@ const Biological = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={17} className="text-center text-gray-500">
+                <TableCell colSpan={15} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>
@@ -418,7 +438,7 @@ const Biological = () => {
       </Dialog>
 
       <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
-      <DialogContent className="bg-white">
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Biological Stock Level Report
@@ -514,14 +534,14 @@ const Biological = () => {
             >
               Cancel
             </Button>
-              <PdfGenerator
-                pdfTitle="Biological Stock Level Report"
-                pageSize={pageSize}
-                orientation={orientation}
-                tableHeaders={tableHeaders}
-                tableData={tableData}
-                closeDialog={() => setIsPrintAllOpen(false)}
-              />
+            <PdfGenerator
+              pdfTitle="Biological Stock Level Report"
+              pageSize={pageSize}
+              orientation={orientation}
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setIsPrintAllOpen(false)}
+            />
           </div>
         </DialogContent>
       </Dialog>
