@@ -22,7 +22,7 @@ import {
   NavigationMenuList,
   NavigationMenuLink,
 } from "../ui/navigation-menu";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, Toaster } from "sonner";
 import { useEffect, useState } from "react";
@@ -43,24 +43,19 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-
-interface StockLevelValues {
-  itemNo: string;
-  description: string;
-  onHand: number;
-  minLevel: number;
-  maxLevel: number;
-  status: string;
-  action: string;
-}
+import { cn } from "@/lib/utils";
+import { MaterialSchema } from "@/packages/api/inventory";
+import { Label } from "../ui/label";
+import { set } from "date-fns";
 
 const Navbar = () => {
   const router = useRouter();
+  const labSlug = useParams().labSlug;
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const userRole = localStorage.getItem("userRole");
-  const [stockLevels, setStockLevels] = useState<StockLevelValues[]>([]);
+  const [materials, setMaterials] = useState<MaterialSchema[]>([]);
   const [orientation, setOrientation] = useState<
     "portrait" | "landscape" | undefined
   >(undefined);
@@ -69,16 +64,22 @@ const Navbar = () => {
   const [query, setQuery] = useState("");
   const [filteredForms, setFilteredForms] = useState<FormData[]>([]);
   const [allForms, setAllForms] = useState<FormData[]>([]);
+  const [selectedLab, setSelectedLab] = useState<string | undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
+    undefined
+  );
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<
+    string | undefined
+  >(undefined);
+  const [startDate, setStartDate] = useState<string | undefined>(undefined);
+  const [endDate, setEndDate] = useState<string | undefined>(undefined);
 
   interface FormData {
     id: string;
     name: string;
     path: string;
   }
-
-  useEffect(() => {
-    fetchStockLevels();
-  }, []);
 
   useEffect(() => {
     const fetchForms = async () => {
@@ -139,37 +140,27 @@ const Navbar = () => {
     }
   }, [query, allForms]);
 
-  const fetchStockLevels = () => {
-    const fetchData = [
-      {
-        itemNo: "001",
-        description: "Test Tube",
-        onHand: 150,
-        minLevel: 50,
-        maxLevel: 200,
-        status: "Sufficient",
-        action: "Monitor",
-      },
-      {
-        itemNo: "002",
-        description: "Petri Dish",
-        onHand: 30,
-        minLevel: 50,
-        maxLevel: 200,
-        status: "Low",
-        action: "Reorder",
-      },
-      {
-        itemNo: "003",
-        description: "Microscope Slide",
-        onHand: 120,
-        minLevel: 60,
-        maxLevel: 180,
-        status: "Sufficient",
-        action: "Monitor",
-      },
-    ];
-    setStockLevels(fetchData);
+  const fetchStockLevels = async () => {
+    try {
+      let url = `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all?`;
+      if (selectedLab) url += `lab=${selectedLab}&`;
+      if (selectedCategory) url += `category=${selectedCategory}&`;
+      if (selectedSubcategory) url += `subcategory=${selectedSubcategory}&`;
+      if (startDate) url += `startDate=${startDate}&`;
+      if (endDate) url += `endDate=${endDate}&`;
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch borrow forms");
+      }
+      const data = await response.json();
+      const mappedMaterials = data.map((material: MaterialSchema) => ({
+        ...material,
+      }));
+      setMaterials(mappedMaterials);
+    } catch (error) {
+      console.error("Error fetching materials:", error);
+    }
   };
 
   const logoutUser = () => {
@@ -200,21 +191,51 @@ const Navbar = () => {
       });
   };
   const tableHeaders = [
-    "Item No",
-    "Description",
+    "ID",
+    "Item Name",
+    "Item Code",
     "On Hand",
-    "Min Level",
-    "Max Level",
+    "Minimum",
+    "Maximum",
     "Status",
+    "Date Created",
+    "Date Updated",
   ];
-  const tableData = stockLevels.map((stock) => [
-    stock.itemNo,
-    stock.description,
-    stock.onHand,
-    stock.minLevel,
-    stock.maxLevel,
-    stock.status,
+
+  const tableData = materials.map((material) => [
+    material.materialId ?? "",
+    material.itemName ?? "",
+    material.itemCode ?? "",
+    material.quantityAvailable ?? 0,
+    material.reorderThreshold ?? 0,
+    material.maxThreshold ?? 0,
+    material.quantityAvailable === 0
+      ? "Critical Stockout"
+      : (material.quantityAvailable ?? 0) < (material.reorderThreshold ?? 0)
+      ? "Below Reorder Level"
+      : (material.quantityAvailable ?? 0) < (material.maxThreshold ?? 0)
+      ? "Sufficient"
+      : "Maximum Threshold",
+    material.createdAt
+      ? new Date(material.createdAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A",
+    material.updatedAt
+      ? new Date(material.updatedAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A",
   ]);
+
   return (
     <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center px-2 space-x-2">
@@ -228,11 +249,15 @@ const Navbar = () => {
         <span className="text-base text-teal-900">ALIMS</span>
       </div>
 
-      <NavigationMenu className="ml-36 hidden lg:flex text-teal-950 justify-center space-x-2 text-sm">
+      <NavigationMenu className="ml-36 hidden lg:flex text-teal-950 justify-center space-x-2 text-sm transition-transform">
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl cursor-pointer"
+              className={cn(
+                `p-2.5 flex hover:text-teal-800 hover:bg-teal-200 transition-all duration-300 ease-out rounded-xl cursor-pointer ${
+                  labSlug === "pathology" ? "bg-teal-800 text-white" : ""
+                }`
+              )}
               onClick={() => router.push("/lab/pathology")}
             >
               <Microscope className="size-5 pr-1" />
@@ -241,7 +266,11 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl  cursor-pointer"
+              className={cn(
+                `p-2.5 flex hover:text-teal-800 hover:bg-teal-200 transition-all duration-300 ease-out rounded-xl cursor-pointer ${
+                  labSlug === "immunology" ? "bg-teal-800 text-white" : ""
+                }`
+              )}
               onClick={() => router.push("/lab/immunology")}
             >
               <Syringe className="size-5 pr-1" />
@@ -250,7 +279,11 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl  cursor-pointer"
+              className={cn(
+                `p-2.5 flex hover:text-teal-800 hover:bg-teal-200 transition-all duration-300 ease-out rounded-xl cursor-pointer ${
+                  labSlug === "microbiology" ? "bg-teal-800 text-white" : ""
+                }`
+              )}
               onClick={() => router.push("/lab/microbiology")}
             >
               <Dna className="size-5 pr-1" />
@@ -258,7 +291,10 @@ const Navbar = () => {
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink className="p-2.5 flex hover:text-teal-800  cursor-pointer">
+            <NavigationMenuLink
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-100  rounded-xl transition-all duration-300 ease-out cursor-pointer"
+              onClick={() => router.push("/laboratory-purchase-order")}
+            >
               <ShoppingCart className="size-5 pr-1" />
               Purchase Order
             </NavigationMenuLink>
@@ -269,7 +305,7 @@ const Navbar = () => {
                 fetchStockLevels();
                 setisPrintDialogOpen(true);
               }}
-              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-200 hover:rounded-xl cursor-pointer"
+              className="p-2.5 flex hover:text-teal-800 hover:bg-teal-100  rounded-xl transition-all duration-300 ease-out cursor-pointer"
             >
               <Box className="size-5 pr-1" />
               Stock Level
@@ -315,7 +351,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <Popover>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger className="lg:hidden p-2 text-teal-900 rounded-full transition">
             <Menu className="w-6 h-6" />
           </PopoverTrigger>
@@ -353,42 +389,70 @@ const Navbar = () => {
               <button
                 className="absolute top-1/2 transform -translate-y-1/2 right-5 bg-teal-500 text-white p-2 rounded-full hover:bg-teal-600 transition"
                 aria-label="Search"
+                onClick={() => setIsOpen(false)}
               >
                 <Search className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex flex-col space-y-2 xs:border-t xs:border-teal-500">
+            <div className="flex flex-col space-y-2 xs:border-t xs:border-teal-500 cursor-pointer">
               <a
-                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                onClick={() => router.push("/lab/pathology")}
+                className={cn(
+                  "flex items-center gap-2 tracking-tight text-teal-900 mt-2 px-4 py-2 hover:bg-teal-200 rounded-md transition-colors ease-out duration-300",
+                  labSlug === "pathology"
+                    ? "bg-teal-800 text-white hover:text-teal-900"
+                    : ""
+                )}
+                onClick={() => {
+                  router.push("/lab/pathology");
+                  setIsOpen(false);
+                }}
               >
                 <Microscope className="w-5 h-5" />
                 Pathology
               </a>
               <a
-                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                onClick={() => router.push("/lab/immunology")}
+                className={cn(
+                  "flex items-center gap-2 tracking-tight text-teal-900 mt-2 px-4 py-2 hover:bg-teal-200 rounded-md  transition-colors ease-out duration-300",
+                  labSlug === "immunology"
+                    ? "bg-teal-800 text-white hover:text-teal-900"
+                    : ""
+                )}
+                onClick={() => {
+                  router.push("/lab/immunology");
+                  setIsOpen(false);
+                }}
               >
                 <Syringe className="w-5 h-5" />
                 Immunology
               </a>
               <a
-                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                onClick={() => router.push("/lab/microbiology")}
+                className={cn(
+                  "flex items-center gap-2 tracking-tight text-teal-900 mt-2 px-4 py-2 hover:bg-teal-200 rounded-md  transition-colors ease-out duration-300",
+                  labSlug === "microbiology"
+                    ? "bg-teal-800 text-white hover:text-teal-900"
+                    : ""
+                )}
+                onClick={() => {
+                  router.push("/lab/microbiology");
+                  setIsOpen(false);
+                }}
               >
                 <Dna className="w-5 h-5" />
                 Microbiology
               </a>
               <a
-                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                onClick={() => router.push("/lab/pathology")}
+                className="flex items-center gap-2 tracking-tight text-teal-900 mt-2 px-4 py-2 hover:bg-teal-100 rounded-md  transition-colors ease-out duration-300"
+                onClick={() => router.push("/laboratory-purchase-order")}
               >
                 <ShoppingCart className="w-5 h-5" />
                 Purchase Order
               </a>
               <a
-                className="flex items-center gap-2 tracking-tight text-gray-700 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
-                onClick={() => router.push("/lab/pathology")}
+                className="flex items-center gap-2 tracking-tight text-teal-900 mt-2 px-4 py-2 hover:bg-gray-100 rounded-md transition"
+                onClick={() => {
+                  setisPrintDialogOpen(true);
+                  setIsOpen(false);
+                }}
               >
                 <Box className="w-5 h-5" />
                 Stock Level
@@ -495,7 +559,21 @@ const Navbar = () => {
             </div>
           </DialogContent>
         </Dialog>
-        <Dialog open={isPrintDialogOpen} onOpenChange={setisPrintDialogOpen}>
+        <Dialog
+          open={isPrintDialogOpen}
+          onOpenChange={(open) => {
+            setisPrintDialogOpen(open);
+            if (!open) {
+              setSelectedLab(undefined);
+              setSelectedCategory(undefined);
+              setSelectedSubcategory(undefined);
+              setStartDate(undefined);
+              setEndDate(undefined);
+              setPageSize("a4");
+              setOrientation(undefined);
+            }
+          }}
+        >
           <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 tracking-tight">
@@ -504,106 +582,309 @@ const Navbar = () => {
               </DialogTitle>
             </DialogHeader>
             <DialogDescription />
-            <p className="text-left pt-2 text-m">
-              Select page size for the report:
-            </p>
-            <div className="flex flex-col gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full flex justify-between items-center"
-                  >
-                    <span className={pageSize ? "text-black" : "text-gray-500"}>
-                      {pageSize === "a4"
-                        ? "A4 (210 x 297 mm)"
-                        : pageSize === "short"
-                        ? "Short (Letter, 215.9 x 279.4 mm)"
-                        : pageSize === "long"
-                        ? "Long (Legal, 215.9 x 355.6 mm)"
-                        : "Select Page Size"}
-                    </span>
-                    <span className="ml-auto">▼</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {[
-                    { label: "A4 (210 x 297 mm)", value: "a4" },
-                    {
-                      label: "Short (Letter, 215.9 x 279.4 mm)",
-                      value: "short",
-                    },
-                    { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
-                  ].map((option) => (
-                    <DropdownMenuCheckboxItem
-                      key={option.value}
-                      checked={pageSize === option.value}
-                      onCheckedChange={(checked) =>
-                        setPageSize(checked ? option.value : "a4")
-                      }
+            <div className="overflow-y-auto max-h-4/5">
+              <p className="text-left pt-2 text-base mb-1">
+                Select filters for the report:
+              </p>
+              <div className="flex flex-col gap-3 mb-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full flex justify-between items-center"
                     >
-                      {option.label}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <p className="text-left pt-4 text-m">
-              Select orientation for the report:
-            </p>
-            <div className="flex flex-col gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full flex justify-between items-center"
-                  >
-                    <span
-                      className={orientation ? "text-black" : "text-gray-500"}
+                      <span
+                        className={selectedLab ? "text-black" : "text-gray-500"}
+                      >
+                        {selectedLab ?? "Select Laboratory"}
+                      </span>
+                      <span className="ml-auto">▼</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {["Pathology", "Immunology", "Microbiology"].map((lab) => (
+                      <DropdownMenuCheckboxItem
+                        key={lab}
+                        checked={selectedLab === lab}
+                        onCheckedChange={(checked) =>
+                          setSelectedLab(checked ? lab : undefined)
+                        }
+                      >
+                        {lab}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full flex justify-between items-center"
                     >
-                      {orientation === "portrait"
-                        ? "Portrait"
-                        : orientation === "landscape"
-                        ? "Landscape"
-                        : "Select Orientation"}
-                    </span>
-                    <span className="ml-auto">▼</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {[
-                    { label: "Portrait", value: "portrait" as const },
-                    { label: "Landscape", value: "landscape" as const },
-                  ].map((option) => (
-                    <DropdownMenuCheckboxItem
-                      key={option.value}
-                      checked={orientation === option.value}
-                      onCheckedChange={(checked) =>
-                        setOrientation(checked ? option.value : undefined)
-                      }
+                      <span
+                        className={
+                          selectedCategory ? "text-black" : "text-gray-500"
+                        }
+                      >
+                        {selectedCategory ?? "Select Category"}
+                      </span>
+                      <span className="ml-auto">▼</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {Array.from(
+                      new Set(
+                        materials.map((material) => material.category.shortName)
+                      )
+                    ).map((category) => (
+                      <DropdownMenuCheckboxItem
+                        key={category}
+                        checked={selectedCategory === category}
+                        onCheckedChange={(checked) => {
+                          setSelectedCategory(checked ? category : undefined);
+                          setSelectedSubcategory(undefined);
+                        }}
+                      >
+                        {category}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full flex justify-between items-center"
                     >
-                      {option.label}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="ghost"
-                className="bg-gray-100"
-                onClick={() => setisPrintDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <PdfGenerator
-                pdfTitle="Stock Level Report"
-                pageSize={pageSize}
-                orientation={orientation}
-                tableHeaders={tableHeaders}
-                tableData={tableData}
-                closeDialog={() => setisPrintDialogOpen(false)}
-              ></PdfGenerator>
+                      <span
+                        className={
+                          selectedSubcategory ? "text-black" : "text-gray-500"
+                        }
+                      >
+                        {selectedSubcategory ?? "Select Subcategory"}
+                      </span>
+                      <span className="ml-auto">▼</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {Array.from(
+                      new Set(
+                        materials
+                          .filter(
+                            (material) =>
+                              material.category.shortName === selectedCategory
+                          )
+                          .map((material) => material.category.subcategory1)
+                      )
+                    ).map((subcategory) => (
+                      <DropdownMenuCheckboxItem
+                        key={subcategory}
+                        checked={selectedSubcategory === subcategory}
+                        onCheckedChange={(checked) =>
+                          setSelectedSubcategory(
+                            checked ? subcategory : undefined
+                          )
+                        }
+                      >
+                        {subcategory}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-left pt-2 text-base mb-1">
+                      Start Date
+                    </Label>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="pl-4 w-full justify-stretch hover:bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-left pt-2 text-base mb-1">
+                      End Date
+                    </Label>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full justify-stretch hover:bg-gray-100"
+                    />
+                  </div>
+                </div>
+              </div>
+              <p className="text-left text-base mb-1">
+                Select page size for the report:
+              </p>
+              <div className="flex flex-col gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full flex justify-between items-center"
+                    >
+                      <span
+                        className={pageSize ? "text-black" : "text-gray-500"}
+                      >
+                        {pageSize === "a4"
+                          ? "A4 (210 x 297 mm)"
+                          : pageSize === "short"
+                          ? "Short (Letter, 215.9 x 279.4 mm)"
+                          : pageSize === "long"
+                          ? "Long (Legal, 215.9 x 355.6 mm)"
+                          : "Select Page Size"}
+                      </span>
+                      <span className="ml-auto">▼</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {[
+                      { label: "A4 (210 x 297 mm)", value: "a4" },
+                      {
+                        label: "Short (Letter, 215.9 x 279.4 mm)",
+                        value: "short",
+                      },
+                      {
+                        label: "Long (Legal, 215.9 x 355.6 mm)",
+                        value: "long",
+                      },
+                    ].map((option) => (
+                      <DropdownMenuCheckboxItem
+                        key={option.value}
+                        checked={pageSize === option.value}
+                        onCheckedChange={(checked) =>
+                          setPageSize(checked ? option.value : "a4")
+                        }
+                      >
+                        {option.label}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <p className="text-left pt-4 text-base mb-1">
+                Select orientation for the report:
+              </p>
+              <div className="flex flex-col gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full flex justify-between items-center"
+                    >
+                      <span
+                        className={orientation ? "text-black" : "text-gray-500"}
+                      >
+                        {orientation === "portrait"
+                          ? "Portrait"
+                          : orientation === "landscape"
+                          ? "Landscape"
+                          : "Select Orientation"}
+                      </span>
+                      <span className="ml-auto">▼</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {[
+                      { label: "Portrait", value: "portrait" as const },
+                      { label: "Landscape", value: "landscape" as const },
+                    ].map((option) => (
+                      <DropdownMenuCheckboxItem
+                        key={option.value}
+                        checked={orientation === option.value}
+                        onCheckedChange={(checked) =>
+                          setOrientation(checked ? option.value : undefined)
+                        }
+                      >
+                        {option.label}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="ghost"
+                  className="bg-gray-100"
+                  onClick={() => setisPrintDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <PdfGenerator
+                  pdfTitle="Stock Level Report"
+                  pageSize={pageSize}
+                  orientation={orientation}
+                  tableHeaders={tableHeaders}
+                  tableData={materials
+                    .filter((material) => {
+                      if (
+                        selectedLab &&
+                        material.laboratory.labName !== selectedLab
+                      )
+                        return false;
+                      if (
+                        selectedCategory &&
+                        material.category.shortName !== selectedCategory
+                      )
+                        return false;
+                      if (
+                        selectedSubcategory &&
+                        material.category.subcategory1 !== selectedSubcategory
+                      )
+                        return false;
+                      if (
+                        startDate &&
+                        new Date(material.createdAt ?? "") < new Date(startDate)
+                      )
+                        return false;
+                      if (
+                        endDate &&
+                        new Date(material.createdAt ?? "") > new Date(endDate)
+                      )
+                        return false;
+                      return true;
+                    })
+                    .map((material) => [
+                      material.materialId ?? "",
+                      material.itemName ?? "",
+                      material.itemCode ?? "",
+                      material.quantityAvailable ?? 0,
+                      material.reorderThreshold ?? 0,
+                      material.maxThreshold ?? 0,
+                      material.quantityAvailable === 0
+                        ? "Critical Stockout"
+                        : (material.quantityAvailable ?? 0) <
+                          (material.reorderThreshold ?? 0)
+                        ? "Below Reorder Level"
+                        : (material.quantityAvailable ?? 0) <
+                          (material.maxThreshold ?? 0)
+                        ? "Sufficient"
+                        : "Maximum Threshold",
+                      material.createdAt
+                        ? new Date(material.createdAt).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "N/A",
+                      material.updatedAt
+                        ? new Date(material.updatedAt).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "N/A",
+                    ])}
+                  closeDialog={() => setisPrintDialogOpen(false)}
+                ></PdfGenerator>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

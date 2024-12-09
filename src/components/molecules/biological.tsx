@@ -340,6 +340,7 @@ const Biological = () => {
     "ID",
     "Item Name",
     "Item Code",
+    "On Hand",
     "Minimum",
     "Maximum",
     "Status",
@@ -351,6 +352,7 @@ const Biological = () => {
     material.materialId,
     material.itemName,
     material.itemCode,
+    material.quantityAvailable,
     material.reorderThreshold,
     material.maxThreshold,
     material.quantityAvailable === 0
