@@ -75,7 +75,6 @@ const Navbar = () => {
     name: string;
     path: string;
   }
-  
 
   useEffect(() => {
     fetchStockLevels();
@@ -83,24 +82,51 @@ const Navbar = () => {
 
   useEffect(() => {
     const fetchForms = async () => {
-      // Replace this with your API or static data
       const data: FormData[] = [
-        { id: "1", name: "Biological Inventory Form", path: "/biological-inventory-form" },
-        { id: "2", name: "Chemical Inventory Form", path: "/chemical-inventory-form" },
-        { id: "3", name: "General Supplier Inventory Form", path: "/gensupplies-inventory-form" },
-        { id: "4", name: "Reagents Inventory Form", path: "/reagents-inventory-form" },
-        { id: "5", name: "Purchase Order Form", path: "/laboratory-purchase-order" },
+        {
+          id: "1",
+          name: "Biological Inventory Form",
+          path: "/biological-inventory-form",
+        },
+        {
+          id: "2",
+          name: "Chemical Inventory Form",
+          path: "/chemical-inventory-form",
+        },
+        {
+          id: "3",
+          name: "General Supplier Inventory Form",
+          path: "/gensupplies-inventory-form",
+        },
+        {
+          id: "4",
+          name: "Reagents Inventory Form",
+          path: "/reagents-inventory-form",
+        },
+        {
+          id: "5",
+          name: "Purchase Order Form",
+          path: "/laboratory-purchase-order",
+        },
         { id: "6", name: "Borrow Form", path: "/borrow-form" },
         { id: "7", name: "Incident Form", path: "/incident-form" },
         { id: "8", name: "Disposition Form", path: "/disposition-report" },
-        { id: "9", name: "Calibration Log Form", path: "/calibration-log-form" },
-        { id: "10", name: "Reagents Dispense Form", path: "/reagents-dispense-form" },
+        {
+          id: "9",
+          name: "Calibration Log Form",
+          path: "/calibration-log-form",
+        },
+        {
+          id: "10",
+          name: "Reagents Dispense Form",
+          path: "/reagents-dispense-form",
+        },
       ];
       setAllForms(data);
     };
     fetchForms();
   }, []);
-  
+
   useEffect(() => {
     if (query === "") {
       setFilteredForms([]);
@@ -271,9 +297,7 @@ const Navbar = () => {
           </div>
 
           {query && (
-            <div
-              className="absolute top-full mt-2 z-10 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200"
-            >
+            <div className="absolute top-full mt-2 z-10 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200">
               {filteredForms.length > 0 ? (
                 filteredForms.map((form) => (
                   <div
@@ -290,7 +314,6 @@ const Navbar = () => {
             </div>
           )}
         </div>
-
 
         <Popover>
           <PopoverTrigger className="lg:hidden p-2 text-teal-900 rounded-full transition">
@@ -310,25 +333,23 @@ const Navbar = () => {
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full pl-5 pr-10 bg-white rounded-full shadow-sm focus:outline-none focus:ring-1 focus:ring-teal-600"
               />
-                {query && (
-                  <div
-                    className="absolute top-full z-10 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200"
-                  >
-                    {filteredForms.length > 0 ? (
-                      filteredForms.map((form) => (
-                        <div
-                          key={form.id}
-                          className="p-2 cursor-pointer hover:bg-teal-100 transition"
-                          onClick={() => router.push(form.path)}
-                        >
-                          {form.name}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-2 text-gray-500">No results found</div>
-                    )}
-                  </div>
-                )}
+              {query && (
+                <div className="absolute top-full z-10 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                  {filteredForms.length > 0 ? (
+                    filteredForms.map((form) => (
+                      <div
+                        key={form.id}
+                        className="p-2 cursor-pointer hover:bg-teal-100 transition"
+                        onClick={() => router.push(form.path)}
+                      >
+                        {form.name}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-gray-500">No results found</div>
+                  )}
+                </div>
+              )}
               <button
                 className="absolute top-1/2 transform -translate-y-1/2 right-5 bg-teal-500 text-white p-2 rounded-full hover:bg-teal-600 transition"
                 aria-label="Search"
