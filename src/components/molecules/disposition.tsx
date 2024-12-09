@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { DispositionSchema } from "@/packages/api/inventory";
 import {
   Tooltip,
@@ -77,8 +77,7 @@ const ITEMS_PER_PAGE = 4;
 
 const Disposition = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const [dispositions, setDispositions] = useState<DispositionValues[]>([]);
   const [filteredDisps, setFilteredDisps] = useState<DispositionValues[]>([]);
   const [search, setSearch] = useState("");
@@ -314,173 +313,146 @@ const Disposition = () => {
       <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Disposition Forms
       </h1>
+
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
-          <div className="relative flex-grow w-full">
-            <Input
-              placeholder="Search for a material"
-              value={search}
-              onChange={handleSearch}
-              className="w-full pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
-          </div>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/disposition-report");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Dispose Items
-          </Button>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintDialogOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
-                )}
-              >
-                <Filter /> <span className="lg:flex hidden">Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
-              <div className="flex flex-col items-start">
-                <Collapsible
-                  open={isDisposedByOpen}
-                  onOpenChange={setIsDisposedByOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Disposed By</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(dispositions.map((m) => m.disposedBy))
-                      ).map((disposedBy) => (
-                        <label
-                          key={disposedBy}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={disposedBy}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedDisposedBy.has(disposedBy)}
-                            onChange={() => handleDisposedByChange(disposedBy)}
-                          />
-                          <span>{disposedBy}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible
-                  open={isMaterialOpen}
-                  onOpenChange={setIsMaterialOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Material</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(dispositions.map((m) => m.material))
-                      ).map((material) => (
-                        <label
-                          key={material}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={material}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedMaterial.has(material)}
-                            onChange={() => handleMaterialChange(material)}
-                          />
-                          <span>{material}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+        <div className="flex flex-col md:flex-row w-full items-center gap-1.5 md:gap-1">
+          <div className="flex gap-2 w-full md:w-auto ">
+            <div className="relative md:w-auto w-full">
+              <Input
+                placeholder="Search for an entry"
+                value={search}
+                onChange={handleSearch}
+                className="w-full md:w-80 pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="w-5 h-5 text-gray-500" />
+              </span>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
-                  onClick={() => {
-                    setSelectedDisposedBy(new Set());
-                    setSelectedMaterial(new Set());
-                  }}
+                  className={cn(
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center`
+                  )}
                 >
-                  Clear Filters
+                  <Filter /> <span className="lg:flex hidden">Filter</span>
                 </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="flex items-center">
-            <Input
-              placeholder="Search for an entry"
-              value={search}
-              onChange={handleSearch}
-              className="w-80 pr-8"
-            />
-            <span className="relative -ml-8">
-              <Search className="size-5 text-gray-500" />
-            </span>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col items-start">
+                  <Collapsible
+                    open={isDisposedByOpen}
+                    onOpenChange={setIsDisposedByOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Disposed By</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(dispositions.map((m) => m.disposedBy))
+                        ).map((disposedBy) => (
+                          <label
+                            key={disposedBy}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={disposedBy}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedDisposedBy.has(disposedBy)}
+                              onChange={() =>
+                                handleDisposedByChange(disposedBy)
+                              }
+                            />
+                            <span>{disposedBy}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isMaterialOpen}
+                    onOpenChange={setIsMaterialOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Material</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(dispositions.map((m) => m.material))
+                        ).map((material) => (
+                          <label
+                            key={material}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={material}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedMaterial.has(material)}
+                              onChange={() => handleMaterialChange(material)}
+                            />
+                            <span>{material}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedDisposedBy(new Set());
+                      setSelectedMaterial(new Set());
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex items-center w-full justify-between gap-2">
             <Button
-              className={cn(
-                `bg-teal-500 text-white w-40 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-              )}
+              className="flex items-center bg-teal-500 w-1/2 text-white md:w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
               onClick={() => {
                 router.push("/disposition-report");
               }}
             >
-              <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-              Dispose Items
+              <FilePlus className="w-4 h-4 mr-1" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Dispose Materials
+              </span>
             </Button>
+
             <Button
-              className={cn(
-                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2`
-              )}
+              className="flex md:w-1/4 items-center bg-teal-800 text-white w-1/2 justify-center rounded-lg hover:bg-teal-950 transition-colors duration-300 ease-in-out"
               onClick={() => {
                 setIsPrintAllOpen(true);
               }}
             >
               <Printer className="w-4 h-4" strokeWidth={1.5} />
-              Print Forms
+              <span className="lg:flex md:hidden flex truncate">
+                Print Forms
+              </span>
             </Button>
           </div>
         </div>
       </div>
-
       <Toaster />
 
       <TooltipProvider>
@@ -531,7 +503,10 @@ const Disposition = () => {
                 {sortColumn === "creationDate" &&
                   (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("dateUpdated")}>
+              <TableHead
+                onClick={() => handleSort("dateUpdated")}
+                className="text-nowrap"
+              >
                 Updated At{" "}
                 {sortColumn === "dateUpdated" &&
                   (sortDirection === "asc" ? "↑" : "↓")}

@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import CustomPagination from "../ui/pagination-custom";
 import PdfForm from "../templates/pdf-form";
 import { PurchaseOrderSchema, PurchaseSchema } from "@/packages/api/inventory";
@@ -83,8 +83,7 @@ const ITEMS_PER_PAGE = 4;
 
 const PurchaseOrder = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const [purchases, setPurchases] = useState<PurchaseOrderValues[]>([]);
   const [purchaseItems, setPurchaseItems] = useState<PurchaseSchema[]>([]);
   const [search, setSearch] = useState("");
@@ -310,8 +309,8 @@ const PurchaseOrder = () => {
     "Total Price",
     "Supplier",
     "Status",
-    "Created At",
-    "Updated At",
+    "Date Created",
+    "Date Updated",
   ];
   const tableData = purchases.map((purchase) => [
     purchase.purchaseOrderId,
@@ -384,75 +383,25 @@ const PurchaseOrder = () => {
       <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Purchase Order Forms
       </h1>
-      <Toaster />
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
-          <div className="relative flex-grow w-full">
-            <Input
-              placeholder="Search for a material"
-              value={search}
-              onChange={handleSearch}
-              className="w-full pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
-          </div>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/laboratory-purchase-order");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Purchase Materials
-          </Button>
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="flex items-center">
-            <Input
-              placeholder="Search for an entry"
-              value={search}
-              onChange={handleSearch}
-              className="w-80 pr-8"
-            />
-            <span className="relative -ml-8">
-              <Search className="size-5 text-gray-500" />
-            </span>
-            <Button
-              className="bg-teal-500 text-white w-42 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
-              onClick={() => {
-                router.push("/laboratory-purchase-order");
-              }}
-            >
-              <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-              Purchase Materials
-            </Button>
-            <Button
-              className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in- ml-2"
-              onClick={() => {
-                setIsPrintAllOpen(true);
-              }}
-            >
-              <Printer className="w-4 h-4" strokeWidth={1.5} />
-              Print Forms
-            </Button>
+        <div className="flex flex-col md:flex-row w-full items-center gap-1.5 md:gap-1">
+          <div className="flex gap-2 w-full md:w-auto ">
+            <div className="relative md:w-auto w-full">
+              <Input
+                placeholder="Search for an entry"
+                value={search}
+                onChange={handleSearch}
+                className="w-full md:w-80 pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="w-5 h-5 text-gray-500" />
+              </span>
+            </div>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   className={cn(
-                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center`
                   )}
                 >
                   <Filter /> <span className="lg:flex hidden">Filter</span>
@@ -545,6 +494,31 @@ const PurchaseOrder = () => {
                 </div>
               </PopoverContent>
             </Popover>
+          </div>
+          <div className="flex items-center w-full justify-between gap-2">
+            <Button
+              className="flex items-center bg-teal-500 w-1/2 text-white md:w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                router.push("/laboratory-purchase-order");
+              }}
+            >
+              <FilePlus className="w-4 h-4 mr-1" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Purchase Materials
+              </span>
+            </Button>
+
+            <Button
+              className="flex md:w-1/4 items-center bg-teal-800 text-white w-1/2 justify-center rounded-lg hover:bg-teal-950 transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                setIsPrintAllOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Print Forms
+              </span>
+            </Button>
           </div>
         </div>
       </div>
@@ -822,7 +796,7 @@ const PurchaseOrder = () => {
                     <TableHead>Quantity</TableHead>
                     <TableHead>Unit Price</TableHead>
                     <TableHead>Created At</TableHead>
-                    <TableHead>Updated At</TableHead>
+                    <TableHead className="text-nowrap">Updated At</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

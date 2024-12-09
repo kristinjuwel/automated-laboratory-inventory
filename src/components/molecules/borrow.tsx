@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -90,8 +90,7 @@ const ITEMS_PER_PAGE = 4;
 
 const Borrow = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const [borrows, setBorrows] = useState<Borrow[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -144,12 +143,6 @@ const Borrow = () => {
               }${borrow.user.lastName}`,
             })
           );
-
-          const uniqueEquipment = Array.from(
-            new Set(borrowedMaterials.map((m: Borrow) => m.equipment))
-          );
-          console.log("Unique Equipment: ", uniqueEquipment);
-
           setBorrows(mappedBorrows);
           setFilteredBorrows(mappedBorrows);
         } catch (error) {
@@ -428,68 +421,50 @@ const Borrow = () => {
       <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Borrow Forms
       </h1>
-      <Toaster />
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
-          <div className="relative flex-grow w-full">
-            <Input
-              placeholder="Search for a material"
-              value={search}
-              onChange={handleSearch}
-              className="w-full pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
-          </div>
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/borrow-form");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Borrow Material
-          </Button>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
-                )}
-              >
-                <Filter /> <span className="lg:flex hidden">Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
-              <div className="flex flex-col items-start">
-                <Collapsible
-                  open={isEquipmentOpen}
-                  onOpenChange={setIsEquipmentOpen}
+        <div className="flex flex-col md:flex-row w-full items-center gap-1.5 md:gap-1">
+          <div className="flex gap-2 w-full md:w-auto ">
+            <div className="relative md:w-auto w-full">
+              <Input
+                placeholder="Search for an entry"
+                value={search}
+                onChange={handleSearch}
+                className="w-full md:w-80 pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="w-5 h-5 text-gray-500" />
+              </span>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={cn(
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center`
+                  )}
                 >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Equipment</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(new Set(borrows.map((m) => m.equipment))).map(
-                        (equipment) => (
+                  <Filter /> <span className="lg:flex hidden">Filter</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col items-start">
+                  <Collapsible
+                    open={isEquipmentOpen}
+                    onOpenChange={setIsEquipmentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Equipment</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(borrows.map((m) => m.equipment))
+                        ).map((equipment) => (
                           <label
                             key={equipment}
                             className="flex items-center space-x-2 whitespace-nowrap"
@@ -503,130 +478,123 @@ const Borrow = () => {
                             />
                             <span>{equipment}</span>
                           </label>
-                        )
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible
-                  open={isDepartmentOpen}
-                  onOpenChange={setIsDepartmentOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Department</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {["Pathology", "Immunology", "Microbiology"].map(
-                        (department) => (
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isDepartmentOpen}
+                    onOpenChange={setIsDepartmentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Department</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Pathology", "Immunology", "Microbiology"].map(
+                          (department) => (
+                            <label
+                              key={department}
+                              className="flex items-center space-x-2 whitespace-nowrap"
+                            >
+                              <Input
+                                type="checkbox"
+                                value={department}
+                                className="text-teal-500 accent-teal-200"
+                                checked={selectedDepartment.has(department)}
+                                onChange={() =>
+                                  handleDepartmentChange(department)
+                                }
+                              />
+                              <span>{department}</span>
+                            </label>
+                          )
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isStatusOpen}
+                    onOpenChange={setIsStatusOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Status</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Borrowed", "Returned"].map((status) => (
                           <label
-                            key={department}
+                            key={status}
                             className="flex items-center space-x-2 whitespace-nowrap"
                           >
                             <Input
                               type="checkbox"
-                              value={department}
+                              value={status}
                               className="text-teal-500 accent-teal-200"
-                              checked={selectedDepartment.has(department)}
-                              onChange={() =>
-                                handleDepartmentChange(department)
-                              }
+                              checked={selectedStatus.has(status)}
+                              onChange={() => handleStatusChange(status)}
                             />
-                            <span>{department}</span>
+                            <span>{status}</span>
                           </label>
-                        )
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Status</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {["Borrowed", "Returned"].map((status) => (
-                        <label
-                          key={status}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={status}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedStatus.has(status)}
-                            onChange={() => handleStatusChange(status)}
-                          />
-                          <span>{status}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Button
-                  variant="outline"
-                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
-                  onClick={() => {
-                    setSelectedStatus(new Set());
-                    setSelectedDepartment(new Set());
-                    setSelectedEquipment(new Set());
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="flex items-center">
-            <Input
-              placeholder="Search for an entry"
-              value={search}
-              onChange={handleSearch}
-              className="w-80 pr-8"
-            />
-            <span className="relative -ml-8">
-              <Search className="size-5 text-gray-500" />
-            </span>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedStatus(new Set());
+                      setSelectedDepartment(new Set());
+                      setSelectedEquipment(new Set());
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex items-center w-full justify-between gap-2">
             <Button
-              className={cn(
-                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-              )}
+              className="flex items-center bg-teal-500 w-1/2 text-white md:w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
               onClick={() => {
                 router.push("/borrow-form");
               }}
             >
-              <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-              Borrow Material
+              <FilePlus className="w-4 h-4 mr-1" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Borrow Material
+              </span>
             </Button>
+
             <Button
-              className={cn(
-                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2`
-              )}
+              className="flex md:w-1/4 items-center bg-teal-800 text-white w-1/2 justify-center rounded-lg hover:bg-teal-950 transition-colors duration-300 ease-in-out"
               onClick={() => {
                 setIsPrintAllOpen(true);
               }}
             >
               <Printer className="w-4 h-4" strokeWidth={1.5} />
-              Print Forms
+              <span className="lg:flex md:hidden flex truncate">
+                Print Forms
+              </span>
             </Button>
           </div>
         </div>
       </div>
+
       <Toaster />
       <TooltipProvider>
         <Table className="overflow-x-auto">
@@ -705,7 +673,10 @@ const Borrow = () => {
                 {sortColumn === "creationDate" &&
                   (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("dateUpdated")}>
+              <TableHead
+                onClick={() => handleSort("dateUpdated")}
+                className="text-nowrap"
+              >
                 Updated At{" "}
                 {sortColumn === "dateUpdated" &&
                   (sortDirection === "asc" ? "↑" : "↓")}

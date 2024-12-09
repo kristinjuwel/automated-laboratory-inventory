@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -53,7 +53,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-
 interface IncidentValues {
   incidentFormId: number;
   date: string;
@@ -78,8 +77,7 @@ const ITEMS_PER_PAGE = 4;
 
 const Incident = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [incidents, setIncidents] = useState<IncidentValues[]>([]);
   const [filteredIncidents, setFilteredIncidents] = useState<IncidentValues[]>(
@@ -241,7 +239,7 @@ const Incident = () => {
     });
 
     setFilteredIncidents(filtered);
-    setCurrentPage(1); // Reset pagination
+    setCurrentPage(1);
   }, [incidents, selectedMaterials, selectedIncidents, selectedPersonnels]);
 
   const handleMaterialsChange = (materials: string) => {
@@ -349,8 +347,8 @@ const Incident = () => {
     "Involved Personnel/s",
     "Remarks",
     "Attachments",
-    "Created At",
-    "Updated At",
+    "Date Created",
+    "Date Updated",
   ];
   const tableData = incidents.map((incident) => [
     incident.incidentFormId,
@@ -370,7 +368,6 @@ const Incident = () => {
         const brands = incident.brand.split(",");
         const quantities = incident.qty.split(",");
 
-        // Return plain text for PDF-friendly output
         return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
           quantities[index]?.trim() || "N/A"
         }`;
@@ -424,7 +421,6 @@ const Incident = () => {
               const brands = selectedIncident.brand.split(",");
               const quantities = selectedIncident.qty.split(",");
 
-              // Return plain text for PDF-friendly output
               return `${material.trim()} (${
                 brands[index]?.trim() || "N/A"
               }) - ${quantities[index]?.trim() || "N/A"}`;
@@ -460,218 +456,191 @@ const Incident = () => {
   return (
     <div className="p-8">
       <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
-          Incident Forms
+        Incident Forms
       </h1>
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
-          <div className="relative flex-grow w-full">
-            <Input
-              placeholder="Search for a material"
-              value={search}
-              onChange={handleSearch}
-              className="w-full pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
-          </div>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/incident-form");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Report Incident
-          </Button>
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="flex items-center">
-            <Input
-              placeholder="Search for an entry"
-              value={search}
-              onChange={handleSearch}
-              className="w-80 pr-8"
-            />
-            <span className="relative -ml-8">
-              <Search className="size-5 text-gray-500" />
-            </span>
-            <Button
-              className={cn(
-                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-              )}            onClick={() => {
-              router.push("/incident-form");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Report Incident
-          </Button>
-          <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2`
-            )}            
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
-                )}
-              >
-                <Filter /> <span className="lg:flex hidden">Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg max-h-96 overflow-y-auto overflow-x-hidden">
-              <div className="flex flex-col items-start">
-                <Collapsible
-                  open={isMaterialOpen}
-                  onOpenChange={setIsMaterialOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Materials</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(incidents.map((m) => m.materialsInvolved))
-                      ).map((materialsInvolved) => (
-                        <label
-                          key={materialsInvolved}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={materialsInvolved}
-                            checked={selectedMaterials.has(materialsInvolved)}
-                            className="text-teal-500 accent-teal-200"
-                            onChange={() =>
-                              handleMaterialsChange(materialsInvolved)
-                            }
-                          />
-                          <span>{materialsInvolved}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible
-                  open={isIncidentOpen}
-                  onOpenChange={setIsIncidentOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Incidents</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(incidents.map((m) => m.natureOfIncident))
-                      ).map((natureOfIncident) => (
-                        <label
-                          key={natureOfIncident}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={natureOfIncident}
-                            checked={selectedIncidents.has(natureOfIncident)}
-                            className="text-teal-500 accent-teal-200"
-                            onChange={() =>
-                              handleIncidentsChange(natureOfIncident)
-                            }
-                          />
-                          <span>{natureOfIncident}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible
-                  open={isPersonnelOpen}
-                  onOpenChange={setIsPersonnelOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Personnels</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(
-                          incidents
-                            .map((m) => m.involvedIndividuals)
-                            .filter(Boolean)
-                        ) // Filter out undefined/null
-                      ).map((involvedIndividuals) => (
-                        <label
-                          key={involvedIndividuals}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={involvedIndividuals}
-                            checked={selectedPersonnels.has(
-                              involvedIndividuals
-                            )}
-                            className="text-teal-500 accent-teal-200"
-                            onChange={() =>
-                              handlePersonnelsChange(involvedIndividuals)
-                            }
-                          />
-                          <span>{involvedIndividuals}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+        <div className="flex flex-col md:flex-row w-full items-center gap-1.5 md:gap-1">
+          <div className="flex gap-2 w-full md:w-auto ">
+            <div className="relative md:w-auto w-full">
+              <Input
+                placeholder="Search for an entry"
+                value={search}
+                onChange={handleSearch}
+                className="w-full md:w-80 pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="w-5 h-5 text-gray-500" />
+              </span>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
-                  onClick={() => {
-                    setSelectedIncidents(new Set());
-                    setSelectedMaterials(new Set());
-                    setSelectedPersonnels(new Set());
-                    filterMaterials();
-                  }}
+                  className={cn(
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center`
+                  )}
                 >
-                  Clear Filters
+                  <Filter /> <span className="lg:flex hidden">Filter</span>
                 </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col items-start">
+                  <Collapsible
+                    open={isMaterialOpen}
+                    onOpenChange={setIsMaterialOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Materials</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(incidents.map((m) => m.materialsInvolved))
+                        ).map((materialsInvolved) => (
+                          <label
+                            key={materialsInvolved}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={materialsInvolved}
+                              checked={selectedMaterials.has(materialsInvolved)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() =>
+                                handleMaterialsChange(materialsInvolved)
+                              }
+                            />
+                            <span>{materialsInvolved}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isIncidentOpen}
+                    onOpenChange={setIsIncidentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Incidents</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(incidents.map((m) => m.natureOfIncident))
+                        ).map((natureOfIncident) => (
+                          <label
+                            key={natureOfIncident}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={natureOfIncident}
+                              checked={selectedIncidents.has(natureOfIncident)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() =>
+                                handleIncidentsChange(natureOfIncident)
+                              }
+                            />
+                            <span>{natureOfIncident}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isPersonnelOpen}
+                    onOpenChange={setIsPersonnelOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Personnels</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(
+                            incidents
+                              .map((m) => m.involvedIndividuals)
+                              .filter(Boolean)
+                          )
+                        ).map((involvedIndividuals) => (
+                          <label
+                            key={involvedIndividuals}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={involvedIndividuals}
+                              checked={selectedPersonnels.has(
+                                involvedIndividuals
+                              )}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() =>
+                                handlePersonnelsChange(involvedIndividuals)
+                              }
+                            />
+                            <span>{involvedIndividuals}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedIncidents(new Set());
+                      setSelectedMaterials(new Set());
+                      setSelectedPersonnels(new Set());
+                      filterMaterials();
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex items-center w-full justify-between gap-2">
+            <Button
+              className="flex items-center bg-teal-500 w-1/2 text-white md:w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                router.push("/incident-form");
+              }}
+            >
+              <FilePlus className="w-4 h-4 mr-1" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Report Incident
+              </span>
+            </Button>
+
+            <Button
+              className="flex md:w-1/4 items-center bg-teal-800 text-white w-1/2 justify-center rounded-lg hover:bg-teal-950 transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                setIsPrintAllOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Print Forms
+              </span>
+            </Button>
           </div>
         </div>
       </div>
