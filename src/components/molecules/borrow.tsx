@@ -415,23 +415,25 @@ const Borrow = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold text-teal-700 mb-4">
+      <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Borrow Forms
       </h1>
       <Toaster />
-      <div className="flex text-right justify-left items-center mb-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Search for an entry"
-            value={search}
-            onChange={handleSearch}
-            className="w-80 pr-8"
-          />
-          <span className="relative -ml-8">
-            <Search className="size-5 text-gray-500" />
-          </span>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
+          <div className="relative flex-grow w-full">
+            <Input
+              placeholder="Search for a material"
+              value={search}
+              onChange={handleSearch}
+              className="w-full pr-10"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Search className="w-5 h-5 text-gray-500" />
+            </span>
+          </div>
           <Button
-            className="bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               router.push("/borrow-form");
             }}
@@ -439,8 +441,9 @@ const Borrow = () => {
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
             Borrow Material
           </Button>
+
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out ml-2"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}
@@ -574,8 +577,43 @@ const Borrow = () => {
             </PopoverContent>
           </Popover>
         </div>
-      </div>
 
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="flex items-center">
+            <Input
+              placeholder="Search for an entry"
+              value={search}
+              onChange={handleSearch}
+              className="w-80 pr-8"
+            />
+            <span className="relative -ml-8">
+              <Search className="size-5 text-gray-500" />
+            </span>
+            <Button
+              className={cn(
+                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
+              )}
+              onClick={() => {
+                router.push("/borrow-form");
+              }}
+            >
+              <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+              Borrow Material
+            </Button>
+            <Button
+              className={cn(
+                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2`
+              )}
+              onClick={() => {
+                setIsPrintAllOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" strokeWidth={1.5} />
+              Print Forms
+            </Button>
+          </div>
+        </div>
+      </div>
       <Toaster />
       <TooltipProvider>
         <Table className="overflow-x-auto">
