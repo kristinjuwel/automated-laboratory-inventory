@@ -343,6 +343,7 @@ const Reagent = () => {
     "ID",
     "Item Name",
     "Item Code",
+    "On Hand",
     "Minimum",
     "Maximum",
     "Status",
@@ -354,6 +355,7 @@ const Reagent = () => {
     material.materialId,
     material.itemName,
     material.itemCode,
+    material.quantityAvailable,
     material.reorderThreshold,
     material.maxThreshold,
     material.quantityAvailable === 0
