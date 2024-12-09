@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -98,8 +98,7 @@ const ITEMS_PER_PAGE = 4;
 
 const Reagent = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const [materials, setMaterials] = useState<Material[]>([]);
   const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
   const [search, setSearch] = useState("");
@@ -144,7 +143,7 @@ const Reagent = () => {
           if (!response.ok) {
             throw new Error("Failed to fetch materials");
           }
-          const data: Material[] = await response.json(); // Explicitly type the fetched data
+          const data: Material[] = await response.json();
           const reagentMaterials = data.filter(
             (material) =>
               material.category.shortName.toLowerCase() === "reagent" &&
@@ -152,12 +151,6 @@ const Reagent = () => {
           );
           setMaterials(reagentMaterials);
           setFilteredMaterials(reagentMaterials);
-
-          // Extract unique suppliers
-          const uniqueSuppliers = Array.from(
-            new Set(reagentMaterials.map((m) => m.supplier.companyName))
-          );
-          console.log("Unique Suppliers:", uniqueSuppliers);
         } catch (error) {
           console.error("Error fetching materials:", error);
         }
@@ -288,7 +281,6 @@ const Reagent = () => {
         throw new Error("Failed to fetch inventory logs");
       }
       const data = await response.json();
-      console.log(data);
       setLogs(data);
     } catch (error) {
       console.error("Error fetching inventory logs:", error);
@@ -393,76 +385,24 @@ const Reagent = () => {
         Reagent Inventory
       </h1>
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
-          <div className="relative flex-grow w-full">
-            <Input
-              placeholder="Search for a material"
-              value={search}
-              onChange={handleSearch}
-              className="w-full pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
-          </div>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/reagents-inventory-form");
-            }}
-          >
-            <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
-            Add Material
-          </Button>
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="relative">
-            <Input
-              placeholder="Search for an entry"
-              value={search}
-              onChange={handleSearch}
-              className="w-80 pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
-          </div>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/reagents-inventory-form");
-            }}
-          >
-            <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
-            Add Material
-          </Button>
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-          <div className="flex space-x-4">
+        <div className="flex flex-col md:flex-row w-full items-center gap-1.5 md:gap-1">
+          <div className="flex gap-2 w-full md:w-auto ">
+            <div className="relative md:w-auto w-full">
+              <Input
+                placeholder="Search for an entry"
+                value={search}
+                onChange={handleSearch}
+                className="w-full md:w-80 pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="w-5 h-5 text-gray-500" />
+              </span>
+            </div>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   className={cn(
-                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center`
                   )}
                 >
                   <Filter /> <span className="lg:flex hidden">Filter</span>
@@ -560,7 +500,7 @@ const Reagent = () => {
                         {Array.from(
                           new Set(
                             materials.map((m) => m.location).filter(Boolean)
-                          ) // Filter out undefined/null
+                          )
                         ).map((location) => (
                           <label
                             key={location}
@@ -586,7 +526,7 @@ const Reagent = () => {
                       setSelectedSuppliers(new Set());
                       setSelectedCategories(new Set());
                       setSelectedLocations(new Set());
-                      filterMaterials(); // Trigger filtering after reset
+                      filterMaterials();
                     }}
                   >
                     Clear Filters
@@ -594,6 +534,31 @@ const Reagent = () => {
                 </div>
               </PopoverContent>
             </Popover>
+          </div>
+          <div className="flex items-center w-full justify-between gap-2">
+            <Button
+              className="flex items-center bg-teal-500 w-1/2 text-white md:w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                router.push("/reagents-inventory-form");
+              }}
+            >
+              <FilePlus className="w-4 h-4 mr-1" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Add Material
+              </span>
+            </Button>
+
+            <Button
+              className="flex md:w-1/4 items-center bg-teal-800 text-white w-1/2 justify-center rounded-lg hover:bg-teal-950 transition-colors duration-300 ease-in-out"
+              onClick={() => {
+                setIsPrintAllOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Stock Level Report
+              </span>
+            </Button>
           </div>
         </div>
       </div>
@@ -680,7 +645,10 @@ const Reagent = () => {
                 {sortColumn === "createdAt" &&
                   (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead onClick={() => handleSort("updatedAt")}>
+              <TableHead
+                onClick={() => handleSort("updatedAt")}
+                className="text-nowrap"
+              >
                 Updated At{" "}
                 {sortColumn === "updatedAt" &&
                   (sortDirection === "asc" ? "↑" : "↓")}
@@ -800,7 +768,7 @@ const Reagent = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={20} className="text-center text-gray-500">
+                <TableCell colSpan={21} className="text-center text-gray-500">
                   No materials found.
                 </TableCell>
               </TableRow>

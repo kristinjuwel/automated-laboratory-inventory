@@ -288,7 +288,6 @@ const EditInventory = ({
           body: JSON.stringify(materialPayload),
         }
       );
-      console.log(materialPayload);
       if (!materialResponse.ok) {
         throw new Error("Failed to edit material");
       }
