@@ -215,7 +215,7 @@ const DashboardPage = () => {
 
               <div className="sm:hidden">
                 <Popover>
-                  <PopoverTrigger className="flex items-center px-4 py-2 bg-teal-100 text-black rounded-lg">
+                  <PopoverTrigger className="flex items-center px-4 py-2 bg-teal-100 text-black rounded-lg ml-8">
                     <Boxes size={30} />
                   </PopoverTrigger>
                   <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto">

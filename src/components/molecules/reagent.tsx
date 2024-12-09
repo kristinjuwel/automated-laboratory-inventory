@@ -229,6 +229,15 @@ const Reagent = () => {
             <FilePlus className="w-4 h-4 mr-2" strokeWidth={1.5} />
             Add Material
           </Button>
+          <Button
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+            onClick={() => {
+              setIsPrintAllOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
+          </Button>
         </div>
 
         <div className="hidden sm:flex items-center gap-4">
@@ -254,7 +263,7 @@ const Reagent = () => {
             Add Material
           </Button>
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}

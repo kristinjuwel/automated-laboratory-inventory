@@ -33,6 +33,7 @@ import PdfGenerator from "../templates/pdf-generator";
 import PdfForm from "../templates/pdf-form";
 import IncidentEdit from "../dialogs/edit-incident";
 import { Label } from "../ui/label";
+import { cn } from "@/lib/utils";
 
 interface IncidentValues {
   incidentFormId: number;
@@ -348,7 +349,7 @@ const Incident = () => {
             Report Incident
           </Button>
           <Button
-            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
             onClick={() => {
               setIsPrintAllOpen(true);
             }}
@@ -356,6 +357,41 @@ const Incident = () => {
             <Printer className="w-4 h-4" strokeWidth={1.5} />
             Print Forms
           </Button>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="flex items-center">
+            <Input
+              placeholder="Search for an entry"
+              value={search}
+              onChange={handleSearch}
+              className="w-80 pr-8"
+            />
+            <span className="relative -ml-8">
+              <Search className="size-5 text-gray-500" />
+            </span>
+            <Button
+              className={cn(
+                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
+              )}            onClick={() => {
+              router.push("/incident-form");
+            }}
+          >
+            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+            Report Incident
+          </Button>
+          <Button
+            className={cn(
+              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2`
+            )}            
+            onClick={() => {
+              setIsPrintAllOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
+          </Button>
+          </div>
         </div>
       </div>
 
