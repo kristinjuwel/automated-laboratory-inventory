@@ -45,6 +45,9 @@ import {
 import { UserSchema } from "@/packages/api/user";
 import { Supplier } from "@/packages/api/lab";
 import EditPurchaseOrder from "../dialogs/edit-purchase-order";
+import PdfGenerator from "../templates/pdf-generator";
+import PdfForm from "../templates/pdf-form";
+
 interface PurchaseOrderValues {
   purchaseOrderId: number;
   purchaseOrderNumber: string;
@@ -194,6 +197,86 @@ const PurchaseOrder = () => {
       }
     }
   };
+
+  const tableHeaders = [
+    "PO ID",
+    "Purchase Order Number",
+    "Personnel",
+    "Laboratory",
+    "Date",
+    "Shipping Cost",
+    "Tax",
+    "Total Price",
+    "Supplier",
+    "Status",
+    "Created At",
+    "Updated At"
+  ];
+  const tableData = purchases.map((purchase) => [
+    purchase.purchaseOrderId,
+    purchase.purchaseOrderNumber,
+    purchase.userFullName,
+    purchase.laboratory,
+    new Date(purchase.date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
+      purchase.shippingCost,
+      purchase.tax,
+      purchase.totalPrice,
+      purchase.supplierName,
+      purchase.status,
+      new Date(purchase.creationDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+  ]);
+
+  const singleTableData = selectedPurchase
+    ? [
+        [
+          selectedPurchase.purchaseOrderId,
+          selectedPurchase.purchaseOrderNumber,
+          selectedPurchase.userFullName,
+          selectedPurchase.laboratory,
+          new Date(selectedPurchase.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }),
+            selectedPurchase.shippingCost,
+            selectedPurchase.tax,
+            selectedPurchase.totalPrice,
+            selectedPurchase.supplierName,
+            selectedPurchase.status,
+            new Date(selectedPurchase.creationDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            new Date(selectedPurchase.dateUpdated).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+        ],
+      ]
+    : [];
 
   return (
     <div className="p-8">
@@ -512,7 +595,7 @@ const PurchaseOrder = () => {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Borrow Report
+              Print Purchase Order Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -530,14 +613,14 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {/* <PdfGenerator
-              pdfTitle="Borrow Forms Report"
+            <PdfGenerator
+              pdfTitle="Purchase Order Report"
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
               tableData={tableData}
               closeDialog={() => setIsPrintAllOpen(false)}
-            ></PdfGenerator> */}
+            ></PdfGenerator>
           </div>
         </DialogContent>
       </Dialog>
@@ -639,17 +722,17 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {/* {selectedBorrow && (
+            {selectedPurchase && (
               <PdfForm
-                pdfTitle="Borrow Form"
+                pdfTitle="Purchase Order Form"
                 pageSize={pageSize}
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
-                materialName={selectedBorrow.material.itemName}
+                materialName={selectedPurchase.purchaseOrderNumber}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
-            )} */}
+            )}
           </div>
         </DialogContent>
       </Dialog>
