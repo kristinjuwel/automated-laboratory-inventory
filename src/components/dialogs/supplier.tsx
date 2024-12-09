@@ -22,12 +22,25 @@ interface CreateSupplierProps {
 const AddSupplier: React.FC<CreateSupplierProps> = ({ closeDialog }) => {
   const form = useForm<Supplier>();
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
       setEmailError("Please enter a valid email address");
     } else {
       setEmailError("");
+    }
+  };
+
+  const validatePhoneNumber = (value: string) => {
+    const phoneRegex = /^09\d{9}$/;
+    if (!phoneRegex.test(value)) {
+      setPhoneError(
+        "Phone number must be exactly 11 digits and start with '09'"
+      );
+    } else {
+      setPhoneError("");
     }
   };
 
@@ -144,10 +157,14 @@ const AddSupplier: React.FC<CreateSupplierProps> = ({ closeDialog }) => {
                       className="rounded-xl"
                       placeholder="Phone Number"
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        validatePhoneNumber(e.target.value);
+                      }}
                       required
                     />
                   </FormControl>
-                  <FormMessage />
+                  {phoneError && <FormMessage>{phoneError}</FormMessage>}
                 </FormItem>
               )}
             />
@@ -184,6 +201,7 @@ const AddSupplier: React.FC<CreateSupplierProps> = ({ closeDialog }) => {
               <Button
                 type="submit"
                 className="bg-teal-500 text-white hover:bg-teal-700 transition-colors duration-300 ease-in-out"
+                disabled={!!emailError || !!phoneError}
               >
                 Add Supplier
               </Button>
