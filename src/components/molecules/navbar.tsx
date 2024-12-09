@@ -46,7 +46,6 @@ import {
 import { cn } from "@/lib/utils";
 import { MaterialSchema } from "@/packages/api/inventory";
 import { Label } from "../ui/label";
-import { set } from "date-fns";
 
 const Navbar = () => {
   const router = useRouter();
@@ -201,40 +200,6 @@ const Navbar = () => {
     "Date Created",
     "Date Updated",
   ];
-
-  const tableData = materials.map((material) => [
-    material.materialId ?? "",
-    material.itemName ?? "",
-    material.itemCode ?? "",
-    material.quantityAvailable ?? 0,
-    material.reorderThreshold ?? 0,
-    material.maxThreshold ?? 0,
-    material.quantityAvailable === 0
-      ? "Critical Stockout"
-      : (material.quantityAvailable ?? 0) < (material.reorderThreshold ?? 0)
-      ? "Below Reorder Level"
-      : (material.quantityAvailable ?? 0) < (material.maxThreshold ?? 0)
-      ? "Sufficient"
-      : "Maximum Threshold",
-    material.createdAt
-      ? new Date(material.createdAt).toLocaleString("en-US", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "N/A",
-    material.updatedAt
-      ? new Date(material.updatedAt).toLocaleString("en-US", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "N/A",
-  ]);
 
   return (
     <div className="w-full max-w-full bg-teal-50 shadow-lg p-2 flex items-center justify-between sticky top-0 z-50">

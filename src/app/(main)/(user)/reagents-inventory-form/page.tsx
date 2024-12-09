@@ -319,10 +319,13 @@ const ReagentsInventoryForm = () => {
             return data.filter(
               (user) =>
                 user.designation !== "admin" &&
-                user.designation !== "superadmin"
+                user.designation !== "superadmin" &&
+                user.status.toLowerCase() === "active"
             );
           } else if (userRole === "superadmin") {
-            return data;
+            return data.filter(
+              (user) => user.status.toLowerCase() === "active"
+            );
           } else {
             return data.filter(
               (user) => user.userId.toString() === currentUserId
