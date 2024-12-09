@@ -89,7 +89,8 @@ const Biological = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
   const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
   const [pageSize, setPageSize] = useState("a4");
-  const [orientation, setOrientation] = useState<"portrait" | "landscape" | undefined
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
   >(undefined);
 
   useEffect(() => {
@@ -162,11 +163,11 @@ const Biological = () => {
     "Item Code",
     "Minimum",
     "Maximum",
-    "Status", 
+    "Status",
     "Date Created",
     "Date Updated",
   ];
-  
+
   const tableData = materials.map((material) => [
     material.materialId,
     material.itemName,
@@ -179,23 +180,26 @@ const Biological = () => {
       ? "Below Reorder Level"
       : material.quantityAvailable < material.maxThreshold
       ? "Sufficient"
-      : "Maximum Threshold", 
-    new Date(material.createdAt).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    new Date(material.updatedAt).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+      : "Maximum Threshold",
+    material.createdAt
+      ? new Date(material.createdAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A",
+    material.updatedAt
+      ? new Date(material.updatedAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A",
   ]);
-  
 
   return (
     <div className="p-8">
@@ -334,25 +338,26 @@ const Biological = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                  <div
-                    className={`w-full px-4 py-2 rounded-md font-semibold ${
-                      material.quantityAvailable === 0
-                        ? "bg-red-300 text-red-950"
+                    <div
+                      className={`w-full px-4 py-2 rounded-md font-semibold ${
+                        material.quantityAvailable === 0
+                          ? "bg-red-300 text-red-950"
+                          : material.quantityAvailable <
+                            material.reorderThreshold
+                          ? "bg-yellow-300 text-yellow-950"
+                          : material.quantityAvailable < material.maxThreshold
+                          ? "bg-emerald-300 text-emerald-950"
+                          : "bg-green-300 text-green-950"
+                      }`}
+                    >
+                      {material.quantityAvailable === 0
+                        ? "Critical Stockout"
                         : material.quantityAvailable < material.reorderThreshold
-                        ? "bg-yellow-300 text-yellow-950"
+                        ? "Below Reorder Level"
                         : material.quantityAvailable < material.maxThreshold
-                        ? "bg-emerald-300 text-emerald-950"
-                        : "bg-green-300 text-green-950"
-                    }`}
-                  >
-                    {material.quantityAvailable === 0
-                      ? "Critical Stockout"
-                      : material.quantityAvailable < material.reorderThreshold
-                      ? "Below Reorder Level"
-                      : material.quantityAvailable < material.maxThreshold
-                      ? "Sufficient"
-                      : "Maximum Threshold"}
-                  </div>
+                        ? "Sufficient"
+                        : "Maximum Threshold"}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Button
@@ -433,7 +438,7 @@ const Biological = () => {
       </Dialog>
 
       <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
-      <DialogContent className="bg-white">
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Biological Stock Level Report
@@ -529,14 +534,14 @@ const Biological = () => {
             >
               Cancel
             </Button>
-              <PdfGenerator
-                pdfTitle="Biological Stock Level Report"
-                pageSize={pageSize}
-                orientation={orientation}
-                tableHeaders={tableHeaders}
-                tableData={tableData}
-                closeDialog={() => setIsPrintAllOpen(false)}
-              />
+            <PdfGenerator
+              pdfTitle="Biological Stock Level Report"
+              pageSize={pageSize}
+              orientation={orientation}
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setIsPrintAllOpen(false)}
+            />
           </div>
         </DialogContent>
       </Dialog>

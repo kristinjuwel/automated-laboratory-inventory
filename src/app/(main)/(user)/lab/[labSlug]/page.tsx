@@ -43,7 +43,6 @@ const DashboardPage = () => {
   const [activeInventoryTab, setActiveInventoryTab] = useState(
     savedInventoryTab || "biological"
   );
-  const [showSidebar, setShowSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState(savedActiveTab || "inventory");
 
   useEffect(() => {
@@ -162,18 +161,18 @@ const DashboardPage = () => {
             <div className="flex flex-col sm:flex-row gap-2 overflow-hidden">
               <div className="sm:w-1/12 w-full sm:border-r-2 border-teal-100 sm:px-4 px-2 sm:block hidden overflow-hidden">
                 <ul className="space-y-2 py-4">
-                <li
-                  className={cn(
-                    `cursor-pointer p-2 rounded-md ${
-                      activeInventoryTab === "biological"
-                        ? "bg-teal-100 text-black"
-                        : "hover:bg-teal-50"
-                    }`
-                  )}
-                  onClick={() => setActiveInventoryTab("biological")}
-                >
-                  Biological
-                </li>
+                  <li
+                    className={cn(
+                      `cursor-pointer p-2 rounded-md ${
+                        activeInventoryTab === "biological"
+                          ? "bg-teal-100 text-black"
+                          : "hover:bg-teal-50"
+                      }`
+                    )}
+                    onClick={() => setActiveInventoryTab("biological")}
+                  >
+                    Biological
+                  </li>
                   <li
                     className={cn(
                       `cursor-pointer p-2 rounded-md ${
@@ -225,7 +224,9 @@ const DashboardPage = () => {
                           onClick={() => setActiveInventoryTab("biological")}
                           className={cn(
                             "w-full text-left px-4 py-2 rounded-lg",
-                            activeInventoryTab === "biological" ? "bg-teal-50" : ""
+                            activeInventoryTab === "biological"
+                              ? "bg-teal-50"
+                              : ""
                           )}
                         >
                           Biological
@@ -236,7 +237,9 @@ const DashboardPage = () => {
                           onClick={() => setActiveInventoryTab("chemical")}
                           className={cn(
                             "w-full text-left px-4 py-2 rounded-lg",
-                            activeInventoryTab === "chemical" ? "bg-teal-50" : ""
+                            activeInventoryTab === "chemical"
+                              ? "bg-teal-50"
+                              : ""
                           )}
                         >
                           Chemical
@@ -295,11 +298,9 @@ const DashboardPage = () => {
           <TabsContent value="reagentsDispense">
             <ReagentDispense />
           </TabsContent>
-
         </Tabs>
       </div>
     </div>
-
   );
 };
 
