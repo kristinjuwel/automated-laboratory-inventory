@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "sonner";
@@ -10,7 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer, History, Filter, ChevronsUpDown } from "lucide-react";
+import {
+  Edit,
+  Search,
+  FilePlus,
+  Printer,
+  History,
+  Filter,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -105,7 +113,8 @@ const Reagent = () => {
   const [logs, setLogs] = useState<Logs[]>([]);
   const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
   const [pageSize, setPageSize] = useState("a4");
-  const [orientation, setOrientation] = useState<"portrait" | "landscape" | undefined
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
   >(undefined);
   const [sortColumn, setSortColumn] = useState<keyof Material | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
@@ -115,11 +124,15 @@ const Reagent = () => {
   const [isSupplierOpen, setIsSupplierOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
-  const [selectedLocations, setSelectedLocations] = useState<Set<string>>(new Set());
-
-
+  const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedLocations, setSelectedLocations] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -139,7 +152,7 @@ const Reagent = () => {
           );
           setMaterials(reagentMaterials);
           setFilteredMaterials(reagentMaterials);
-      
+
           // Extract unique suppliers
           const uniqueSuppliers = Array.from(
             new Set(reagentMaterials.map((m) => m.supplier.companyName))
@@ -149,39 +162,50 @@ const Reagent = () => {
           console.error("Error fetching materials:", error);
         }
       };
-  
+
       fetchMaterials();
     }
   }, [labSlug, isEditDialogOpen]);
-  
-  const filterMaterials = () => {
+
+  const filterMaterials = useCallback(() => {
     const query = search.toLowerCase();
-  
+
     const filtered = materials.filter((material) => {
       const matchesSearch =
         `${material.itemName} ${material.itemCode} ${material.category.subcategory1} ${material.location} ${material.supplier.companyName}`
           .toLowerCase()
           .includes(query);
-  
+
       const matchesSuppliers =
         selectedSuppliers.size === 0 ||
         selectedSuppliers.has(material.supplier.companyName);
-  
+
       const matchesCategories =
         selectedCategories.size === 0 ||
         selectedCategories.has(material.category.subcategory1);
-  
+
       const matchesLocations =
-        selectedLocations.size === 0 || selectedLocations.has(material.location);
-  
-      return matchesSearch && matchesSuppliers && matchesCategories && matchesLocations;
+        selectedLocations.size === 0 ||
+        selectedLocations.has(material.location);
+
+      return (
+        matchesSearch &&
+        matchesSuppliers &&
+        matchesCategories &&
+        matchesLocations
+      );
     });
-  
+
     setFilteredMaterials(filtered);
-    setCurrentPage(1); // Reset pagination
-  };
-  
-  
+    setCurrentPage(1);
+  }, [
+    search,
+    materials,
+    selectedSuppliers,
+    selectedCategories,
+    selectedLocations,
+  ]);
+
   const handleSupplierChange = (supplier: string) => {
     setSelectedSuppliers((prev) => {
       const updated = new Set(prev);
@@ -193,7 +217,7 @@ const Reagent = () => {
       return updated;
     });
   };
-  
+
   const handleCategoryChange = (category: string) => {
     setSelectedCategories((prev) => {
       const updated = new Set(prev);
@@ -205,7 +229,7 @@ const Reagent = () => {
       return updated;
     });
   };
-  
+
   const handleLocationChange = (location: string) => {
     setSelectedLocations((prev) => {
       const updated = new Set(prev);
@@ -220,8 +244,14 @@ const Reagent = () => {
 
   useEffect(() => {
     filterMaterials();
-  }, [selectedSuppliers, selectedCategories, selectedLocations, search]);
-  
+  }, [
+    selectedSuppliers,
+    selectedCategories,
+    selectedLocations,
+    search,
+    filterMaterials,
+  ]);
+
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchMaterials = async () => {
@@ -295,7 +325,7 @@ const Reagent = () => {
     const sorted = sortMaterials(filteredMaterials, column, newDirection);
     setFilteredMaterials(sorted);
   };
-  
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearch(query);
@@ -323,11 +353,11 @@ const Reagent = () => {
     "Item Code",
     "Minimum",
     "Maximum",
-    "Status", 
+    "Status",
     "Date Created",
     "Date Updated",
   ];
-  
+
   const tableData = materials.map((material) => [
     material.materialId,
     material.itemName,
@@ -340,7 +370,7 @@ const Reagent = () => {
       ? "Below Reorder Level"
       : material.quantityAvailable < material.maxThreshold
       ? "Sufficient"
-      : "Maximum Threshold", 
+      : "Maximum Threshold",
     new Date(material.createdAt).toLocaleString("en-US", {
       year: "numeric",
       month: "2-digit",
@@ -428,19 +458,22 @@ const Reagent = () => {
             Print Forms
           </Button>
           <div className="flex space-x-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
-                )}
-              >
-                <Filter /> <span className="lg:flex hidden">Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg max-h-96 overflow-y-auto overflow-x-hidden">
-              <div className="flex flex-col items-start">
-                <Collapsible open={isSupplierOpen} onOpenChange={setIsSupplierOpen}>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={cn(
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                  )}
+                >
+                  <Filter /> <span className="lg:flex hidden">Filter</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col items-start">
+                  <Collapsible
+                    open={isSupplierOpen}
+                    onOpenChange={setIsSupplierOpen}
+                  >
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
@@ -472,86 +505,95 @@ const Reagent = () => {
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
-                <Collapsible open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Category</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(materials.map((m) => m.category.subcategory1))
-                      ).map((subcategory1) => (
-                        <label
-                          key={subcategory1}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={subcategory1}
-                            checked={selectedCategories.has(subcategory1)}
-                            className="text-teal-500 accent-teal-200"
-                            onChange={() => handleCategoryChange(subcategory1)}
-                          />
-                          <span>{subcategory1}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible open={isLocationOpen} onOpenChange={setIsLocationOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Location</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
-                        new Set(materials.map((m) => m.location).filter(Boolean)) // Filter out undefined/null
-                      ).map((location) => (
-                        <label
-                          key={location}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={location}
-                            checked={selectedLocations.has(location)}
-                            className="text-teal-500 accent-teal-200"
-                            onChange={() => handleLocationChange(location)}
-                          />
-                          <span>{location}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Button
-                  variant="outline"
-                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
-                  onClick={() => {
-                    setSelectedSuppliers(new Set());
-                    setSelectedCategories(new Set());
-                    setSelectedLocations(new Set());
-                    filterMaterials(); // Trigger filtering after reset
-                  }}
-                >
-                  Clear Filters
-                </Button>
-
-              </div>
-            </PopoverContent>
-          </Popover>
+                  <Collapsible
+                    open={isCategoryOpen}
+                    onOpenChange={setIsCategoryOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Category</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(materials.map((m) => m.category.subcategory1))
+                        ).map((subcategory1) => (
+                          <label
+                            key={subcategory1}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={subcategory1}
+                              checked={selectedCategories.has(subcategory1)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() =>
+                                handleCategoryChange(subcategory1)
+                              }
+                            />
+                            <span>{subcategory1}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isLocationOpen}
+                    onOpenChange={setIsLocationOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Location</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(
+                            materials.map((m) => m.location).filter(Boolean)
+                          ) // Filter out undefined/null
+                        ).map((location) => (
+                          <label
+                            key={location}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={location}
+                              checked={selectedLocations.has(location)}
+                              className="text-teal-500 accent-teal-200"
+                              onChange={() => handleLocationChange(location)}
+                            />
+                            <span>{location}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedSuppliers(new Set());
+                      setSelectedCategories(new Set());
+                      setSelectedLocations(new Set());
+                      filterMaterials(); // Trigger filtering after reset
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
@@ -562,56 +604,86 @@ const Reagent = () => {
           <TableHeader className="text-center justify-center">
             <TableRow>
               <TableHead onClick={() => handleSort("materialId")}>
-                ID{" "} {sortColumn === "materialId" && (sortDirection === "asc" ? "↑" : "↓")}
+                ID{" "}
+                {sortColumn === "materialId" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("itemName")}>
-                Item Name {" "} {sortColumn === "itemName" && (sortDirection === "asc" ? "↑" : "↓")}
+                Item Name{" "}
+                {sortColumn === "itemName" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("itemCode")}>
-                Item Code{" "} {sortColumn === "itemCode" && (sortDirection === "asc" ? "↑" : "↓")}
+                Item Code{" "}
+                {sortColumn === "itemCode" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("qtyPerContainer")}>
-                Quantity Per Container{" "} {sortColumn === "qtyPerContainer" && (sortDirection === "asc" ? "↑" : "↓")}
+                Quantity Per Container{" "}
+                {sortColumn === "qtyPerContainer" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Total Quantity</TableHead>
               <TableHead>Total Containers</TableHead>
               <TableHead onClick={() => handleSort("unit")}>
-                Unit{" "} {sortColumn === "unit" && (sortDirection === "asc" ? "↑" : "↓")}
+                Unit{" "}
+                {sortColumn === "unit" && (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("lotNo")}>
-                Lot Number{" "} {sortColumn === "lotNo" && (sortDirection === "asc" ? "↑" : "↓")}
+                Lot Number{" "}
+                {sortColumn === "lotNo" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("reorderThreshold")}>
-                Min{" "} {sortColumn === "reorderThreshold" && (sortDirection === "asc" ? "↑" : "↓")}
-                </TableHead>
+                Min{" "}
+                {sortColumn === "reorderThreshold" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead onClick={() => handleSort("maxThreshold")}>
-                Max{" "} {sortColumn === "maxThreshold" && (sortDirection === "asc" ? "↑" : "↓")}
+                Max{" "}
+                {sortColumn === "maxThreshold" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Excess</TableHead>
               <TableHead onClick={() => handleSort("expiryDate")}>
-                Expiration{" "} {sortColumn === "expiryDate" && (sortDirection === "asc" ? "↑" : "↓")}
+                Expiration{" "}
+                {sortColumn === "expiryDate" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("category")}>
-                Category{" "} {sortColumn === "category" && (sortDirection === "asc" ? "↑" : "↓")}
+                Category{" "}
+                {sortColumn === "category" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("location")}>
-                Location{" "} {sortColumn === "location" && (sortDirection === "asc" ? "↑" : "↓")}
+                Location{" "}
+                {sortColumn === "location" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("supplier")}>
-                Supplier{" "} {sortColumn === "supplier" && (sortDirection === "asc" ? "↑" : "↓")}
+                Supplier{" "}
+                {sortColumn === "supplier" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("cost")}>
-                Cost{" "} {sortColumn === "cost" && (sortDirection === "asc" ? "↑" : "↓")}
+                Cost{" "}
+                {sortColumn === "cost" && (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("notes")}>
-                Notes{" "} {sortColumn === "notes" && (sortDirection === "asc" ? "↑" : "↓")}
+                Notes{" "}
+                {sortColumn === "notes" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Status</TableHead>
               <TableHead onClick={() => handleSort("createdAt")}>
-                Created At{" "} {sortColumn === "createdAt" && (sortDirection === "asc" ? "↑" : "↓")}
+                Created At{" "}
+                {sortColumn === "createdAt" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead onClick={() => handleSort("updatedAt")}>
-                Updated At{" "} {sortColumn === "updatedAt" && (sortDirection === "asc" ? "↑" : "↓")}
+                Updated At{" "}
+                {sortColumn === "updatedAt" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -660,25 +732,26 @@ const Reagent = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                  <div
-                    className={`w-full px-4 py-2 rounded-md font-semibold ${
-                      material.quantityAvailable === 0
-                        ? "bg-red-300 text-red-950"
+                    <div
+                      className={`w-full px-4 py-2 rounded-md font-semibold ${
+                        material.quantityAvailable === 0
+                          ? "bg-red-300 text-red-950"
+                          : material.quantityAvailable <
+                            material.reorderThreshold
+                          ? "bg-yellow-300 text-yellow-950"
+                          : material.quantityAvailable < material.maxThreshold
+                          ? "bg-emerald-300 text-emerald-950"
+                          : "bg-green-300 text-green-950"
+                      }`}
+                    >
+                      {material.quantityAvailable === 0
+                        ? "Critical Stockout"
                         : material.quantityAvailable < material.reorderThreshold
-                        ? "bg-yellow-300 text-yellow-950"
+                        ? "Below Reorder Level"
                         : material.quantityAvailable < material.maxThreshold
-                        ? "bg-emerald-300 text-emerald-950"
-                        : "bg-green-300 text-green-950"
-                    }`}
-                  >
-                    {material.quantityAvailable === 0
-                      ? "Critical Stockout"
-                      : material.quantityAvailable < material.reorderThreshold
-                      ? "Below Reorder Level"
-                      : material.quantityAvailable < material.maxThreshold
-                      ? "Sufficient"
-                      : "Maximum Threshold"}
-                  </div>
+                        ? "Sufficient"
+                        : "Maximum Threshold"}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {new Date(material.createdAt).toLocaleString("en-US", {
@@ -780,7 +853,7 @@ const Reagent = () => {
       </Dialog>
 
       <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
-      <DialogContent className="bg-white">
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
               Print Reagent Stock Level Report
@@ -876,14 +949,14 @@ const Reagent = () => {
             >
               Cancel
             </Button>
-              <PdfGenerator
-                pdfTitle="Reagent Stock Level Report"
-                pageSize={pageSize}
-                orientation={orientation}
-                tableHeaders={tableHeaders}
-                tableData={tableData}
-                closeDialog={() => setIsPrintAllOpen(false)}
-              />
+            <PdfGenerator
+              pdfTitle="Reagent Stock Level Report"
+              pageSize={pageSize}
+              orientation={orientation}
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setIsPrintAllOpen(false)}
+            />
           </div>
         </DialogContent>
       </Dialog>

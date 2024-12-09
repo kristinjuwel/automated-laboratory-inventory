@@ -36,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import CustomPagination from "../ui/pagination-custom";
+import PdfForm from "../templates/pdf-form";
 import { PurchaseOrderSchema, PurchaseSchema } from "@/packages/api/inventory";
 import {
   Select,
@@ -57,6 +58,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import PdfGenerator from "../templates/pdf-generator";
 interface PurchaseOrderValues {
   purchaseOrderId: number;
   purchaseOrderNumber: string;
@@ -104,13 +106,21 @@ const PurchaseOrder = () => {
     "portrait" | "landscape" | undefined
   >(undefined);
 
-  const [sortColumn, setSortColumn] = useState<keyof PurchaseOrderValues | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
-  
+  const [sortColumn, setSortColumn] = useState<
+    keyof PurchaseOrderValues | null
+  >(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
+
   const [isSupplierOpen, setIsSupplierOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<Set<string>>(new Set());
+  const [selectedSupplier, setSelectedSupplier] = useState<Set<string>>(
+    new Set()
+  );
   const [isLaboratoryOpen, setIsLaboratoryOpen] = useState(false);
-  const [selectedLaboratory, setSelectedLaboratory] = useState<Set<string>>(new Set());
+  const [selectedLaboratory, setSelectedLaboratory] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -200,9 +210,11 @@ const PurchaseOrder = () => {
     const applyFilters = () => {
       const filtered = purchases.filter((purchase) => {
         const matchesSupplier =
-          selectedSupplier.size === 0 || selectedSupplier.has(purchase.supplierName);
-        const matchesLaboratory = 
-          selectedLaboratory.size === 0 || selectedLaboratory.has(purchase.laboratory);
+          selectedSupplier.size === 0 ||
+          selectedSupplier.has(purchase.supplierName);
+        const matchesLaboratory =
+          selectedLaboratory.size === 0 ||
+          selectedLaboratory.has(purchase.laboratory);
         return matchesSupplier && matchesLaboratory;
       });
 
@@ -211,7 +223,7 @@ const PurchaseOrder = () => {
     };
     applyFilters();
   }, [selectedLaboratory, selectedSupplier, purchases]);
-  
+
   const handleLaboratoryChange = (labName: string) => {
     setSelectedLaboratory((prev) => {
       const updated = new Set(prev);
@@ -223,7 +235,7 @@ const PurchaseOrder = () => {
       return updated;
     });
   };
-  
+
   const handleSupplierChange = (supplierName: string) => {
     setSelectedSupplier((prev) => {
       const updated = new Set(prev);
@@ -235,7 +247,6 @@ const PurchaseOrder = () => {
       return updated;
     });
   };
-
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -300,7 +311,7 @@ const PurchaseOrder = () => {
     "Supplier",
     "Status",
     "Created At",
-    "Updated At"
+    "Updated At",
   ];
   const tableData = purchases.map((purchase) => [
     purchase.purchaseOrderId,
@@ -308,29 +319,29 @@ const PurchaseOrder = () => {
     purchase.userFullName,
     purchase.laboratory,
     new Date(purchase.date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
-      purchase.shippingCost,
-      purchase.tax,
-      purchase.totalPrice,
-      purchase.supplierName,
-      purchase.status,
-      new Date(purchase.creationDate).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    purchase.shippingCost,
+    purchase.tax,
+    purchase.totalPrice,
+    purchase.supplierName,
+    purchase.status,
+    new Date(purchase.creationDate).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
   ]);
 
   const singleTableData = selectedPurchase
@@ -341,29 +352,29 @@ const PurchaseOrder = () => {
           selectedPurchase.userFullName,
           selectedPurchase.laboratory,
           new Date(selectedPurchase.date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            }),
-            selectedPurchase.shippingCost,
-            selectedPurchase.tax,
-            selectedPurchase.totalPrice,
-            selectedPurchase.supplierName,
-            selectedPurchase.status,
-            new Date(selectedPurchase.creationDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            new Date(selectedPurchase.dateUpdated).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }),
+          selectedPurchase.shippingCost,
+          selectedPurchase.tax,
+          selectedPurchase.totalPrice,
+          selectedPurchase.supplierName,
+          selectedPurchase.status,
+          new Date(selectedPurchase.creationDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          new Date(selectedPurchase.dateUpdated).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         ],
       ]
     : [];
@@ -420,114 +431,121 @@ const PurchaseOrder = () => {
               <Search className="size-5 text-gray-500" />
             </span>
             <Button
-            className="bg-teal-500 text-white w-42 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
-            onClick={() => {
-              router.push("/laboratory-purchase-order");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Purchase Materials
-          </Button>
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in- ml-2"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
-                )}
-              >
-                <Filter /> <span className="lg:flex hidden">Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
-              <div className="flex flex-col items-start">
-              <Collapsible open={isSupplierOpen} onOpenChange={setIsSupplierOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Supplier</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {Array.from(
+              className="bg-teal-500 text-white w-42 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
+              onClick={() => {
+                router.push("/laboratory-purchase-order");
+              }}
+            >
+              <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+              Purchase Materials
+            </Button>
+            <Button
+              className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in- ml-2"
+              onClick={() => {
+                setIsPrintAllOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" strokeWidth={1.5} />
+              Print Forms
+            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={cn(
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                  )}
+                >
+                  <Filter /> <span className="lg:flex hidden">Filter</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col items-start">
+                  <Collapsible
+                    open={isSupplierOpen}
+                    onOpenChange={setIsSupplierOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Supplier</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
                           new Set(purchases.map((m) => m.supplierName))
                         ).map((supplierName) => (
-                        <label
-                          key={supplierName}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={supplierName}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedSupplier.has(supplierName)}
-                            onChange={() => handleSupplierChange(supplierName)}
-                          />
-                          <span>{supplierName}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-              </Collapsible>
-              <Collapsible open={isLaboratoryOpen} onOpenChange={setIsLaboratoryOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
-                    >
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="text-black">Laboratory</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 transition-all text-sm">
-                      {[
-                        "Pathology",
-                        "Immunology",
-                        "Microbiology",
-                      ].map((labName) => (
-                        <label
-                          key={labName}
-                          className="flex items-center space-x-2 whitespace-nowrap"
-                        >
-                          <Input
-                            type="checkbox"
-                            value={labName}
-                            className="text-teal-500 accent-teal-200"
-                            checked={selectedLaboratory.has(labName)}
-                            onChange={() => handleLaboratoryChange(labName)}
-                          />
-                          <span>{labName}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Button
-                  variant="outline"
-                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
-                  onClick={() => {
-                    setSelectedLaboratory(new Set());
-                    setSelectedSupplier(new Set());
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+                          <label
+                            key={supplierName}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={supplierName}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedSupplier.has(supplierName)}
+                              onChange={() =>
+                                handleSupplierChange(supplierName)
+                              }
+                            />
+                            <span>{supplierName}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isLaboratoryOpen}
+                    onOpenChange={setIsLaboratoryOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Laboratory</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Pathology", "Immunology", "Microbiology"].map(
+                          (labName) => (
+                            <label
+                              key={labName}
+                              className="flex items-center space-x-2 whitespace-nowrap"
+                            >
+                              <Input
+                                type="checkbox"
+                                value={labName}
+                                className="text-teal-500 accent-teal-200"
+                                checked={selectedLaboratory.has(labName)}
+                                onChange={() => handleLaboratoryChange(labName)}
+                              />
+                              <span>{labName}</span>
+                            </label>
+                          )
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedLaboratory(new Set());
+                      setSelectedSupplier(new Set());
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
 
@@ -535,17 +553,64 @@ const PurchaseOrder = () => {
       <Table className="overflow-x-auto">
         <TableHeader className="text-center justify-center">
           <TableRow>
-            <TableHead onClick={() => handleSort("purchaseOrderId")}>Purchase Order Number{" "} {sortColumn === "purchaseOrderId" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("userFullName")}>Personnel{" "} {sortColumn === "userFullName" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("laboratory")}>Laboratory{" "} {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("date")}>Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("shippingCost")}>Shipping Cost{" "} {sortColumn === "shippingCost" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("tax")}>Tax{" "} {sortColumn === "tax" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("totalPrice")}>Total Price{" "} {sortColumn === "totalPrice" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("supplier")}>Supplier{" "} {sortColumn === "supplier" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("status")}>Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("creationDate")} className="text-nowrap">Created At {" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
-            <TableHead onClick={() => handleSort("dateUpdated")} className="text-nowrap">Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("purchaseOrderId")}>
+              Purchase Order Number{" "}
+              {sortColumn === "purchaseOrderId" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("userFullName")}>
+              Personnel{" "}
+              {sortColumn === "userFullName" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("laboratory")}>
+              Laboratory{" "}
+              {sortColumn === "laboratory" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("date")}>
+              Date{" "}
+              {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("shippingCost")}>
+              Shipping Cost{" "}
+              {sortColumn === "shippingCost" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("tax")}>
+              Tax{" "}
+              {sortColumn === "tax" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("totalPrice")}>
+              Total Price{" "}
+              {sortColumn === "totalPrice" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("supplier")}>
+              Supplier{" "}
+              {sortColumn === "supplier" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead onClick={() => handleSort("status")}>
+              Status{" "}
+              {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead
+              onClick={() => handleSort("creationDate")}
+              className="text-nowrap"
+            >
+              Created At{" "}
+              {sortColumn === "creationDate" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
+            <TableHead
+              onClick={() => handleSort("dateUpdated")}
+              className="text-nowrap"
+            >
+              Updated At{" "}
+              {sortColumn === "dateUpdated" &&
+                (sortDirection === "asc" ? "↑" : "↓")}
+            </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -810,7 +875,7 @@ const PurchaseOrder = () => {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Borrow Report
+              Print Purchase Order Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -828,14 +893,14 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {/* <PdfGenerator
-              pdfTitle="Borrow Forms Report"
+            <PdfGenerator
+              pdfTitle="Purchase Order Report"
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
               tableData={tableData}
               closeDialog={() => setIsPrintAllOpen(false)}
-            ></PdfGenerator> */}
+            ></PdfGenerator>
           </div>
         </DialogContent>
       </Dialog>
@@ -937,17 +1002,17 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {/* {selectedBorrow && (
+            {selectedPurchase && (
               <PdfForm
-                pdfTitle="Borrow Form"
+                pdfTitle="Purchase Order Form"
                 pageSize={pageSize}
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
-                materialName={selectedBorrow.material.itemName}
+                materialName={selectedPurchase.purchaseOrderNumber}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
-            )} */}
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -985,7 +1050,6 @@ const PurchaseOrder = () => {
         </DialogContent>
       </Dialog>
     </div>
-    
   );
 };
 
