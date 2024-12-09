@@ -17,6 +17,8 @@ import {
   Printer,
   SquarePen,
   FolderOpen,
+  Filter,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   Dialog,
@@ -45,9 +47,16 @@ import {
 import { UserSchema } from "@/packages/api/user";
 import { Supplier } from "@/packages/api/lab";
 import EditPurchaseOrder from "../dialogs/edit-purchase-order";
-import PdfGenerator from "../templates/pdf-generator";
-import PdfForm from "../templates/pdf-form";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 interface PurchaseOrderValues {
   purchaseOrderId: number;
   purchaseOrderNumber: string;
@@ -94,6 +103,14 @@ const PurchaseOrder = () => {
   const [orientation, setOrientation] = useState<
     "portrait" | "landscape" | undefined
   >(undefined);
+
+  const [sortColumn, setSortColumn] = useState<keyof PurchaseOrderValues | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+  
+  const [isSupplierOpen, setIsSupplierOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Set<string>>(new Set());
+  const [isLaboratoryOpen, setIsLaboratoryOpen] = useState(false);
+  const [selectedLaboratory, setSelectedLaboratory] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -146,6 +163,79 @@ const PurchaseOrder = () => {
       console.error("Error fetching materials:", error);
     }
   };
+
+  const sortMaterials = (
+    materials: PurchaseOrderValues[],
+    key: keyof PurchaseOrderValues,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof PurchaseOrderValues) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredPurchases, column, newDirection);
+    setFilteredPurchases(sorted);
+  };
+
+  useEffect(() => {
+    const applyFilters = () => {
+      const filtered = purchases.filter((purchase) => {
+        const matchesSupplier =
+          selectedSupplier.size === 0 || selectedSupplier.has(purchase.supplierName);
+        const matchesLaboratory = 
+          selectedLaboratory.size === 0 || selectedLaboratory.has(purchase.laboratory);
+        return matchesSupplier && matchesLaboratory;
+      });
+
+      setFilteredPurchases(filtered);
+      setCurrentPage(1);
+    };
+    applyFilters();
+  }, [selectedLaboratory, selectedSupplier, purchases]);
+  
+  const handleLaboratoryChange = (labName: string) => {
+    setSelectedLaboratory((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(labName)) {
+        updated.delete(labName);
+      } else {
+        updated.add(labName);
+      }
+      return updated;
+    });
+  };
+  
+  const handleSupplierChange = (supplierName: string) => {
+    setSelectedSupplier((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(supplierName)) {
+        updated.delete(supplierName);
+      } else {
+        updated.add(supplierName);
+      }
+      return updated;
+    });
+  };
+
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -347,7 +437,97 @@ const PurchaseOrder = () => {
             <Printer className="w-4 h-4" strokeWidth={1.5} />
             Print Forms
           </Button>
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2 flex items-center`
+                )}
+              >
+                <Filter /> <span className="lg:flex hidden">Filter</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+              <div className="flex flex-col items-start">
+              <Collapsible open={isSupplierOpen} onOpenChange={setIsSupplierOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Supplier</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {Array.from(
+                          new Set(purchases.map((m) => m.supplierName))
+                        ).map((supplierName) => (
+                        <label
+                          key={supplierName}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={supplierName}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedSupplier.has(supplierName)}
+                            onChange={() => handleSupplierChange(supplierName)}
+                          />
+                          <span>{supplierName}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+              </Collapsible>
+              <Collapsible open={isLaboratoryOpen} onOpenChange={setIsLaboratoryOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="text-black">Laboratory</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 transition-all text-sm">
+                      {[
+                        "Pathology",
+                        "Immunology",
+                        "Microbiology",
+                      ].map((labName) => (
+                        <label
+                          key={labName}
+                          className="flex items-center space-x-2 whitespace-nowrap"
+                        >
+                          <Input
+                            type="checkbox"
+                            value={labName}
+                            className="text-teal-500 accent-teal-200"
+                            checked={selectedLaboratory.has(labName)}
+                            onChange={() => handleLaboratoryChange(labName)}
+                          />
+                          <span>{labName}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                  onClick={() => {
+                    setSelectedLaboratory(new Set());
+                    setSelectedSupplier(new Set());
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -355,17 +535,17 @@ const PurchaseOrder = () => {
       <Table className="overflow-x-auto">
         <TableHeader className="text-center justify-center">
           <TableRow>
-            <TableHead>Purchase Order Number</TableHead>
-            <TableHead>Personnel</TableHead>
-            <TableHead>Laboratory</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Shipping Cost</TableHead>
-            <TableHead>Tax</TableHead>
-            <TableHead>Total Price</TableHead>
-            <TableHead>Supplier</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-nowrap">Created At</TableHead>
-            <TableHead className="text-nowrap">Updated At</TableHead>
+            <TableHead onClick={() => handleSort("purchaseOrderId")}>Purchase Order Number{" "} {sortColumn === "purchaseOrderId" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("userFullName")}>Personnel{" "} {sortColumn === "userFullName" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("laboratory")}>Laboratory{" "} {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("date")}>Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("shippingCost")}>Shipping Cost{" "} {sortColumn === "shippingCost" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("tax")}>Tax{" "} {sortColumn === "tax" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("totalPrice")}>Total Price{" "} {sortColumn === "totalPrice" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("supplier")}>Supplier{" "} {sortColumn === "supplier" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("status")}>Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("creationDate")} className="text-nowrap">Created At {" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("dateUpdated")} className="text-nowrap">Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -630,7 +810,7 @@ const PurchaseOrder = () => {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Purchase Order Report
+              Print Borrow Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -648,14 +828,14 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            <PdfGenerator
-              pdfTitle="Purchase Order Report"
+            {/* <PdfGenerator
+              pdfTitle="Borrow Forms Report"
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
               tableData={tableData}
               closeDialog={() => setIsPrintAllOpen(false)}
-            ></PdfGenerator>
+            ></PdfGenerator> */}
           </div>
         </DialogContent>
       </Dialog>
@@ -757,17 +937,17 @@ const PurchaseOrder = () => {
             >
               Cancel
             </Button>
-            {selectedPurchase && (
+            {/* {selectedBorrow && (
               <PdfForm
-                pdfTitle="Purchase Order Form"
+                pdfTitle="Borrow Form"
                 pageSize={pageSize}
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
-                materialName={selectedPurchase.purchaseOrderNumber}
+                materialName={selectedBorrow.material.itemName}
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
-            )}
+            )} */}
           </div>
         </DialogContent>
       </Dialog>
