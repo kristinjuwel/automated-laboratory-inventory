@@ -343,6 +343,8 @@ const CalibrationLogs = () => {
     "Next Calibration",
     "Notes",
     "Attachment",
+    "Date Created",
+    "Date Updated"
   ];
   const tableData = calibrations.map((calibration) => [
     calibration.calibrationId,
@@ -360,6 +362,20 @@ const CalibrationLogs = () => {
     }),
     calibration.notes,
     calibration.fileName,
+    new Date(calibration.creationDate).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    new Date(calibration.dateUpdated).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
   ]);
 
   const singleTableData = selectedCalibration
@@ -386,7 +402,20 @@ const CalibrationLogs = () => {
           ),
           selectedCalibration.notes,
           selectedCalibration.fileName,
-          selectedCalibration.fileName,
+          new Date(selectedCalibration.creationDate).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          new Date(selectedCalibration.dateUpdated).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         ],
       ]
     : [];
@@ -851,6 +880,7 @@ const CalibrationLogs = () => {
                 orientation={orientation}
                 tableHeaders={tableHeaders}
                 tableData={singleTableData}
+                materialName={selectedCalibration.material} 
                 closeDialog={() => setIsPrintDialogOpen(false)}
               />
             )}

@@ -426,7 +426,7 @@ const ReagentDispenseForm = () => {
                                 ? materials.find(
                                     (material) =>
                                       material.materialId === selectedMaterialId
-                                  )?.qtyPerContainer || 0
+                                  )?.qtyPerContainer || 1
                                 : 0)
                           )}
                           readOnly
@@ -451,7 +451,7 @@ const ReagentDispenseForm = () => {
                               ? materials.find(
                                   (material) =>
                                     material.materialId === selectedMaterialId
-                                )?.lotNo || 0
+                                )?.lotNo || 1
                               : 0
                           }
                           readOnly

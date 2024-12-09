@@ -2,6 +2,7 @@ import React from "react";
 import { jsPDF } from "jspdf";
 import { Button } from "../ui/button";
 import autoTable from 'jspdf-autotable';
+import { format } from "date-fns";
 
 interface PdfGeneratorProps {
   pdfTitle?: string;
@@ -49,6 +50,10 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       unit: "mm",
       format: adjustedFormat,
     });
+
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "MM/dd/yyyy");
+    const formattedDateForFile = format(currentDate, "MM-dd-yyyy"); // For filename
   
     const baseUrl = window.location.origin;
     const imgElement1 = new Image();
@@ -61,8 +66,8 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       new Promise((resolve) => (imgElement1.onload = resolve)),
       new Promise((resolve) => (imgElement2.onload = resolve)),
     ]).then(() => {
-      doc.addImage(imgElement1, "PNG", isLandscape ? (isLong ? 60 : 40): 30, 10, 30, 30);
-      doc.addImage(imgElement2, "PNG", isLandscape ? (isLong ? 250 : 200): 160, 10, 30, 30);
+      doc.addImage(imgElement1, "PNG", isLandscape ? (isLong ? 90 : 60): 30, 10, 30, 30);
+      doc.addImage(imgElement2, "PNG", isLandscape ? (isLong ? 230 : 200): 150, 10, 30, 30);
   
       doc.setFont("helvetica", "normal");
       doc.setFontSize(12);
@@ -120,7 +125,28 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text(pdfTitle, isLandscape ? (isLong ? 175 : 143): 105, y, { align: "center" });
-      y += 10;
+      y += 15;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+
+      const x = 10;
+      const textY = y;
+
+      const baseText = "Date Generated: ";
+      doc.text(baseText + formattedDate, x, textY);
+
+      const baseTextWidth = doc.getTextWidth(baseText);
+      const dateWidth = doc.getTextWidth(formattedDate);
+
+      doc.line(
+        x + baseTextWidth,
+        textY + 1.5,
+        x + baseTextWidth + dateWidth,
+        textY + 1.5
+      );
+
+      y += 5;
   
       autoTable(doc, {
         startY: y, 
@@ -129,7 +155,7 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
         body: tableData,
         styles: {
           font: "helvetica",
-          fontSize: 12,
+          fontSize: 11,
           cellPadding: 2,
           overflow: "linebreak",
           valign: "middle",
@@ -141,11 +167,11 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
         columnStyles: {
           0: { cellWidth: 10 }, 
         },
-        theme: "grid", 
-        tableWidth: 'auto', 
-      });      
+        theme: "grid",
+        tableWidth: 'auto',
+      });
   
-      doc.save(`${pdfTitle}.pdf`);
+      doc.save(`${pdfTitle}-${formattedDateForFile}.pdf`);
       closeDialog();
     });
   };

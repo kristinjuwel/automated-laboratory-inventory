@@ -4,8 +4,8 @@ export const laboratorySchema = z.object({
   labId: z.number().int().optional(),
   labName: z.string(),
   location: z.string(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 export const categorySchema = z.object({
@@ -22,8 +22,6 @@ export const supplierSchema = z.object({
   email: z.string().email(),
   address: z.string().min(1),
   phoneNumber: z.string().min(1),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
 });
 
 export type Supplier = z.infer<typeof supplierSchema>;

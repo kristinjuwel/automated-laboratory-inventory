@@ -1,9 +1,7 @@
-"use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import {
   Table,
   TableBody,
@@ -12,7 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer, Filter, ChevronsUpDown } from "lucide-react";
+import {
+  Edit,
+  Search,
+  FilePlus,
+  Printer,
+  SquarePen,
+  FolderOpen,
+  Filter,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +27,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
+import CustomPagination from "../ui/pagination-custom";
+import { PurchaseOrderSchema, PurchaseSchema } from "@/packages/api/inventory";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { UserSchema } from "@/packages/api/user";
+import { Supplier } from "@/packages/api/lab";
+import EditPurchaseOrder from "../dialogs/edit-purchase-order";
 import {
   Popover,
   PopoverContent,
@@ -31,46 +57,55 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-
-
-interface LabPurchaseValues {
-  purchaseOrderNo: string;
-  date: string;
-  status: string;
-  supplierName: string;
-  supplierAddress: string;
-  supplierPhoneNo: string;
-  supplierEmail: string;
-  supplierContactPerson: string;
-  labName: string;
-  labAddress: string;
-  labPhoneNo: string;
-  labEmail: string;
-  labContactPerson: string;
+interface PurchaseOrderValues {
+  purchaseOrderId: number;
   purchaseOrderNumber: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
+  userId: number;
+  userFullName: string;
+  user: UserSchema;
+  supplierId: number;
+  supplierName: string;
+  supplier: Supplier;
+  date: string;
+  shippingCost: number;
   totalPrice: number;
+  status: string;
+  labId: number;
+  laboratory: string;
+  tax: number;
+  creationDate: string;
+  dateUpdated: string;
 }
+
+const ITEMS_PER_PAGE = 4;
 
 const PurchaseOrder = () => {
   const router = useRouter();
-  const [purchases, setPurchases] = useState<LabPurchaseValues[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filteredPurchases, setFilteredPurchases] = useState<
-    LabPurchaseValues[]
-  >([]);
+  const pathname = usePathname();
+  const labSlug = pathname?.split("/")[2];
+  const [purchases, setPurchases] = useState<PurchaseOrderValues[]>([]);
+  const [purchaseItems, setPurchaseItems] = useState<PurchaseSchema[]>([]);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPurchasePage, setCurrentPurchasePage] = useState(1);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] =
-    useState<LabPurchaseValues | null>(null);
-  const [sortColumn, setSortColumn] = useState<keyof LabPurchaseValues | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
-    null
-  );
+    useState<PurchaseOrderValues | null>(null);
+  const [filteredPurchases, setFilteredPurchases] = useState<
+    PurchaseOrderValues[]
+  >([]);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isPrintAllOpen, setIsPrintAllOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  const [status, setStatus] = useState("");
+  const [pageSize, setPageSize] = useState("a4");
+  const [orientation, setOrientation] = useState<
+    "portrait" | "landscape" | undefined
+  >(undefined);
+
+  const [sortColumn, setSortColumn] = useState<keyof PurchaseOrderValues | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   
   const [isSupplierOpen, setIsSupplierOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Set<string>>(new Set());
@@ -78,74 +113,60 @@ const PurchaseOrder = () => {
   const [selectedLaboratory, setSelectedLaboratory] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchData: LabPurchaseValues[] = [
-      {
-        purchaseOrderNo: "ABC12345",
-        date: "2024-02-14",
-        status: "Pending",
-        supplierName: "Williams-Mcdonald",
-        supplierAddress: "847 Ellis Islands Suite 041\nShawtown, HI 22316",
-        supplierPhoneNo: "674.525.3775x51071",
-        supplierEmail: "shannon16@roberts-aguilar.net",
-        supplierContactPerson: "Jeffrey Perez",
-        labName: "Pham-Peterson",
-        labAddress: "52425 Nicole Stream Apt. 845\nCassandratown, OH 56715",
-        labPhoneNo: "+1-027-008-4874",
-        labEmail: "chavezrobert@mitchell.com",
-        labContactPerson: "Gary Hays",
-        purchaseOrderNumber: "ABC12345-1",
-        description: "Robust multi-tasking software",
-        quantity: 67,
-        unitPrice: 285.89,
-        totalPrice: 19154.63,
-      },
-      {
-        purchaseOrderNo: "ABC12345",
-        date: "2024-02-14",
-        status: "Pending",
-        supplierName: "John-Mcdonald",
-        supplierAddress: "847 Ellis Islands Suite 041\nShawtown, HI 22316",
-        supplierPhoneNo: "674.525.3775x51071",
-        supplierEmail: "johncena@roberts-aguilar.net",
-        supplierContactPerson: "Jeffrey Perez",
-        labName: "Pham-Peterson",
-        labAddress: "52425 Nicole Stream Apt. 845\nCassandratown, OH 56715",
-        labPhoneNo: "+1-027-008-4874",
-        labEmail: "chavezrobert@mitchell.com",
-        labContactPerson: "Gary Hays",
-        purchaseOrderNumber: "DEF12345-2",
-        description: "ERP",
-        quantity: 6,
-        unitPrice: 2135.89,
-        totalPrice: 19183184.63,
-      },
-      {
-        purchaseOrderNo: "ABC12345",
-        date: "2024-02-14",
-        status: "Pending",
-        supplierName: "Williams-Mcdonald",
-        supplierAddress: "847 Ellis Islands Suite 041\nShawtown, HI 22316",
-        supplierPhoneNo: "674.525.3775x51071",
-        supplierEmail: "shannon16@roberts-aguilar.net",
-        supplierContactPerson: "Jeffrey Perez",
-        labName: "Pham-Peterson",
-        labAddress: "52425 Nicole Stream Apt. 845\nCassandratown, OH 56715",
-        labPhoneNo: "+1-027-008-4874",
-        labEmail: "chavezrobert@mitchell.com",
-        labContactPerson: "Gary Hays",
-        purchaseOrderNumber: "ABC12345-1",
-        description: "Robust multi-tasking software",
-        quantity: 67,
-        unitPrice: 285.89,
-        totalPrice: 19154.63,
-      },
-    ];
-    setPurchases(fetchData);
-    setFilteredPurchases(fetchData);
-  }, []);
+    if (!isEditDialogOpen) {
+      const fetchMaterials = async () => {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}purchase-order`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch purchase orders");
+          }
+          const data = await response.json();
+          const mappedPurchases = data.map((purchase: PurchaseOrderSchema) => ({
+            ...purchase,
+            userFullName: `${purchase.user.firstName} ${
+              purchase.user.middleName ? purchase.user.middleName + " " : ""
+            }${purchase.user.lastName}`,
+            supplierName: purchase.supplier.companyName ?? "",
+            laboratory: purchase.laboratory.labName,
+          }));
+          const purchases = mappedPurchases.filter(
+            (purchase: PurchaseOrderValues) =>
+              purchase.laboratory.toLowerCase() === labSlug
+          );
+          setPurchases(purchases);
+          setFilteredPurchases(purchases);
+        } catch (error) {
+          console.error("Error fetching materials:", error);
+        }
+      };
+
+      fetchMaterials();
+    }
+  }, [labSlug, isEditDialogOpen]);
+
+  const fetchPurchasedItems = async (purchaseOrderId: number) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}purchase/order/${purchaseOrderId}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch purchase items");
+      }
+      const data = await response.json();
+      const mappedPurchases = data.map((purchase: PurchaseSchema) => ({
+        ...purchase,
+      }));
+      setPurchaseItems(mappedPurchases);
+    } catch (error) {
+      console.error("Error fetching materials:", error);
+    }
+  };
+
   const sortMaterials = (
-    materials: LabPurchaseValues[],
-    key: keyof LabPurchaseValues,
+    materials: PurchaseOrderValues[],
+    key: keyof PurchaseOrderValues,
     order: "asc" | "desc"
   ) => {
     return [...materials].sort((a, b) => {
@@ -164,7 +185,7 @@ const PurchaseOrder = () => {
     });
   };
 
-  const handleSort = (column: keyof LabPurchaseValues) => {
+  const handleSort = (column: keyof PurchaseOrderValues) => {
     const newDirection =
       sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
 
@@ -181,7 +202,7 @@ const PurchaseOrder = () => {
         const matchesSupplier =
           selectedSupplier.size === 0 || selectedSupplier.has(purchase.supplierName);
         const matchesLaboratory = 
-          selectedLaboratory.size === 0 || selectedLaboratory.has(purchase.labName);
+          selectedLaboratory.size === 0 || selectedLaboratory.has(purchase.laboratory);
         return matchesSupplier && matchesLaboratory;
       });
 
@@ -214,18 +235,57 @@ const PurchaseOrder = () => {
       return updated;
     });
   };
-  
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearch(query);
 
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase();
+    setSearch(query);
     setFilteredPurchases(
-      purchases.filter((purchase) =>
-        `${purchase.supplierName} ${purchase.labName} ${purchase.description}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
+      purchases.filter((purchase) => {
+        const combinedString = `${purchase.status} ${purchase.laboratory} ${purchase.supplier} ${purchase.userFullName} ${purchase.purchaseOrderNumber}`;
+        return combinedString.toLowerCase().includes(query);
+      })
     );
+    setCurrentPage(1);
+  };
+
+  const paginatedMaterials = filteredPurchases.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+  const paginatedPurchase = purchaseItems.slice(
+    (currentPurchasePage - 1) * ITEMS_PER_PAGE,
+    currentPurchasePage * ITEMS_PER_PAGE
+  );
+
+  const handleReturn = async () => {
+    if (selectedPurchase) {
+      try {
+        const bodyData = {
+          status: status,
+        };
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}purchase-order/${selectedPurchase.purchaseOrderId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(bodyData),
+          }
+        );
+
+        if (response.ok) {
+          toast.success("Status updated successfully!");
+          window.location.reload();
+        } else {
+          throw new Error("Failed to change status");
+        }
+      } catch (error) {
+        toast.error("Failed to update status");
+      }
+    }
   };
 
   return (
@@ -233,10 +293,11 @@ const PurchaseOrder = () => {
       <h1 className="text-3xl font-semibold text-teal-700 mb-4">
         Purchase Order Forms
       </h1>
+      <Toaster />
       <div className="flex text-right justify-left items-center mb-4">
         <div className="flex items-center">
           <Input
-            placeholder="Search for an entry"
+            placeholder="Search form"
             value={search}
             onChange={handleSearch}
             className="w-80 pr-8"
@@ -244,18 +305,23 @@ const PurchaseOrder = () => {
           <span className="relative -ml-8">
             <Search className="size-5 text-gray-500" />
           </span>
-
           <Button
-            className={cn(
-              `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-            )}
+            className="bg-teal-500 text-white w-42 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6"
             onClick={() => {
-              setSelectedPurchase(null);
               router.push("/laboratory-purchase-order");
             }}
           >
             <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Create Form
+            Purchase Materials
+          </Button>
+          <Button
+            className="bg-black text-white w-36 justify-center rounded-lg hover:bg-gray-700 transition-colors duration-300 ease-in-out mx-2"
+            onClick={() => {
+              setIsPrintAllOpen(true);
+            }}
+          >
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
+            Print Forms
           </Button>
           <Popover>
             <PopoverTrigger asChild>
@@ -352,131 +418,156 @@ const PurchaseOrder = () => {
       </div>
 
       <Toaster />
-
-      <Table className="items-center justify-center">
+      <Table className="overflow-x-auto">
         <TableHeader className="text-center justify-center">
           <TableRow>
-            <TableHead onClick={() => handleSort("purchaseOrderNo")}>
-              Purchase Order No{" "} {sortColumn === "purchaseOrderNo" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("date")}>
-              Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("status")}>
-              Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("supplierName")}>
-              Supplier{" "} {sortColumn === "supplierName" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("labName")}>
-              Laboratory{" "} {sortColumn === "labName" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("quantity")}>
-              Quantity{" "} {sortColumn === "quantity" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("unitPrice")}>
-              Unit Price{" "} {sortColumn === "unitPrice" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead onClick={() => handleSort("totalPrice")}>
-              Total Price{" "} {sortColumn === "totalPrice" && (sortDirection === "asc" ? "↑" : "↓")}
-            </TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+            <TableHead onClick={() => handleSort("purchaseOrderId")}>Purchase Order Number{" "} {sortColumn === "purchaseOrderId" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("user")}>Personnel{" "} {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("laboratory")}>Laboratory{" "} {sortColumn === "laboratory" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("date")}>Date{" "} {sortColumn === "date" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("shippingCost")}>Shipping Cost{" "} {sortColumn === "shippingCost" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("tax")}>Tax{" "} {sortColumn === "tax" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("totalPrice")}>Total Price{" "} {sortColumn === "totalPrice" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("supplier")}>Supplier{" "} {sortColumn === "supplier" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("status")}>Status{" "} {sortColumn === "status" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("creationDate")} className="text-nowrap">Created At {" "} {sortColumn === "creationDate" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead onClick={() => handleSort("dateUpdated")} className="text-nowrap">Updated At{" "} {sortColumn === "dateUpdated" && (sortDirection === "asc" ? "↑" : "↓")}</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredPurchases.length > 0 ? (
-            filteredPurchases.map((purchase) => (
-              <TableRow key={purchase.purchaseOrderNo}>
-                <TableCell
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {" "}
-                  {purchase.purchaseOrderNo}
+          {paginatedMaterials.length > 0 ? (
+            paginatedMaterials.map((purchase) => (
+              <TableRow key={purchase.purchaseOrderId}>
+                <TableCell>{purchase.purchaseOrderNumber}</TableCell>
+                <TableCell>{purchase.userFullName}</TableCell>
+                <TableCell>{purchase.laboratory}</TableCell>
+                <TableCell>
+                  {new Date(purchase.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  })}
                 </TableCell>
-                <TableCell
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.date}
+                <TableCell>{purchase.shippingCost}</TableCell>
+                <TableCell>{purchase.tax}</TableCell>
+                <TableCell>{purchase.totalPrice}</TableCell>
+                <TableCell>{purchase.supplierName}</TableCell>
+                <TableCell>
+                  {purchase.status === "Completed" ? (
+                    <div className="w-full px-4 py-2 rounded-md bg-green-300 font-semibold text-green-950">
+                      Completed
+                    </div>
+                  ) : (
+                    <Select
+                      disabled={purchase.status === "Completed"}
+                      value={purchase.status}
+                      onValueChange={(newStatus) => {
+                        setSelectedPurchase(purchase);
+                        setStatus(newStatus);
+                        setIsReturnDialogOpen(true);
+                      }}
+                    >
+                      <SelectTrigger
+                        className={cn(
+                          "w-full",
+                          purchase.status === "Cancelled"
+                            ? "bg-red-300 text-red-950"
+                            : purchase.status === "Completed"
+                            ? "bg-green-300 text-green-950"
+                            : purchase.status === "Submitted"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : purchase.status === "Procurement Office"
+                            ? "bg-blue-300 text-blue-950"
+                            : purchase.status === "Accounting Office"
+                            ? "bg-purple-300 text-purple-950"
+                            : purchase.status === "Delivered"
+                            ? "bg-orange-300 text-orange-950"
+                            : "bg-emerald-300 text-emerald-950"
+                        )}
+                      >
+                        <SelectValue placeholder="Select status..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Submitted">Submitted</SelectItem>
+                        <SelectItem value="Procurement Office">
+                          Procurement Office
+                        </SelectItem>
+                        <SelectItem value="Accounting Office">
+                          Accounting Office
+                        </SelectItem>
+                        <SelectItem value="Delivered">Delivered</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </TableCell>
-                <TableCell
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.status}
+                <TableCell>
+                  {new Date(purchase.creationDate).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </TableCell>
-                <TableCell
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.supplierName}
+                <TableCell>
+                  {new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </TableCell>
-                <TableCell
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.labName}
-                </TableCell>
-                <TableCell
-                  className="text-center"
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.quantity}
-                </TableCell>
-                <TableCell
-                  className="text-center"
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.unitPrice.toFixed(2)}
-                </TableCell>
-                <TableCell
-                  className="text-center"
-                  onClick={() => {
-                    setSelectedPurchase(purchase);
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  {purchase.totalPrice.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-center">
+                <TableCell>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                    className="rounded-md w-full text-emerald-700 hover:text-emerald-900 hover:bg-emerald-200 mb-1 bg-emerald-100"
                     onClick={() => {
+                      fetchPurchasedItems(purchase.purchaseOrderId);
                       setSelectedPurchase(purchase);
-                      setIsEditDialogOpen(true);
+                      setIsViewOpen(true);
                     }}
                   >
-                    <Edit className="w-4 h-4 -mr-0.5" /> Edit
+                    <FolderOpen className="w-4 h-4 -mr-1" /> View Items
                   </Button>
+                  {purchase.status !== "Completed" &&
+                    purchase.status !== "Cancelled" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
+                        onClick={() => {
+                          setSelectedPurchase(purchase);
+                          fetchPurchasedItems(purchase.purchaseOrderId);
+
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4 -mr-0.5" /> Edit Form
+                      </Button>
+                    )}
+
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="rounded-md text-black-600 hover:text-black-900 hover:bg-black-50"
+                    className={cn(
+                      `rounded-md ${
+                        purchase.status === "Completed" ||
+                        purchase.status === "Cancelled"
+                          ? "w-full"
+                          : "text-black-600 hover:text-black-900 hover:bg-black-50"
+                      }`
+                    )}
                     onClick={() => {
                       setSelectedPurchase(purchase);
-                      setIsDeleteDialogOpen(true);
+                      setIsPrintDialogOpen(true);
                     }}
                   >
-                    <Printer className="w-4 h-4 -mr-1" /> Print
+                    <Printer className="w-4 h-4 -mr-1" /> Print Form
                   </Button>
                 </TableCell>
               </TableRow>
@@ -484,605 +575,296 @@ const PurchaseOrder = () => {
           ) : (
             <TableRow>
               <TableCell colSpan={17} className="text-center text-gray-500">
-                No purchase orders found.
+                No materials found.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
+      <CustomPagination
+        totalItems={filteredPurchases.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        currentPage={currentPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white max-w-[1000px] max-h-[700px] overflow-y-auto p-6">
+        <DialogContent className="bg-white max-h-4/5 h-fit max-w-4xl w-full flex flex-col">
           <DialogHeader>
-            <DialogTitle>Edit Purchase Order</DialogTitle>
-            <DialogDescription />
+            <DialogTitle className="flex items-start gap-2 tracking-tight text-teal-900 mt-2">
+              <Edit className="text-teal-500 size-5 -mt-0.5" />
+              Edit Purchase Order Form
+            </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 font-semibold text-gray-800">
-              Supplier Information
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Name
-              </label>
-              <Input
-                id="supplierName"
-                value={selectedPurchase?.supplierName}
-                placeholder="Supplier Name"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, supplierName: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierAddress"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Address
-              </label>
-              <Input
-                id="supplierAddress"
-                value={selectedPurchase?.supplierAddress}
-                placeholder="Supplier Address"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, supplierAddress: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierPhoneNo"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Phone No
-              </label>
-              <Input
-                id="supplierPhoneNo"
-                value={selectedPurchase?.supplierPhoneNo}
-                placeholder="Supplier Phone No"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, supplierPhoneNo: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierEmail"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Email
-              </label>
-              <Input
-                id="supplierEmail"
-                value={selectedPurchase?.supplierEmail}
-                placeholder="Supplier Email"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, supplierEmail: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="supplierContactPerson"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Contact Person
-              </label>
-              <Input
-                id="supplierContactPerson"
-                value={selectedPurchase?.supplierContactPerson}
-                placeholder="Supplier Contact Person"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev
-                      ? { ...prev, supplierContactPerson: e.target.value }
-                      : null
-                  )
-                }
-              />
-            </div>
-
-            {/* Lab Information Section */}
-            <div className="col-span-2 font-semibold text-gray-800 mt-4">
-              Lab Information
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Name
-              </label>
-              <Input
-                id="labName"
-                value={selectedPurchase?.labName}
-                placeholder="Lab Name"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, labName: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labAddress"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Address
-              </label>
-              <Input
-                id="labAddress"
-                value={selectedPurchase?.labAddress}
-                placeholder="Lab Address"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, labAddress: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labPhoneNo"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Phone No
-              </label>
-              <Input
-                id="labPhoneNo"
-                value={selectedPurchase?.labPhoneNo}
-                placeholder="Lab Phone No"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, labPhoneNo: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labEmail"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Email
-              </label>
-              <Input
-                id="labEmail"
-                value={selectedPurchase?.labEmail}
-                placeholder="Lab Email"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, labEmail: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="labContactPerson"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Contact Person
-              </label>
-              <Input
-                id="labContactPerson"
-                value={selectedPurchase?.labContactPerson}
-                placeholder="Lab Contact Person"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, labContactPerson: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-
-            {/* Order Details Section */}
-            <div className="col-span-2 font-semibold text-gray-800 mt-4">
-              Order Details
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Description
-              </label>
-              <Input
-                id="description"
-                value={selectedPurchase?.description}
-                placeholder="Description"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, description: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="quantity"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Quantity
-              </label>
-              <Input
-                id="quantity"
-                type="number"
-                value={selectedPurchase?.quantity}
-                placeholder="Quantity"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, quantity: Number(e.target.value) } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="unitPrice"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Unit Price
-              </label>
-              <Input
-                id="unitPrice"
-                type="number"
-                value={selectedPurchase?.unitPrice}
-                placeholder="Unit Price"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev ? { ...prev, unitPrice: Number(e.target.value) } : null
-                  )
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="totalPrice"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Total Price
-              </label>
-              <Input
-                id="totalPrice"
-                type="number"
-                value={selectedPurchase?.totalPrice}
-                placeholder="Total Price"
-                onChange={(e) =>
-                  setSelectedPurchase((prev) =>
-                    prev
-                      ? { ...prev, totalPrice: Number(e.target.value) }
-                      : null
-                  )
-                }
-              />
-            </div>
-
-            {/* Save Button */}
-            <div className="col-span-2 flex justify-end">
-              <Button
-                className="mt-4"
-                onClick={() => {
-                  if (selectedPurchase) {
-                    setPurchases((prev) =>
-                      prev.map((purchase) =>
-                        purchase.purchaseOrderNo ===
-                        selectedPurchase.purchaseOrderNo
-                          ? selectedPurchase
-                          : purchase
-                      )
-                    );
-                    setIsEditDialogOpen(false);
-                  }
-                }}
-              >
-                Save
-              </Button>
-            </div>
-          </div>
+          <EditPurchaseOrder
+            purchaseOrderId={selectedPurchase?.purchaseOrderId ?? 0}
+            closeDialog={() => setIsEditDialogOpen(false)}
+            purchaseOrderNo={selectedPurchase?.purchaseOrderNumber ?? ""}
+            date={selectedPurchase?.date ?? ""}
+            status={selectedPurchase?.status ?? ""}
+            supplierId={selectedPurchase?.supplierId ?? 0}
+            supplierName={selectedPurchase?.supplierName ?? ""}
+            supplierAddress={selectedPurchase?.supplier.address ?? ""}
+            supplierPhoneNo={selectedPurchase?.supplier.phoneNumber ?? ""}
+            supplierEmail={selectedPurchase?.supplier.email ?? ""}
+            supplierContactPerson={
+              selectedPurchase?.supplier.contactPerson ?? ""
+            }
+            labName={selectedPurchase?.laboratory ?? ""}
+            labAddress={selectedPurchase?.user.laboratory.location ?? ""}
+            labPhoneNo={selectedPurchase?.user.phoneNumber ?? ""}
+            labEmail={selectedPurchase?.user.email ?? ""}
+            userId={selectedPurchase?.userId ?? 0}
+            itemPurchases={purchaseItems}
+            tax={selectedPurchase?.tax ?? 0}
+            shippingCost={selectedPurchase?.shippingCost ?? 0}
+            totalPrice={selectedPurchase?.totalPrice ?? 0}
+          />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="bg-white max-w-[1000px] max-h-[700px] overflow-y-auto p-6">
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="bg-white max-h-4/5 h-fit max-w-2xl flex flex-col">
           <DialogHeader>
-            <DialogTitle>View Purchase Order</DialogTitle>
+            <DialogTitle className="flex items-start gap-2 tracking-tight text-teal-900 mt-2">
+              <FolderOpen className="text-teal-500 size-5 -mt-0.5" />
+              View Purchase Items
+            </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="mb-4">
-              <label
-                htmlFor="purchaseOrderNo"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Purchase Order Number
-              </label>
-              <Input
-                id="purchaseOrderNo"
-                value={selectedPurchase?.purchaseOrderNo}
-                placeholder="Purchase Order Number"
-                readOnly
+          {selectedPurchase && (
+            <div>
+              <Table className="overflow-x-auto">
+                <TableHeader className="text-center justify-center">
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Unit Price</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead>Updated At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedPurchase.map((purchaseItem) => (
+                    <TableRow key={purchaseItem.purchaseId}>
+                      <TableCell>{purchaseItem.purchaseId}</TableCell>
+                      <TableCell>{purchaseItem.description}</TableCell>
+                      <TableCell>{purchaseItem.qty}</TableCell>
+                      <TableCell>{purchaseItem.unitPrice}</TableCell>
+                      <TableCell>
+                        {new Date(purchaseItem.creationDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(purchaseItem.dateUpdated).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <CustomPagination
+                totalItems={purchaseItems.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                currentPage={currentPurchasePage}
+                onPageChange={(page) => setCurrentPurchasePage(page)}
               />
             </div>
-            <div className="mb-4">
-              <label
-                htmlFor="date"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Purchase Date
-              </label>
-              <Input
-                id="date"
-                value={selectedPurchase?.date}
-                placeholder="Purchase Date"
-                readOnly
-              />
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="status"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Purchase Status
-              </label>
-              <Input
-                id="status"
-                value={selectedPurchase?.status}
-                placeholder="Purchase Status"
-                readOnly
-              />
-            </div>
-
-            {/* Supplier Information Section */}
-            <div className="col-span-2 font-semibold text-gray-800">
-              Supplier Information
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Name
-              </label>
-              <Input
-                id="supplierName"
-                value={selectedPurchase?.supplierName}
-                placeholder="Supplier Name"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierAddress"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Address
-              </label>
-              <Input
-                id="supplierAddress"
-                value={selectedPurchase?.supplierAddress}
-                placeholder="Supplier Address"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierPhoneNo"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Phone No
-              </label>
-              <Input
-                id="supplierPhoneNo"
-                value={selectedPurchase?.supplierPhoneNo}
-                placeholder="Supplier Phone No"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="supplierEmail"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Email
-              </label>
-              <Input
-                id="supplierEmail"
-                value={selectedPurchase?.supplierEmail}
-                placeholder="Supplier Email"
-                readOnly
-              />
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="supplierContactPerson"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Supplier Contact Person
-              </label>
-              <Input
-                id="supplierContactPerson"
-                value={selectedPurchase?.supplierContactPerson}
-                placeholder="Supplier Contact Person"
-                readOnly
-              />
-            </div>
-
-            {/* Lab Information Section */}
-            <div className="col-span-2 font-semibold text-gray-800 mt-4">
-              Lab Information
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Name
-              </label>
-              <Input
-                id="labName"
-                value={selectedPurchase?.labName}
-                placeholder="Lab Name"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labAddress"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Address
-              </label>
-              <Input
-                id="labAddress"
-                value={selectedPurchase?.labAddress}
-                placeholder="Lab Address"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labPhoneNo"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Phone No
-              </label>
-              <Input
-                id="labPhoneNo"
-                value={selectedPurchase?.labPhoneNo}
-                placeholder="Lab Phone No"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="labEmail"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Email
-              </label>
-              <Input
-                id="labEmail"
-                value={selectedPurchase?.labEmail}
-                placeholder="Lab Email"
-                readOnly
-              />
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="labContactPerson"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Lab Contact Person
-              </label>
-              <Input
-                id="labContactPerson"
-                value={selectedPurchase?.labContactPerson}
-                placeholder="Lab Contact Person"
-                readOnly
-              />
-            </div>
-
-            {/* Order Details Section */}
-            <div className="col-span-2 font-semibold text-gray-800 mt-4">
-              Order Details
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Description
-              </label>
-              <Input
-                id="description"
-                value={selectedPurchase?.description}
-                placeholder="Description"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="quantity"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Quantity
-              </label>
-              <Input
-                id="quantity"
-                type="number"
-                value={selectedPurchase?.quantity}
-                placeholder="Quantity"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="unitPrice"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Unit Price
-              </label>
-              <Input
-                id="unitPrice"
-                type="number"
-                value={selectedPurchase?.unitPrice}
-                placeholder="Unit Price"
-                readOnly
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="totalPrice"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Total Price
-              </label>
-              <Input
-                id="totalPrice"
-                type="number"
-                value={selectedPurchase?.totalPrice}
-                placeholder="Total Price"
-                readOnly
-              />
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              Print Purchase Order Form
+              Print Borrow Report
             </DialogTitle>
+            <DialogDescription></DialogDescription>
           </DialogHeader>
           <p className="text-left pt-2 text-sm">
             Are you sure you want to print this form?
+          </p>
+          <p className="text-left text-sm italic">
+            *This form shall be printed in a long bond paper.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setIsPrintAllOpen(false)}
+            >
+              Cancel
+            </Button>
+            {/* <PdfGenerator
+              pdfTitle="Borrow Forms Report"
+              pageSize="long"
+              orientation="landscape"
+              tableHeaders={tableHeaders}
+              tableData={tableData}
+              closeDialog={() => setIsPrintAllOpen(false)}
+            ></PdfGenerator> */}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              Print Borrow Form
+            </DialogTitle>
+            <DialogDescription />
+          </DialogHeader>
+          <p className="text-left pt-2 text-m">
+            Select page size for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span className={pageSize ? "text-black" : "text-gray-500"}>
+                    {pageSize === "a4"
+                      ? "A4 (210 x 297 mm)"
+                      : pageSize === "short"
+                      ? "Short (Letter, 215.9 x 279.4 mm)"
+                      : pageSize === "long"
+                      ? "Long (Legal, 215.9 x 355.6 mm)"
+                      : "Select Page Size"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "A4 (210 x 297 mm)", value: "a4" },
+                  { label: "Short (Letter, 215.9 x 279.4 mm)", value: "short" },
+                  { label: "Long (Legal, 215.9 x 355.6 mm)", value: "long" },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={pageSize === option.value}
+                    onCheckedChange={(checked) =>
+                      setPageSize(checked ? option.value : "a4")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-left pt-4 text-m">
+            Select orientation for the form:
+          </p>
+          <div className="flex flex-col gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center"
+                >
+                  <span
+                    className={orientation ? "text-black" : "text-gray-500"}
+                  >
+                    {orientation === "portrait"
+                      ? "Portrait"
+                      : orientation === "landscape"
+                      ? "Landscape"
+                      : "Select Orientation"}
+                  </span>
+                  <span className="ml-auto">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {[
+                  { label: "Portrait", value: "portrait" as const },
+                  { label: "Landscape", value: "landscape" as const },
+                ].map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={orientation === option.value}
+                    onCheckedChange={(checked) =>
+                      setOrientation(checked ? option.value : "portrait")
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="ghost"
+              className="bg-gray-100"
+              onClick={() => setIsPrintDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            {/* {selectedBorrow && (
+              <PdfForm
+                pdfTitle="Borrow Form"
+                pageSize={pageSize}
+                orientation={orientation}
+                tableHeaders={tableHeaders}
+                tableData={singleTableData}
+                materialName={selectedBorrow.material.itemName}
+                closeDialog={() => setIsPrintDialogOpen(false)}
+              />
+            )} */}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <SquarePen className="text-emerald-600 size-5 -mt-0.5" />
+              Change Status
+            </DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
+          <p className="text-left pt-2 text-sm">
+            Are you sure you want to set the status to {status}?
           </p>
           <div className="flex justify-end gap-2 mt-2">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => setIsReturnDialogOpen(false)}
             >
               Cancel
             </Button>
-            <Button onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              onClick={() => {
+                setIsReturnDialogOpen(false);
+                handleReturn();
+              }}
+              className="bg-emerald-500 hover:bg-emerald-700 text-white justify-center transition-colors duration-300 ease-in-out"
+            >
               Confirm
             </Button>
           </div>
