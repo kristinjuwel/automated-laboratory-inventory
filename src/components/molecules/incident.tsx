@@ -153,6 +153,11 @@ const Incident = () => {
     new Set()
   );
 
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [creationDateFrom, setCreationDateFrom] = useState("");
+  const [creationDateTo, setCreationDateTo] = useState("");
+
   useEffect(() => {
     if (!isEditDialogOpen) {
       const fetchMaterials = async () => {
@@ -350,53 +355,6 @@ const Incident = () => {
     "Date Created",
     "Date Updated",
   ];
-  const tableData = incidents.map((incident) => [
-    incident.incidentFormId,
-    new Date(incident.date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }),
-    new Date(`1970-01-01T${incident.time}`).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }),
-    incident.materialsInvolved
-      .split(",")
-      .map((material, index) => {
-        const brands = incident.brand.split(",");
-        const quantities = incident.qty.split(",");
-
-        return `${material.trim()} (${brands[index]?.trim() || "N/A"}) - ${
-          quantities[index]?.trim() || "N/A"
-        }`;
-      })
-      .join("\n"),
-    incident.qty,
-    incident.brand,
-    incident.natureOfIncident,
-    incident.involvedIndividuals,
-    incident.remarks,
-    incident.attachments
-      .split(",")
-      .map((attachment: string) => attachment.trim())
-      .join("\n"),
-    new Date(incident.creationDate).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    new Date(incident.dateUpdated).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  ]);
 
   const singleTableData = selectedIncident
     ? [
@@ -452,6 +410,36 @@ const Incident = () => {
         ],
       ]
     : [];
+
+  const handlePrintDialogClose = () => {
+    setIsPrintAllOpen(false);
+    setIsPrintDialogOpen(false);
+    setSelectedIncidents(new Set());
+    setSelectedMaterials(new Set());
+    setSelectedPersonnels(new Set());
+    filterMaterials();
+  };
+
+  const filterByDate = (data: IncidentValues[]) => {
+    return data.filter((incident) => {
+      const incidentDate = new Date(incident.date);
+      const incidentCreationDate = new Date(incident.creationDate);
+
+      const isWithinDateRange =
+        (!dateFrom || incidentDate >= new Date(dateFrom)) &&
+        (!dateTo ||
+          incidentDate <= new Date(new Date(dateTo).setHours(23, 59, 59, 999)));
+
+      const isWithinCreationDateRange =
+        (!creationDateFrom ||
+          incidentCreationDate >= new Date(creationDateFrom)) &&
+        (!creationDateTo ||
+          incidentCreationDate <=
+            new Date(new Date(creationDateTo).setHours(23, 59, 59, 999)));
+
+      return isWithinDateRange && isWithinCreationDateRange;
+    });
+  };
 
   return (
     <div className="p-8">
@@ -890,7 +878,7 @@ const Incident = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
+      <Dialog open={isPrintAllOpen} onOpenChange={handlePrintDialogClose}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
@@ -898,17 +886,58 @@ const Incident = () => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this form?
-          </p>
-          <p className="text-left text-sm italic">
-            *This form shall be printed in a long bond paper.
-          </p>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Date From:</label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Date To:</label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Creation Date From:</label>
+              <Input
+                type="date"
+                value={creationDateFrom}
+                onChange={(e) => setCreationDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Creation Date To:</label>
+              <Input
+                type="date"
+                value={creationDateTo}
+                onChange={(e) => setCreationDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="gap-1 bg-teal-50 p-4 rounded-md">
+            <p className="text-center pb-2 text-teal-800 text-base">
+              Are you sure you want to print this form?
+            </p>
+            <p className="text-left text-xs text-teal-600 italic">
+              *This form shall be printed in a long bond paper.
+            </p>
+            <p className="text-left text-xs text-teal-600 -mt-1 italic">
+              *Selecting nothing will print all forms.
+            </p>
+          </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsPrintAllOpen(false)}
+              onClick={handlePrintDialogClose}
             >
               Cancel
             </Button>
@@ -917,8 +946,57 @@ const Incident = () => {
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
-              tableData={tableData}
-              closeDialog={() => setIsPrintAllOpen(false)}
+              tableData={filterByDate(incidents).map((incident) => [
+                incident.incidentFormId,
+                new Date(incident.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                }),
+                new Date(`1970-01-01T${incident.time}`).toLocaleTimeString(
+                  "en-US",
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  }
+                ),
+                incident.materialsInvolved
+                  .split(",")
+                  .map((material, index) => {
+                    const brands = incident.brand.split(",");
+                    const quantities = incident.qty.split(",");
+
+                    return `${material.trim()} (${
+                      brands[index]?.trim() || "N/A"
+                    }) - ${quantities[index]?.trim() || "N/A"}`;
+                  })
+                  .join("\n"),
+                incident.qty,
+                incident.brand,
+                incident.natureOfIncident,
+                incident.involvedIndividuals,
+                incident.remarks,
+                incident.attachments
+                  .split(",")
+                  .map((attachment: string) => attachment.trim())
+                  .join("\n"),
+                new Date(incident.creationDate).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+                new Date(incident.dateUpdated).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              ])}
+              closeDialog={handlePrintDialogClose}
             ></PdfGenerator>
           </div>
         </DialogContent>

@@ -54,6 +54,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Separator } from "../ui/separator";
 
 interface ReagentDispenseValues {
   dispenseId: number;
@@ -107,6 +108,19 @@ const ReagentDispense = () => {
   const [selectedMaterial, setSelectedMaterial] = useState<Set<string>>(
     new Set()
   );
+
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [creationDateFrom, setCreationDateFrom] = useState("");
+  const [creationDateTo, setCreationDateTo] = useState("");
+
+  const handlePrintDialogClose = () => {
+    setIsPrintAllOpen(false);
+    setDateFrom("");
+    setDateTo("");
+    setCreationDateFrom("");
+    setCreationDateTo("");
+  };
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -231,6 +245,42 @@ const ReagentDispense = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const filterByDateRange = (
+    data: ReagentDispenseValues[],
+    dateFrom: string,
+    dateTo: string,
+    creationDateFrom: string,
+    creationDateTo: string
+  ) => {
+    const fromDate = dateFrom ? new Date(dateFrom) : null;
+    const toDate = dateTo ? new Date(dateTo) : null;
+    const fromCreationDate = creationDateFrom
+      ? new Date(creationDateFrom)
+      : null;
+    const toCreationDate = creationDateTo ? new Date(creationDateTo) : null;
+
+    if (toDate) {
+      toDate.setHours(23, 59, 59, 999);
+    }
+    if (toCreationDate) {
+      toCreationDate.setHours(23, 59, 59, 999);
+    }
+
+    return data.filter((dispense) => {
+      const dispenseDate = new Date(dispense.date);
+      const creationDate = new Date(dispense.creationDate);
+
+      const isWithinDateRange =
+        (!fromDate || dispenseDate >= fromDate) &&
+        (!toDate || dispenseDate <= toDate);
+      const isWithinCreationDateRange =
+        (!fromCreationDate || creationDate >= fromCreationDate) &&
+        (!toCreationDate || creationDate <= toCreationDate);
+
+      return isWithinDateRange && isWithinCreationDateRange;
+    });
+  };
+
   const tableHeaders = [
     "ID",
     "Date",
@@ -244,7 +294,13 @@ const ReagentDispense = () => {
     "Date Created",
     "Date Updated",
   ];
-  const tableData = dispenses.map((dispense) => [
+  const tableData = filterByDateRange(
+    dispenses,
+    dateFrom,
+    dateTo,
+    creationDateFrom,
+    creationDateTo
+  ).map((dispense) => [
     dispense.dispenseId,
     new Date(dispense.date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -640,25 +696,68 @@ const ReagentDispense = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
+      <Dialog open={isPrintAllOpen} onOpenChange={handlePrintDialogClose}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <Printer className="text-teal-500 size-5 -mt-0.5" />
               Print Reagent Dispense Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this form?
-          </p>
-          <p className="text-left text-sm italic">
-            *This form shall be printed in a long bond paper.
-          </p>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Date From:</label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Date To:</label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Creation Date From:</label>
+              <Input
+                type="date"
+                value={creationDateFrom}
+                onChange={(e) => setCreationDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Creation Date To:</label>
+              <Input
+                type="date"
+                value={creationDateTo}
+                onChange={(e) => setCreationDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <Separator />
+          <div className="gap-1 bg-teal-50 p-4 rounded-md">
+            <p className="text-center pb-2 text-teal-800 text-base">
+              Are you sure you want to print this form?
+            </p>
+            <p className="text-left text-xs text-teal-600 italic">
+              *This form shall be printed in a long bond paper.
+            </p>
+            <p className="text-left text-xs text-teal-600 -mt-1 italic">
+              *Selecting nothing will print all forms.
+            </p>
+          </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsPrintAllOpen(false)}
+              onClick={handlePrintDialogClose}
             >
               Cancel
             </Button>
@@ -668,7 +767,7 @@ const ReagentDispense = () => {
               orientation="landscape"
               tableHeaders={tableHeaders}
               tableData={tableData}
-              closeDialog={() => setIsPrintAllOpen(false)}
+              closeDialog={handlePrintDialogClose}
             ></PdfGenerator>
           </div>
         </DialogContent>

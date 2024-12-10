@@ -59,6 +59,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import PdfGenerator from "../templates/pdf-generator";
+import { Separator } from "../ui/separator";
 interface PurchaseOrderValues {
   purchaseOrderId: number;
   purchaseOrderNumber: string;
@@ -120,6 +121,11 @@ const PurchaseOrder = () => {
   const [selectedLaboratory, setSelectedLaboratory] = useState<Set<string>>(
     new Set()
   );
+
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [creationDateFrom, setCreationDateFrom] = useState("");
+  const [creationDateTo, setCreationDateTo] = useState("");
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -312,36 +318,59 @@ const PurchaseOrder = () => {
     "Date Created",
     "Date Updated",
   ];
-  const tableData = purchases.map((purchase) => [
-    purchase.purchaseOrderId,
-    purchase.purchaseOrderNumber,
-    purchase.userFullName,
-    purchase.laboratory,
-    new Date(purchase.date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }),
-    purchase.shippingCost,
-    purchase.tax,
-    purchase.totalPrice,
-    purchase.supplierName,
-    purchase.status,
-    new Date(purchase.creationDate).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  ]);
+  const tableData = purchases
+    .filter((purchase) => {
+      const purchaseDate = new Date(purchase.date);
+      const creationDate = new Date(purchase.creationDate);
+      const dateFromFilter = dateFrom ? new Date(dateFrom) : null;
+      const dateToFilter = dateTo ? new Date(dateTo) : null;
+      const creationDateFromFilter = creationDateFrom
+        ? new Date(creationDateFrom)
+        : null;
+      const creationDateToFilter = creationDateTo
+        ? new Date(creationDateTo)
+        : null;
+
+      const isWithinDateRange =
+        (!dateFromFilter || purchaseDate >= dateFromFilter) &&
+        (!dateToFilter || purchaseDate <= dateToFilter);
+
+      const isWithinCreationDateRange =
+        (!creationDateFromFilter || creationDate >= creationDateFromFilter) &&
+        (!creationDateToFilter || creationDate <= creationDateToFilter);
+
+      return isWithinDateRange && isWithinCreationDateRange;
+    })
+    .map((purchase) => [
+      purchase.purchaseOrderId,
+      purchase.purchaseOrderNumber,
+      purchase.userFullName,
+      purchase.laboratory,
+      new Date(purchase.date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
+      purchase.shippingCost,
+      purchase.tax,
+      purchase.totalPrice,
+      purchase.supplierName,
+      purchase.status,
+      new Date(purchase.creationDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      new Date(purchase.dateUpdated).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    ]);
 
   const singleTableData = selectedPurchase
     ? [
@@ -377,6 +406,10 @@ const PurchaseOrder = () => {
         ],
       ]
     : [];
+
+  const handlePrintDialogClose = () => {
+    setIsPrintAllOpen(false);
+  };
 
   return (
     <div className="p-8">
@@ -695,8 +728,6 @@ const PurchaseOrder = () => {
                         className="rounded-md text-cyan-600 hover:text-cyan-900 hover:bg-cyan-50"
                         onClick={() => {
                           setSelectedPurchase(purchase);
-                          fetchPurchasedItems(purchase.purchaseOrderId);
-
                           setIsEditDialogOpen(true);
                         }}
                       >
@@ -845,7 +876,7 @@ const PurchaseOrder = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
+      <Dialog open={isPrintAllOpen} onOpenChange={handlePrintDialogClose}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
@@ -853,17 +884,59 @@ const PurchaseOrder = () => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this form?
-          </p>
-          <p className="text-left text-sm italic">
-            *This form shall be printed in a long bond paper.
-          </p>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Date From:</label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Date To:</label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Creation Date From:</label>
+              <Input
+                type="date"
+                value={creationDateFrom}
+                onChange={(e) => setCreationDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Creation Date To:</label>
+              <Input
+                type="date"
+                value={creationDateTo}
+                onChange={(e) => setCreationDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <Separator />
+          <div className="gap-1 bg-teal-50 p-4 rounded-md">
+            <p className="text-center pb-2 text-teal-800 text-base">
+              Are you sure you want to print this form?
+            </p>
+            <p className="text-left text-xs text-teal-600 italic">
+              *This form shall be printed in a long bond paper.
+            </p>
+            <p className="text-left text-xs text-teal-600 -mt-1 italic">
+              *Selecting nothing will print all forms.
+            </p>
+          </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsPrintAllOpen(false)}
+              onClick={handlePrintDialogClose}
             >
               Cancel
             </Button>
@@ -873,7 +946,7 @@ const PurchaseOrder = () => {
               orientation="landscape"
               tableHeaders={tableHeaders}
               tableData={tableData}
-              closeDialog={() => setIsPrintAllOpen(false)}
+              closeDialog={handlePrintDialogClose}
             ></PdfGenerator>
           </div>
         </DialogContent>

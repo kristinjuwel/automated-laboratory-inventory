@@ -99,10 +99,21 @@ const RegisterPage = () => {
   };
 
   const handleRegister: SubmitHandler<RegisterFormValues> = async (values) => {
+    validateEmail(values.email);
+    validatePhoneNumber(values.phoneNumber);
+    validatePassword(values.password);
+    validateRePassword(values.rePassword);
+
+    if (emailError || phoneError || passwordError || rePasswordError) {
+      toast.error("Please fix the errors in the form.");
+      return;
+    }
+
     if (values.password !== values.rePassword) {
       toast.error("Passwords do not match!");
       return;
     }
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}register`,
