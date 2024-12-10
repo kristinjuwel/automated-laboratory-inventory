@@ -31,6 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 const DashboardPage = () => {
   const labSlug = useParams().labSlug;
@@ -97,7 +98,7 @@ const DashboardPage = () => {
             }}
           >
             <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger>
+              <div>
                 <TabsTrigger
                   value="inventory"
                   onClick={() => setActiveTab("inventory")}
@@ -106,11 +107,11 @@ const DashboardPage = () => {
                   <Package size={20} />
                   <span className="font-medium">Inventory</span>
                 </TabsTrigger>
-              </PopoverTrigger>
+              </div>
               <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto md:hidden">
                 <ul className="space-y-2">
                   <li>
-                    <button
+                    <Button
                       onClick={() => {
                         setActiveInventoryTab("biological");
                         setOpen(false);
@@ -121,10 +122,10 @@ const DashboardPage = () => {
                       )}
                     >
                       Biological
-                    </button>
+                    </Button>
                   </li>
                   <li>
-                    <button
+                    <Button
                       onClick={() => {
                         setActiveInventoryTab("chemical");
                         setOpen(false);
@@ -135,10 +136,10 @@ const DashboardPage = () => {
                       )}
                     >
                       Chemical
-                    </button>
+                    </Button>
                   </li>
                   <li>
-                    <button
+                    <Button
                       onClick={() => {
                         setActiveInventoryTab("general");
                         setOpen(false);
@@ -149,10 +150,10 @@ const DashboardPage = () => {
                       )}
                     >
                       General
-                    </button>
+                    </Button>
                   </li>
                   <li>
-                    <button
+                    <Button
                       onClick={() => {
                         setActiveInventoryTab("reagent");
                         setOpen(false);
@@ -163,7 +164,7 @@ const DashboardPage = () => {
                       )}
                     >
                       Reagent
-                    </button>
+                    </Button>
                   </li>
                 </ul>
               </PopoverContent>

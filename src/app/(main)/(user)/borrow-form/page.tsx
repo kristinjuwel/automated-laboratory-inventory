@@ -124,10 +124,13 @@ const BorrowForm = () => {
             return data.filter(
               (user) =>
                 user.designation !== "admin" &&
-                user.designation !== "superadmin"
+                user.designation !== "superadmin" &&
+                user.status.toLowerCase() === "active"
             );
           } else if (userRole === "superadmin") {
-            return data;
+            return data.filter(
+              (user) => user.status.toLowerCase() === "active"
+            );
           } else {
             return data.filter(
               (user) => user.userId.toString() === currentUserId
@@ -187,6 +190,51 @@ const BorrowForm = () => {
     setQuantity(value);
   };
   const handleSubmit = async (values: BorrowFormValues) => {
+    if (!values.dateBorrowed) {
+      toast.error("Date Borrowed is required.");
+      return;
+    }
+    if (!values.timeBorrowed) {
+      toast.error("Time Borrowed is required.");
+      return;
+    }
+    if (!values.dateReturned) {
+      toast.error("Date of Return is required.");
+      return;
+    }
+    if (!values.timeReturned) {
+      toast.error("Time of Return is required.");
+      return;
+    }
+    if (!values.materialId) {
+      toast.error("Equipment is required.");
+      return;
+    }
+    if (quantity <= 0) {
+      toast.error("Quantity must be greater than 0.");
+      return;
+    }
+    if (!values.detailsOfBorrowed) {
+      toast.error("Details of Borrowed Equipment is required.");
+      return;
+    }
+    if (!values.damageMaterials) {
+      toast.error("Damage Materials is required.");
+      return;
+    }
+    if (!values.userId) {
+      toast.error("Borrower is required.");
+      return;
+    }
+    if (!values.borrowerDetail) {
+      toast.error("Borrower Details are required.");
+      return;
+    }
+    if (!values.remarks) {
+      toast.error("Remarks are required.");
+      return;
+    }
+
     const parsedValues = {
       ...values,
       qty: quantity,
