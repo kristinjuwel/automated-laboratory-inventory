@@ -110,36 +110,7 @@ const ReagentsInventoryForm = () => {
     number | null
   >(null);
 
-  const validateForm = (values: ReagentsFormValues) => {
-    const errors: Partial<Record<keyof ReagentsFormValues, string>> = {};
-
-    if (!values.date) errors.date = "Date is required";
-    if (!values.labId) errors.labId = "Laboratory is required";
-    if (!values.category) errors.category = "Category is required";
-    if (!values.personnel) errors.personnel = "Personnel is required";
-    if (!values.itemName) errors.itemName = "Item Name is required";
-    if (!values.itemCode) errors.itemCode = "Item Code is required";
-    if (!values.quantity || values.quantity < 0)
-      errors.quantity = "Quantity must be a positive number";
-    if (!values.unit) errors.unit = "Unit is required";
-    if (!values.totalNoContainers || values.totalNoContainers < 0)
-      errors.totalNoContainers =
-        "Total Number of Containers must be a positive number";
-    if (!values.lotNo) errors.lotNo = "Lot Number is required";
-    if (!values.location) errors.location = "Location is required";
-    if (!values.expiryDate) errors.expiryDate = "Expiry Date is required";
-    if (!values.supplier) errors.supplier = "Supplier is required";
-    if (!values.cost || values.cost <= 0)
-      errors.cost = "Cost must be a positive number";
-    if (!values.reorderThreshold || values.reorderThreshold < 0)
-      errors.reorderThreshold = "Reorder Threshold must be a positive number";
-    if (!values.maxThreshold || values.maxThreshold < 0)
-      errors.maxThreshold = "Max Threshold must be a positive number";
-
-    return errors;
-  };
   const form = useForm<ReagentsFormValues>({
-    mode: "onChange",
     defaultValues: {
       date: "",
       labId: "",
@@ -159,19 +130,6 @@ const ReagentsInventoryForm = () => {
       notes: "",
       reorderThreshold: 0,
       maxThreshold: 0,
-    },
-    resolver: async (values) => {
-      const errors = validateForm(values);
-      return {
-        values: Object.keys(errors).length ? {} : values,
-        errors: Object.keys(errors).reduce((acc, key) => {
-          acc[key as keyof ReagentsFormValues] = {
-            message: errors[key as keyof ReagentsFormValues] || "",
-            type: "manual",
-          };
-          return acc;
-        }, {} as Record<keyof ReagentsFormValues, { message: string; type: string }>),
-      };
     },
   });
 
@@ -254,6 +212,71 @@ const ReagentsInventoryForm = () => {
   }, [selectedUserId, currentUserId]);
 
   const handleSubmit = async (values: ReagentsFormValues) => {
+    if (!values.date) {
+      toast.error("Date is required.");
+      return;
+    }
+    if (!values.labId) {
+      toast.error("Laboratory is required.");
+      return;
+    }
+    if (!values.category) {
+      toast.error("Category is required.");
+      return;
+    }
+    if (!selectedUserId) {
+      toast.error("Personnel is required.");
+      return;
+    }
+    if (!values.itemName) {
+      toast.error("Item Name is required.");
+      return;
+    }
+    if (!values.itemCode) {
+      toast.error("Item Code is required.");
+      return;
+    }
+    if (values.quantity <= 0) {
+      toast.error("Quantity must be greater than zero.");
+      return;
+    }
+    if (values.qtyPerContainer <= 0) {
+      toast.error("Quantity Per Container must be greater than zero.");
+      return;
+    }
+    if (!values.unit) {
+      toast.error("Unit is required.");
+      return;
+    }
+    if (!values.lotNo) {
+      toast.error("Lot Number is required.");
+      return;
+    }
+    if (!values.location) {
+      toast.error("Location is required.");
+      return;
+    }
+    if (!values.expiryDate) {
+      toast.error("Expiry Date is required.");
+      return;
+    }
+    if (!values.supplier) {
+      toast.error("Supplier is required.");
+      return;
+    }
+    if (values.cost <= 0) {
+      toast.error("Cost must be greater than zero.");
+      return;
+    }
+    if (values.reorderThreshold < 0) {
+      toast.error("Reorder Threshold cannot be negative.");
+      return;
+    }
+    if (values.maxThreshold < 0) {
+      toast.error("Max Threshold cannot be negative.");
+      return;
+    }
+
     const parsedValues = {
       ...values,
       totalNoContainers: Math.ceil(

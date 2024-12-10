@@ -55,6 +55,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Separator } from "../ui/separator";
 
 interface DispositionValues {
   disposalId: number;
@@ -106,6 +107,11 @@ const Disposition = () => {
   const [selectedDisposedBy, setSelectedDisposedBy] = useState<Set<string>>(
     new Set()
   );
+
+  const [dateDisposedFrom, setDateDisposedFrom] = useState("");
+  const [dateDisposedTo, setDateDisposedTo] = useState("");
+  const [creationDateFrom, setCreationDateFrom] = useState("");
+  const [creationDateTo, setCreationDateTo] = useState("");
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -307,6 +313,35 @@ const Disposition = () => {
         ],
       ]
     : [];
+
+  const handlePrintDialogClose = () => {
+    setIsPrintAllOpen(false);
+    setDateDisposedFrom("");
+    setDateDisposedTo("");
+    setCreationDateFrom("");
+    setCreationDateTo("");
+  };
+
+  const filterTableData = () => {
+    return tableData.filter((row) => {
+      const dateDisposed = new Date(row[6]);
+      const creationDate = new Date(row[8]);
+
+      const isDateDisposedInRange =
+        (!dateDisposedFrom || dateDisposed >= new Date(dateDisposedFrom)) &&
+        (!dateDisposedTo ||
+          dateDisposed <=
+            new Date(new Date(dateDisposedTo).setHours(23, 59, 59, 999)));
+
+      const isCreationDateInRange =
+        (!creationDateFrom || creationDate >= new Date(creationDateFrom)) &&
+        (!creationDateTo ||
+          creationDate <=
+            new Date(new Date(creationDateTo).setHours(23, 59, 59, 999)));
+
+      return isDateDisposedInRange && isCreationDateInRange;
+    });
+  };
 
   return (
     <div className=" p-8">
@@ -659,25 +694,70 @@ const Disposition = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
+      <Dialog open={isPrintAllOpen} onOpenChange={handlePrintDialogClose}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <Printer className="text-teal-500 size-5 -mt-0.5" />
               Print Disposition Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this form?
-          </p>
-          <p className="text-left text-sm italic">
-            *This form shall be printed in a long bond paper.
-          </p>
+
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Date Disposed From:</label>
+              <Input
+                type="date"
+                value={dateDisposedFrom}
+                onChange={(e) => setDateDisposedFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Date Disposed To:</label>
+              <Input
+                type="date"
+                value={dateDisposedTo}
+                onChange={(e) => setDateDisposedTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Creation Date From:</label>
+              <Input
+                type="date"
+                value={creationDateFrom}
+                onChange={(e) => setCreationDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Creation Date To:</label>
+              <Input
+                type="date"
+                value={creationDateTo}
+                onChange={(e) => setCreationDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <Separator />
+          <div className="gap-1 bg-teal-50 p-4 rounded-md">
+            <p className="text-center pb-2 text-teal-800 text-base">
+              Are you sure you want to print this form?
+            </p>
+            <p className="text-left text-xs text-teal-600 italic">
+              *This form shall be printed in a long bond paper.
+            </p>
+            <p className="text-left text-xs text-teal-600 -mt-1 italic">
+              *Selecting nothing will print all forms.
+            </p>
+          </div>
+
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsPrintAllOpen(false)}
+              onClick={handlePrintDialogClose}
             >
               Cancel
             </Button>
@@ -686,8 +766,8 @@ const Disposition = () => {
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
-              tableData={tableData}
-              closeDialog={() => setIsPrintAllOpen(false)}
+              tableData={filterTableData()}
+              closeDialog={handlePrintDialogClose}
             ></PdfGenerator>
           </div>
         </DialogContent>

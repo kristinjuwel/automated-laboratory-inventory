@@ -58,6 +58,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Separator } from "../ui/separator";
 
 interface CalibrationLogValues {
   calibrationId: number;
@@ -139,6 +140,14 @@ const CalibrationLogs = () => {
   const [selectedMaterial, setSelectedMaterial] = useState<Set<string>>(
     new Set()
   );
+
+  const [dateBorrowedFrom, setDateBorrowedFrom] = useState("");
+  const [dateBorrowedTo, setDateBorrowedTo] = useState("");
+  const [dateReturnedFrom, setDateReturnedFrom] = useState("");
+  const [dateReturnedTo, setDateReturnedTo] = useState("");
+  const [creationDateFrom, setCreationDateFrom] = useState("");
+  const [creationDateTo, setCreationDateTo] = useState("");
+  const handlePrintDialogClose = () => setIsPrintAllOpen(false);
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -432,6 +441,37 @@ const CalibrationLogs = () => {
         ],
       ]
     : [];
+
+  const filterTableData = () => {
+    return tableData.filter((calibration) => {
+      const calibrationDate = new Date(calibration[3]);
+      const nextCalibrationDate = new Date(calibration[4]);
+      const creationDate = new Date(calibration[7]);
+
+      const matchesCalibrationDate =
+        (!dateBorrowedFrom || calibrationDate >= new Date(dateBorrowedFrom)) &&
+        (!dateBorrowedTo ||
+          calibrationDate <=
+            new Date(new Date(dateBorrowedTo).setHours(23, 59, 59, 999)));
+      const matchesNextCalibrationDate =
+        (!dateReturnedFrom ||
+          nextCalibrationDate >= new Date(dateReturnedFrom)) &&
+        (!dateReturnedTo ||
+          nextCalibrationDate <=
+            new Date(new Date(dateReturnedTo).setHours(23, 59, 59, 999)));
+      const matchesCreationDate =
+        (!creationDateFrom || creationDate >= new Date(creationDateFrom)) &&
+        (!creationDateTo ||
+          creationDate <=
+            new Date(new Date(creationDateTo).setHours(23, 59, 59, 999)));
+
+      return (
+        matchesCalibrationDate &&
+        matchesNextCalibrationDate &&
+        matchesCreationDate
+      );
+    });
+  };
 
   return (
     <div className="p-8">
@@ -791,25 +831,87 @@ const CalibrationLogs = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
+      <Dialog open={isPrintAllOpen} onOpenChange={handlePrintDialogClose}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
+              <Printer className="text-teal-500 size-5 -mt-0.5" />
               Print Calibration Report
             </DialogTitle>
-            <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this form?
-          </p>
-          <p className="text-left text-sm italic">
-            *This form shall be printed in a long bond paper.
-          </p>
+          <DialogDescription></DialogDescription>
+
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Calibration Date From:</label>
+              <Input
+                type="date"
+                value={dateBorrowedFrom}
+                onChange={(e) => setDateBorrowedFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Calibration Date To:</label>
+              <Input
+                type="date"
+                value={dateBorrowedTo}
+                onChange={(e) => setDateBorrowedTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Next Calibration Date From:</label>
+              <Input
+                type="date"
+                value={dateReturnedFrom}
+                onChange={(e) => setDateReturnedFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Next Calibration Date To:</label>
+              <Input
+                type="date"
+                value={dateReturnedTo}
+                onChange={(e) => setDateReturnedTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Creation Date From:</label>
+              <Input
+                type="date"
+                value={creationDateFrom}
+                onChange={(e) => setCreationDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Creation Date To:</label>
+              <Input
+                type="date"
+                value={creationDateTo}
+                onChange={(e) => setCreationDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <Separator />
+          <div className="gap-1 bg-teal-50 p-4 rounded-md">
+            <p className="text-center pb-2 text-teal-800 text-base">
+              Are you sure you want to print this form?
+            </p>
+            <p className="text-left text-xs text-teal-600 italic">
+              *This form shall be printed in a long bond paper.
+            </p>
+            <p className="text-left text-xs text-teal-600 -mt-1 italic">
+              *Selecting nothing will print all forms.
+            </p>
+          </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={() => setIsPrintAllOpen(false)}
+              onClick={handlePrintDialogClose}
             >
               Cancel
             </Button>
@@ -818,8 +920,8 @@ const CalibrationLogs = () => {
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
-              tableData={tableData}
-              closeDialog={() => setIsPrintAllOpen(false)}
+              tableData={filterTableData()}
+              closeDialog={handlePrintDialogClose}
             ></PdfGenerator>
           </div>
         </DialogContent>
