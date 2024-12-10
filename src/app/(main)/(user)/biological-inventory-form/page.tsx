@@ -154,10 +154,11 @@ const BiologicalInventoryForm = () => {
         values: Object.keys(errors).length ? {} : values,
         errors: Object.keys(errors).reduce((acc, key) => {
           acc[key as keyof BiologicalFormValues] = {
-            message: errors[key as keyof BiologicalFormValues],
+            message: errors[key as keyof BiologicalFormValues] || "",
+            type: "manual",
           };
           return acc;
-        }, {} as any),
+        }, {} as Record<keyof BiologicalFormValues, { message: string; type: string }>),
       };
     },
   });

@@ -166,10 +166,11 @@ const ReagentsInventoryForm = () => {
         values: Object.keys(errors).length ? {} : values,
         errors: Object.keys(errors).reduce((acc, key) => {
           acc[key as keyof ReagentsFormValues] = {
-            message: errors[key as keyof ReagentsFormValues],
+            message: errors[key as keyof ReagentsFormValues] || "",
+            type: "manual",
           };
           return acc;
-        }, {} as any),
+        }, {} as Record<keyof ReagentsFormValues, { message: string; type: string }>),
       };
     },
   });
@@ -292,17 +293,7 @@ const ReagentsInventoryForm = () => {
       source: `Add ${parsedValues.quantity}`,
       remarks: "Initial Inventory",
     };
-    let laboratory: string;
 
-    if (Number(parsedValues.labId) === 1) {
-      laboratory = "pathology";
-    } else if (Number(parsedValues.labId) === 2) {
-      laboratory = "immunology";
-    } else if (Number(parsedValues.labId) === 3) {
-      laboratory = "microbiology";
-    } else {
-      laboratory = "unknown";
-    }
     try {
       const materialResponse = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}material/create`,

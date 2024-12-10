@@ -156,10 +156,11 @@ const ChemicalInventoryForm = () => {
         values: Object.keys(errors).length ? {} : values,
         errors: Object.keys(errors).reduce((acc, key) => {
           acc[key as keyof ChemicalFormValues] = {
-            message: errors[key as keyof ChemicalFormValues],
+            message: errors[key as keyof ChemicalFormValues] || "",
+            type: "manual",
           };
           return acc;
-        }, {} as any),
+        }, {} as Record<keyof ChemicalFormValues, { message: string; type: string }>),
       };
     },
   });

@@ -26,11 +26,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Incident from "@/components/molecules/incident";
 import Borrow from "@/components/molecules/borrow";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
 const DashboardPage = () => {

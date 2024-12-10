@@ -153,10 +153,11 @@ const GenLabSuppliesInventoryForm = () => {
         values: Object.keys(errors).length ? {} : values,
         errors: Object.keys(errors).reduce((acc, key) => {
           acc[key as keyof GenFormValues] = {
-            message: errors[key as keyof GenFormValues],
+            message: errors[key as keyof GenFormValues] || "",
+            type: "manual",
           };
           return acc;
-        }, {} as any),
+        }, {} as Record<keyof GenFormValues, { message: string; type: string }>),
       };
     },
   });
