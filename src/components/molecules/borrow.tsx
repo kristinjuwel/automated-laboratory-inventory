@@ -62,6 +62,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 
 interface Borrow {
   borrowId: number;
@@ -119,6 +120,12 @@ const Borrow = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<Set<string>>(
     new Set()
   );
+  const [dateBorrowedFrom, setDateBorrowedFrom] = useState("");
+  const [dateBorrowedTo, setDateBorrowedTo] = useState("");
+  const [dateReturnedFrom, setDateReturnedFrom] = useState("");
+  const [dateReturnedTo, setDateReturnedTo] = useState("");
+  const [creationDateFrom, setCreationDateFrom] = useState("");
+  const [creationDateTo, setCreationDateTo] = useState("");
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -414,6 +421,28 @@ const Borrow = () => {
         toast.error("Failed to update status");
       }
     }
+  };
+
+  const filterTableData = () => {
+    return tableData.filter((row) => {
+      const dateBorrowed = new Date(row[7]);
+      const dateReturned = new Date(row[10]);
+      const creationDate = new Date(row[14]);
+
+      const isDateBorrowedInRange =
+        (!dateBorrowedFrom || dateBorrowed >= new Date(dateBorrowedFrom)) &&
+        (!dateBorrowedTo || dateBorrowed <= new Date(dateBorrowedTo));
+      const isDateReturnedInRange =
+        (!dateReturnedFrom || dateReturned >= new Date(dateReturnedFrom)) &&
+        (!dateReturnedTo || dateReturned <= new Date(dateReturnedTo));
+      const isCreationDateInRange =
+        (!creationDateFrom || creationDate >= new Date(creationDateFrom)) &&
+        (!creationDateTo || creationDate <= new Date(creationDateTo));
+
+      return (
+        isDateBorrowedInRange && isDateReturnedInRange && isCreationDateInRange
+      );
+    });
   };
 
   return (
@@ -897,12 +926,73 @@ const Borrow = () => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <p className="text-left pt-2 text-sm">
-            Are you sure you want to print this form?
-          </p>
-          <p className="text-left text-sm italic">
-            *This form shall be printed in a long bond paper.
-          </p>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Date Borrowed From:</label>
+              <Input
+                type="date"
+                value={dateBorrowedFrom}
+                onChange={(e) => setDateBorrowedFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Date Borrowed To:</label>
+              <Input
+                type="date"
+                value={dateBorrowedTo}
+                onChange={(e) => setDateBorrowedTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Date Returned From:</label>
+              <Input
+                type="date"
+                value={dateReturnedFrom}
+                onChange={(e) => setDateReturnedFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Date Returned To:</label>
+              <Input
+                type="date"
+                value={dateReturnedTo}
+                onChange={(e) => setDateReturnedTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label>Creation Date From:</label>
+              <Input
+                type="date"
+                value={creationDateFrom}
+                onChange={(e) => setCreationDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label>Creation Date To:</label>
+              <Input
+                type="date"
+                value={creationDateTo}
+                onChange={(e) => setCreationDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <Separator />
+          <div className="gap-1 bg-teal-50 p-4 rounded-md">
+            <p className="text-center pb-2 text-teal-800 text-base">
+              Are you sure you want to print this form?
+            </p>
+            <p className="text-left text-xs text-teal-600 italic">
+              *This form shall be printed in a long bond paper.
+            </p>
+            <p className="text-left text-xs text-teal-600 -mt-1 italic">
+              *Selecting nothing will print all forms.
+            </p>
+          </div>
+
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="ghost"
@@ -916,7 +1006,7 @@ const Borrow = () => {
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
-              tableData={tableData}
+              tableData={filterTableData()}
               closeDialog={() => setIsPrintAllOpen(false)}
             ></PdfGenerator>
           </div>
