@@ -120,9 +120,39 @@ const IncidentForm = () => {
       involvedIndividuals: "",
       materialsInvolved: "",
     },
+    mode: "onChange",
   });
 
   const handleSubmit = async (values: IncidentFormValues) => {
+    if (!values.date) {
+      toast.error("Date is required");
+      return;
+    }
+    if (!values.time) {
+      toast.error("Time is required");
+      return;
+    }
+    if (!values.natureOfIncident) {
+      toast.error("Nature of Incident is required");
+      return;
+    }
+    if (selectedMaterials.length === 0) {
+      toast.error("At least one material must be selected");
+      return;
+    }
+    if (selectedUserIds.length === 0) {
+      toast.error("At least one personnel must be selected");
+      return;
+    }
+    if (!values.remarks) {
+      toast.error("Remarks are required");
+      return;
+    }
+    if (files.length === 0) {
+      toast.error("At least one file must be uploaded");
+      return;
+    }
+
     const involvedIndividuals = selectedUserIds
       .map((userId) => {
         const user = users.find((user) => user.userId === userId);

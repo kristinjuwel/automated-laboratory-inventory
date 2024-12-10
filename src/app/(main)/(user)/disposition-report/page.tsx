@@ -101,6 +101,35 @@ const DispositionReportForm = () => {
   });
 
   const handleSubmit = async (values: DispositionReportValues) => {
+    if (!values.dateDisposed) {
+      toast.error("Disposition date is required.");
+      return;
+    }
+    if (!selectedUserId) {
+      toast.error("Disposed by is required.");
+      return;
+    }
+    if (!selectedMaterialId) {
+      toast.error("Item is required.");
+      return;
+    }
+    if (quantity <= 0 || quantity > maxQuantity) {
+      toast.error("Quantity must be between 1 and the maximum available.");
+      return;
+    }
+    if (!values.itemDescription.trim()) {
+      toast.error("Item description is required.");
+      return;
+    }
+    if (!values.reasonForDisposal.trim()) {
+      toast.error("Reason for disposal is required.");
+      return;
+    }
+    if (!values.disposalMethod.trim()) {
+      toast.error("Disposal method is required.");
+      return;
+    }
+
     const parsedValues = {
       ...values,
       qty: quantity,

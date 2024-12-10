@@ -246,15 +246,57 @@ const LabPurchaseOrder = () => {
   };
 
   const handleSubmit = async (values: LabPurchaseValues) => {
+    if (!values.purchaseOrderNo) {
+      toast.error("Purchase Order Number is required.");
+      return;
+    }
+    if (!values.date) {
+      toast.error("Date is required.");
+      return;
+    }
+    if (!values.status) {
+      toast.error("Status is required.");
+      return;
+    }
+    if (!selectedSupplierId) {
+      toast.error("Supplier is required.");
+      return;
+    }
+    if (!selectedUserId) {
+      toast.error("Contact Person is required.");
+      return;
+    }
+    if (items.some((item) => item.itemId === 0)) {
+      toast.error("An item must be selected.");
+      return;
+    }
+    if (items.some((item) => item.quantity <= 0)) {
+      toast.error("All items must have a quantity greater than 0.");
+      return;
+    }
+    if (items.some((item) => item.unitPrice <= 0)) {
+      toast.error("All items must have a unit price greater than 0.");
+      return;
+    }
+
+    const tax =
+      parseFloat((document.getElementById("tax") as HTMLInputElement)?.value) ||
+      0;
+    const shippingCost =
+      parseFloat(
+        (document.getElementById("shipping") as HTMLInputElement)?.value
+      ) || 0;
+
+    if (tax < 0) {
+      toast.error("Tax cannot be negative.");
+      return;
+    }
+    if (shippingCost < 0) {
+      toast.error("Shipping cost cannot be negative.");
+      return;
+    }
+
     try {
-      const tax =
-        parseFloat(
-          (document.getElementById("tax") as HTMLInputElement)?.value
-        ) || 0;
-      const shippingCost =
-        parseFloat(
-          (document.getElementById("shipping") as HTMLInputElement)?.value
-        ) || 0;
       const grandTotal = parseFloat(calculateGrandTotal());
 
       const parsedValues = {

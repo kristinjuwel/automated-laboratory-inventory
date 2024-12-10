@@ -365,7 +365,9 @@ const CalibrationLogForms = () => {
                           </PopoverContent>
                         </Popover>
                       </FormControl>
-                      <FormMessage />
+                      {selectedUserId === null && (
+                        <FormMessage>Personnel is required.</FormMessage>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -440,7 +442,9 @@ const CalibrationLogForms = () => {
                           </PopoverContent>
                         </Popover>
                       </FormControl>
-                      <FormMessage />
+                      {selectedMaterialId === null && (
+                        <FormMessage>Material is required.</FormMessage>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -463,6 +467,7 @@ const CalibrationLogForms = () => {
                         />
                       </FormControl>
                       {fileError && <FormMessage>{fileError}</FormMessage>}
+                      {!file && <FormMessage>File is required.</FormMessage>}
                     </FormItem>
                   )}
                 />
