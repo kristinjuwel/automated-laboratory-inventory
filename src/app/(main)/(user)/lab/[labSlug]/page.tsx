@@ -31,7 +31,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 
 const DashboardPage = () => {
   const labSlug = useParams().labSlug;
