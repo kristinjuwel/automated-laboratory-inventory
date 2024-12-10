@@ -316,13 +316,14 @@ const BiologicalInventoryForm = () => {
       }
 
       toast.success("Material and inventory log added successfully!");
-      form.reset();
       const labName =
-        parsedValues.labId === "1"
+        Number(parsedValues.labId) === 1
           ? "pathology"
-          : parsedValues.labId === "2"
+          : Number(parsedValues.labId) === 2
           ? "immunology"
-          : "microbiology";
+          : Number(parsedValues.labId) === 3
+          ? "microbiology"
+          : "pathology";
       router.push(`/lab/${labName}`);
     } catch (error) {
       toast.error("Submission failed. Please try again.");
