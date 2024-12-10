@@ -10,7 +10,7 @@ interface PdfGeneratorProps {
   orientation?: "portrait" | "landscape";
   tableHeaders: string[];
   tableData: (string | number)[][];
-  materialName?: string; 
+  materialName?: string;
   closeDialog: () => void;
 }
 
@@ -55,7 +55,7 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
 
     const currentDate = new Date();
     const formattedDate = format(currentDate, "MM/dd/yyyy");
-    const formattedDateForFile = format(currentDate, "MM-dd-yyyy"); // For filename
+    const formattedDateForFile = format(currentDate, "MM-dd-yyyy");
 
     const baseUrl = window.location.origin;
     const imgElement1 = new Image();
@@ -183,30 +183,30 @@ const PdfGenerator: React.FC<PdfGeneratorProps> = ({
       );
 
       const preparedData = tableHeaders.map((header, index) => [
-          header,
-          tableData.map((row) => row[index] || "").join(", "),
-        ]);
+        header,
+        tableData.map((row) => row[index] || "").join(", "),
+      ]);
 
-        autoTable(doc, {
-          startY: 105,
-          body: preparedData,
-          styles: {
-            font: "helvetica",
-            fontSize: 12,
-            cellPadding: 2,
-            overflow: "linebreak",
-            valign: "middle",
-            lineColor: [0, 0, 0],
-            lineWidth: 0.2,
-            fillColor: [255, 255, 255],
-            textColor: [0, 0, 0],
-          },
-          columnStyles: {
-            0: { cellWidth: 60, fontStyle: "bold" },
-            1: { cellWidth: 120 },
-          },
-          theme: "grid",
-        });
+      autoTable(doc, {
+        startY: 105,
+        body: preparedData,
+        styles: {
+          font: "helvetica",
+          fontSize: 12,
+          cellPadding: 2,
+          overflow: "linebreak",
+          valign: "middle",
+          lineColor: [0, 0, 0],
+          lineWidth: 0.2,
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+        },
+        columnStyles: {
+          0: { cellWidth: 60, fontStyle: "bold" },
+          1: { cellWidth: 120 },
+        },
+        theme: "grid",
+      });
 
       doc.save(`${pdfTitle}-${materialName}-${formattedDateForFile}.pdf`);
       closeDialog();

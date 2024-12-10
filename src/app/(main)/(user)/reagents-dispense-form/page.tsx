@@ -86,7 +86,7 @@ const ReagentDispenseForm = () => {
 
   const maxQuantity = getMaxQuantity();
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.min(Number(e.target.value), maxQuantity);
+    const value = Math.min(Math.max(Number(e.target.value), 1), maxQuantity);
     setQuantity(value);
   };
   const form = useForm<ReagentDispenseFormValues>({
@@ -94,20 +94,38 @@ const ReagentDispenseForm = () => {
       date: "",
       materialId: 0,
       name: "",
-      totalNoContainers: selectedMaterialId
-        ? materials.find(
-            (material) => material.materialId === selectedMaterialId
-          )?.totalNoContainers || 0
-        : 0,
+      totalNoContainers: 0,
       lotNo: "",
       qtyDispensed: 0,
       remainingQuantity: 0,
       remarks: "",
       userId: Number(currentUserId) ?? 0,
     },
+    mode: "onChange",
   });
 
   const handleSubmit = async (values: ReagentDispenseFormValues) => {
+    // Form validation
+    if (!values.date) {
+      toast.error("Date is required.");
+      return;
+    }
+    if (!values.materialId) {
+      toast.error("Material is required.");
+      return;
+    }
+    if (quantity <= 0) {
+      toast.error("Quantity dispensed must be greater than 0.");
+      return;
+    }
+    if (!values.remarks) {
+      toast.error("Remarks are required.");
+      return;
+    }
+    if (!values.userId) {
+      toast.error("Analyst is required.");
+      return;
+    }
     const parsedValues = {
       ...values,
       qtyDispensed: quantity,
@@ -212,10 +230,13 @@ const ReagentDispenseForm = () => {
             return data.filter(
               (user) =>
                 user.designation !== "admin" &&
-                user.designation !== "superadmin"
+                user.designation !== "superadmin" &&
+                user.status.toLowerCase() === "active"
             );
           } else if (userRole === "superadmin") {
-            return data;
+            return data.filter(
+              (user) => user.status.toLowerCase() === "active"
+            );
           } else {
             return data.filter(
               (user) => user.userId.toString() === currentUserId
@@ -279,6 +300,7 @@ const ReagentDispenseForm = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <FormField
                   name="date"
+                  rules={{ required: "Date is required" }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Date</FormLabel>
@@ -294,6 +316,7 @@ const ReagentDispenseForm = () => {
                 />
                 <FormField
                   name="materialId"
+                  rules={{ required: "Material is required" }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Material</FormLabel>
@@ -334,7 +357,7 @@ const ReagentDispenseForm = () => {
                                     {materials.map((material) => (
                                       <CommandItem
                                         key={material.materialId}
-                                        value={material.itemName}
+                                        value={material.itemName.toString()}
                                         onSelect={() => {
                                           setSelectedMaterialId(
                                             selectedMaterialId ===
@@ -369,6 +392,7 @@ const ReagentDispenseForm = () => {
                 />
                 <FormField
                   name="qtyDispensed"
+                  rules={{ required: "Quantity is required" }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Quantity</FormLabel>
@@ -377,11 +401,11 @@ const ReagentDispenseForm = () => {
                           type="number"
                           placeholder="Quantity"
                           {...field}
-                          value={quantity}
+                          value={quantity.toString()}
                           required
                           className="w-full"
                           max={maxQuantity}
-                          min={0}
+                          min={1}
                           onChange={handleInputChange}
                         />
                       </FormControl>
@@ -398,7 +422,10 @@ const ReagentDispenseForm = () => {
                         <Input
                           type="number"
                           placeholder="Calculated automatically"
-                          value={maxQuantity - quantity}
+                          value={(maxQuantity - quantity >= 0
+                            ? maxQuantity - quantity
+                            : 0
+                          ).toString()}
                           readOnly
                           className="text-teal-700"
                         />
@@ -427,8 +454,8 @@ const ReagentDispenseForm = () => {
                                     (material) =>
                                       material.materialId === selectedMaterialId
                                   )?.qtyPerContainer || 1
-                                : 0)
-                          )}
+                                : 1)
+                          ).toString()}
                           readOnly
                         />
                       </FormControl>
@@ -451,8 +478,8 @@ const ReagentDispenseForm = () => {
                               ? materials.find(
                                   (material) =>
                                     material.materialId === selectedMaterialId
-                                )?.lotNo || 1
-                              : 0
+                                )?.lotNo || "None"
+                              : "None"
                           }
                           readOnly
                         />
@@ -465,6 +492,7 @@ const ReagentDispenseForm = () => {
               <div className="grid grid-cols-1 gap-3 mb-4">
                 <FormField
                   name="userId"
+                  rules={{ required: "Analyst is required" }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Analyst</FormLabel>
@@ -499,7 +527,7 @@ const ReagentDispenseForm = () => {
                                 <CommandGroup>
                                   {users.map((user) => (
                                     <CommandItem
-                                      key={user.fullName}
+                                      key={user.userId}
                                       value={user.fullName.toString()}
                                       onSelect={() => {
                                         setSelectedUserId(
@@ -533,6 +561,7 @@ const ReagentDispenseForm = () => {
                 />
                 <FormField
                   name="remarks"
+                  rules={{ required: "Remarks are required" }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Remarks</FormLabel>

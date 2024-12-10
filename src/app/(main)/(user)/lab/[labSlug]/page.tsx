@@ -21,22 +21,16 @@ import {
   Microscope,
   FileMinus,
   FlaskConicalOff,
-  Boxes,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import Incident from "@/components/molecules/incident";
 import Borrow from "@/components/molecules/borrow";
-//import StockLevel from "@/components/molecules/stock-level";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 const DashboardPage = () => {
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const savedInventoryTab = localStorage.getItem("activeInventoryTab");
   const savedActiveTab = localStorage.getItem("activeTab");
 
@@ -44,13 +38,13 @@ const DashboardPage = () => {
     savedInventoryTab || "biological"
   );
   const [activeTab, setActiveTab] = useState(savedActiveTab || "inventory");
-
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     localStorage.setItem("activeInventoryTab", activeInventoryTab);
     localStorage.setItem("activeTab", activeTab);
   }, [labSlug, activeInventoryTab, activeTab]);
 
-  const getIconByLab = (labSlug: string) => {
+  const getIconByLab = (labSlug: string | string[]) => {
     switch (labSlug) {
       case "pathology":
         return (
@@ -96,17 +90,82 @@ const DashboardPage = () => {
             className="flex justify-around bg-teal-50 text-black rounded-b-none py-6 overflow-x-auto"
             style={{
               overflowY: "hidden",
-              scrollbarWidth: "thin", // For Firefox
+              scrollbarWidth: "thin",
             }}
           >
-            <TabsTrigger
-              value="inventory"
-              onClick={() => setActiveTab("inventory")}
-              className="flex items-center space-x-2"
-            >
-              <Package size={20} />
-              <span className="font-medium">Inventory</span>
-            </TabsTrigger>
+            <Popover open={open} onOpenChange={setOpen}>
+              <div>
+                <TabsTrigger
+                  value="inventory"
+                  onClick={() => setActiveTab("inventory")}
+                  className="flex items-center space-x-2"
+                >
+                  <Package size={20} />
+                  <span className="font-medium">Inventory</span>
+                </TabsTrigger>
+              </div>
+              <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto md:hidden">
+                <ul className="space-y-2">
+                  <li>
+                    <Button
+                      onClick={() => {
+                        setActiveInventoryTab("biological");
+                        setOpen(false);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-2 rounded-lg",
+                        activeInventoryTab === "biological" ? "bg-teal-50" : ""
+                      )}
+                    >
+                      Biological
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      onClick={() => {
+                        setActiveInventoryTab("chemical");
+                        setOpen(false);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-2 rounded-lg",
+                        activeInventoryTab === "chemical" ? "bg-teal-50" : ""
+                      )}
+                    >
+                      Chemical
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      onClick={() => {
+                        setActiveInventoryTab("general");
+                        setOpen(false);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-2 rounded-lg",
+                        activeInventoryTab === "general" ? "bg-teal-50" : ""
+                      )}
+                    >
+                      General
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      onClick={() => {
+                        setActiveInventoryTab("reagent");
+                        setOpen(false);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-2 rounded-lg",
+                        activeInventoryTab === "reagent" ? "bg-teal-50" : ""
+                      )}
+                    >
+                      Reagent
+                    </Button>
+                  </li>
+                </ul>
+              </PopoverContent>
+            </Popover>
+
             <TabsTrigger
               value="purchaseOrder"
               onClick={() => setActiveTab("purchaseOrder")}
@@ -158,8 +217,8 @@ const DashboardPage = () => {
           </TabsList>
 
           <TabsContent value="inventory">
-            <div className="flex flex-col sm:flex-row gap-2 overflow-hidden">
-              <div className="sm:w-1/12 w-full sm:border-r-2 border-teal-100 sm:px-4 px-2 sm:block hidden overflow-hidden">
+            <div className="flex flex-col md:flex-row gap-2 overflow-hidden">
+              <div className="md:w-1/12 w-full md:border-r-2 border-teal-100 md:px-4 px-2 md:block hidden overflow-hidden">
                 <ul className="space-y-2 py-4">
                   <li
                     className={cn(
@@ -211,68 +270,7 @@ const DashboardPage = () => {
                   </li>
                 </ul>
               </div>
-
-              <div className="sm:hidden">
-                <Popover>
-                  <PopoverTrigger className="flex items-center px-4 py-2 bg-teal-100 text-black rounded-lg ml-8">
-                    <Boxes size={30} />
-                  </PopoverTrigger>
-                  <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto">
-                    <ul className="space-y-2">
-                      <li>
-                        <button
-                          onClick={() => setActiveInventoryTab("biological")}
-                          className={cn(
-                            "w-full text-left px-4 py-2 rounded-lg",
-                            activeInventoryTab === "biological"
-                              ? "bg-teal-50"
-                              : ""
-                          )}
-                        >
-                          Biological
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          onClick={() => setActiveInventoryTab("chemical")}
-                          className={cn(
-                            "w-full text-left px-4 py-2 rounded-lg",
-                            activeInventoryTab === "chemical"
-                              ? "bg-teal-50"
-                              : ""
-                          )}
-                        >
-                          Chemical
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          onClick={() => setActiveInventoryTab("general")}
-                          className={cn(
-                            "w-full text-left px-4 py-2 rounded-lg",
-                            activeInventoryTab === "general" ? "bg-teal-50" : ""
-                          )}
-                        >
-                          General
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          onClick={() => setActiveInventoryTab("reagent")}
-                          className={cn(
-                            "w-full text-left px-4 py-2 rounded-lg",
-                            activeInventoryTab === "reagent" ? "bg-teal-50" : ""
-                          )}
-                        >
-                          Reagent
-                        </button>
-                      </li>
-                    </ul>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="w-11/12">
+              <div className="w-full md:w-11/12">
                 {activeInventoryTab === "biological" && <Biological />}
                 {activeInventoryTab === "chemical" && <Chemical />}
                 {activeInventoryTab === "general" && <GeneralSupplies />}

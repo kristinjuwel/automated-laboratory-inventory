@@ -77,7 +77,6 @@ interface BiologicalFormValues {
   reorderThreshold: number;
   maxThreshold: number;
 }
-
 const BiologicalInventoryForm = () => {
   const router = useRouter();
   const userRole = localStorage.getItem("userRole");
@@ -106,8 +105,63 @@ const BiologicalInventoryForm = () => {
   const [selectedCategoryId, setSelectedCategoryId] = React.useState<
     number | null
   >(null);
+  const validateForm = (values: BiologicalFormValues) => {
+    const errors: Partial<Record<keyof BiologicalFormValues, string>> = {};
 
-  const form = useForm<BiologicalFormValues>({});
+    if (!values.date) errors.date = "Date is required";
+    if (!values.labId) errors.labId = "Laboratory is required";
+    if (!values.category) errors.category = "Category is required";
+    if (!values.personnel) errors.personnel = "Personnel is required";
+    if (!values.itemName) errors.itemName = "Item Name is required";
+    if (!values.itemCode) errors.itemCode = "Item Code is required";
+    if (!values.quantity || values.quantity < 0)
+      errors.quantity = "Quantity must be a positive number";
+    if (!values.unit) errors.unit = "Unit is required";
+    if (!values.location) errors.location = "Location is required";
+    if (!values.expiryDate) errors.expiryDate = "Expiry Date is required";
+    if (!values.supplier) errors.supplier = "Supplier is required";
+    if (!values.cost || values.cost <= 0)
+      errors.cost = "Cost must be a positive number";
+    if (!values.reorderThreshold || values.reorderThreshold < 0)
+      errors.reorderThreshold = "Reorder Threshold must be a positive number";
+    if (!values.maxThreshold || values.maxThreshold < 0)
+      errors.maxThreshold = "Max Threshold must be a positive number";
+
+    return errors;
+  };
+  const form = useForm<BiologicalFormValues>({
+    mode: "onChange",
+    defaultValues: {
+      date: "",
+      labId: "",
+      category: 0,
+      personnel: 0,
+      itemName: "",
+      itemCode: "",
+      quantity: 0,
+      unit: "",
+      location: "",
+      expiryDate: "",
+      supplier: 0,
+      cost: 0,
+      notes: "",
+      reorderThreshold: 0,
+      maxThreshold: 0,
+    },
+    resolver: async (values) => {
+      const errors = validateForm(values);
+      return {
+        values: Object.keys(errors).length ? {} : values,
+        errors: Object.keys(errors).reduce((acc, key) => {
+          acc[key as keyof BiologicalFormValues] = {
+            message: errors[key as keyof BiologicalFormValues] || "",
+            type: "manual",
+          };
+          return acc;
+        }, {} as Record<keyof BiologicalFormValues, { message: string; type: string }>),
+      };
+    },
+  });
 
   const addFilteredSupplier = async () => {
     if (!selectedUserId) {
@@ -263,8 +317,15 @@ const BiologicalInventoryForm = () => {
       }
 
       toast.success("Material and inventory log added successfully!");
-      form.reset();
-      router.push("/lab/pathology");
+      const labName =
+        Number(parsedValues.labId) === 1
+          ? "pathology"
+          : Number(parsedValues.labId) === 2
+          ? "immunology"
+          : Number(parsedValues.labId) === 3
+          ? "microbiology"
+          : "pathology";
+      router.push(`/lab/${labName}`);
     } catch (error) {
       toast.error("Submission failed. Please try again.");
     }
@@ -284,10 +345,13 @@ const BiologicalInventoryForm = () => {
             return data.filter(
               (user) =>
                 user.designation !== "admin" &&
-                user.designation !== "superadmin"
+                user.designation !== "superadmin" &&
+                user.status.toLowerCase() === "active"
             );
           } else if (userRole === "superadmin") {
-            return data;
+            return data.filter(
+              (user) => user.status.toLowerCase() === "active"
+            );
           } else {
             return data.filter(
               (user) => user.userId.toString() === currentUserId

@@ -201,10 +201,13 @@ const CalibrationLogForms = () => {
             return data.filter(
               (user) =>
                 user.designation !== "admin" &&
-                user.designation !== "superadmin"
+                user.designation !== "superadmin" &&
+                user.status.toLowerCase() === "active"
             );
           } else if (userRole === "superadmin") {
-            return data;
+            return data.filter(
+              (user) => user.status.toLowerCase() === "active"
+            );
           } else {
             return data.filter(
               (user) => user.userId.toString() === currentUserId
@@ -362,7 +365,9 @@ const CalibrationLogForms = () => {
                           </PopoverContent>
                         </Popover>
                       </FormControl>
-                      <FormMessage />
+                      {selectedUserId === null && (
+                        <FormMessage>Personnel is required.</FormMessage>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -437,7 +442,9 @@ const CalibrationLogForms = () => {
                           </PopoverContent>
                         </Popover>
                       </FormControl>
-                      <FormMessage />
+                      {selectedMaterialId === null && (
+                        <FormMessage>Material is required.</FormMessage>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -460,6 +467,7 @@ const CalibrationLogForms = () => {
                         />
                       </FormControl>
                       {fileError && <FormMessage>{fileError}</FormMessage>}
+                      {!file && <FormMessage>File is required.</FormMessage>}
                     </FormItem>
                   )}
                 />

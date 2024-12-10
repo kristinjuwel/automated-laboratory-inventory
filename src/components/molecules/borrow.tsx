@@ -10,7 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Search, FilePlus, Printer, SquarePen } from "lucide-react";
+import {
+  Edit,
+  Search,
+  FilePlus,
+  Printer,
+  SquarePen,
+  Filter,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -44,6 +52,16 @@ import {
 import EditBorrow from "../dialogs/borrow-edit";
 import PdfGenerator from "../templates/pdf-generator";
 import PdfForm from "../templates/pdf-form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface Borrow {
   borrowId: number;
@@ -72,8 +90,7 @@ const ITEMS_PER_PAGE = 4;
 
 const Borrow = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const labSlug = pathname?.split("/")[2];
+  const labSlug = useParams().labSlug;
   const [borrows, setBorrows] = useState<Borrow[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,6 +105,20 @@ const Borrow = () => {
   const [orientation, setOrientation] = useState<
     "portrait" | "landscape" | undefined
   >(undefined);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<Set<string>>(new Set());
+  const [isEquipmentOpen, setIsEquipmentOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(
+    new Set()
+  );
+  const [isDepartmentOpen, setIsDepartmentOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) {
@@ -112,7 +143,6 @@ const Borrow = () => {
               }${borrow.user.lastName}`,
             })
           );
-
           setBorrows(mappedBorrows);
           setFilteredBorrows(mappedBorrows);
         } catch (error) {
@@ -157,7 +187,7 @@ const Borrow = () => {
     "Damage Materials",
     "Status",
     "Date Created",
-    "Date Updated"
+    "Date Updated",
   ];
   const tableData = borrows.map((borrow) => [
     borrow.materialId,
@@ -261,6 +291,94 @@ const Borrow = () => {
       ]
     : [];
 
+  const sortMaterials = (
+    materials: Borrow[],
+    key: keyof Borrow,
+    order: "asc" | "desc"
+  ) => {
+    return [...materials].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      return 0;
+    });
+  };
+
+  const handleSort = (column: keyof Borrow) => {
+    const newDirection =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+
+    setSortColumn(column as keyof Borrow);
+    setSortDirection(newDirection);
+
+    const sorted = sortMaterials(filteredBorrows, column, newDirection);
+    setFilteredBorrows(sorted);
+  };
+  useEffect(() => {
+    const applyFilters = () => {
+      const filtered = borrows.filter((borrow) => {
+        const matchesEquipment =
+          selectedEquipment.size === 0 ||
+          selectedEquipment.has(borrow.equipment);
+        const matchesDepartment =
+          selectedDepartment.size === 0 ||
+          selectedDepartment.has(borrow.department);
+        const matchesStatus =
+          selectedStatus.size === 0 || selectedStatus.has(borrow.status);
+
+        return matchesEquipment && matchesDepartment && matchesStatus;
+      });
+
+      setFilteredBorrows(filtered);
+      setCurrentPage(1);
+    };
+    applyFilters();
+  }, [selectedEquipment, selectedDepartment, selectedStatus, borrows]);
+
+  const handleEquipmentChange = (equipment: string) => {
+    setSelectedEquipment((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(equipment)) {
+        updated.delete(equipment);
+      } else {
+        updated.add(equipment);
+      }
+      return updated;
+    });
+  };
+
+  const handleDepartmentChange = (department: string) => {
+    setSelectedDepartment((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(department)) {
+        updated.delete(department);
+      } else {
+        updated.add(department);
+      }
+      return updated;
+    });
+  };
+
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(status)) {
+        newSet.delete(status);
+      } else {
+        newSet.add(status);
+      }
+      return newSet;
+    });
+  };
+
   const handleReturn = async () => {
     if (selectedBorrow) {
       try {
@@ -303,99 +421,266 @@ const Borrow = () => {
       <h1 className="text-3xl sm:text-2xl text-center sm:text-left font-semibold text-teal-700 mb-4">
         Borrow Forms
       </h1>
-      <Toaster />
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <div className="flex flex-col sm:hidden items-center gap-4 w-full">
-          <div className="relative flex-grow w-full">
-            <Input
-              placeholder="Search for a material"
-              value={search}
-              onChange={handleSearch}
-              className="w-full pr-10"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-500" />
-            </span>
+        <div className="flex flex-col md:flex-row w-full items-center gap-1.5 md:gap-1">
+          <div className="flex gap-2 w-full md:w-auto ">
+            <div className="relative md:w-auto w-full">
+              <Input
+                placeholder="Search for an entry"
+                value={search}
+                onChange={handleSearch}
+                className="w-full md:w-80 pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="w-5 h-5 text-gray-500" />
+              </span>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={cn(
+                    `bg-teal-500 text-white w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out flex items-center`
+                  )}
+                >
+                  <Filter /> <span className="lg:flex hidden">Filter</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col items-start">
+                  <Collapsible
+                    open={isEquipmentOpen}
+                    onOpenChange={setIsEquipmentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Equipment</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(borrows.map((m) => m.equipment))
+                        ).map((equipment) => (
+                          <label
+                            key={equipment}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={equipment}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedEquipment.has(equipment)}
+                              onChange={() => handleEquipmentChange(equipment)}
+                            />
+                            <span>{equipment}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isDepartmentOpen}
+                    onOpenChange={setIsDepartmentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Department</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Pathology", "Immunology", "Microbiology"].map(
+                          (department) => (
+                            <label
+                              key={department}
+                              className="flex items-center space-x-2 whitespace-nowrap"
+                            >
+                              <Input
+                                type="checkbox"
+                                value={department}
+                                className="text-teal-500 accent-teal-200"
+                                checked={selectedDepartment.has(department)}
+                                onChange={() =>
+                                  handleDepartmentChange(department)
+                                }
+                              />
+                              <span>{department}</span>
+                            </label>
+                          )
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isStatusOpen}
+                    onOpenChange={setIsStatusOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
+                      >
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="text-black">Status</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Borrowed", "Returned"].map((status) => (
+                          <label
+                            key={status}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={status}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedStatus.has(status)}
+                              onChange={() => handleStatusChange(status)}
+                            />
+                            <span>{status}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedStatus(new Set());
+                      setSelectedDepartment(new Set());
+                      setSelectedEquipment(new Set());
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              router.push("/borrow-form");
-            }}
-          >
-            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-            Borrow Material
-          </Button>
-
-          <Button
-            className="flex items-center bg-teal-500 text-white w-full justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
-            onClick={() => {
-              setIsPrintAllOpen(true);
-            }}
-          >
-            <Printer className="w-4 h-4" strokeWidth={1.5} />
-            Print Forms
-          </Button>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="flex items-center">
-            <Input
-              placeholder="Search for an entry"
-              value={search}
-              onChange={handleSearch}
-              className="w-80 pr-8"
-            />
-            <span className="relative -ml-8">
-              <Search className="size-5 text-gray-500" />
-            </span>
+          <div className="flex items-center w-full justify-between gap-2">
             <Button
-              className={cn(
-                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-6`
-              )}
+              className="flex items-center bg-teal-500 w-1/2 text-white md:w-auto justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out"
               onClick={() => {
                 router.push("/borrow-form");
               }}
             >
-              <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-              Borrow Material
+              <FilePlus className="w-4 h-4 mr-1" strokeWidth={1.5} />
+              <span className="lg:flex md:hidden flex truncate">
+                Borrow Material
+              </span>
             </Button>
+
             <Button
-              className={cn(
-                `bg-teal-500 text-white w-36 justify-center rounded-lg hover:bg-teal-700 transition-colors duration-300 ease-in-out ml-2`
-              )}
+              className="flex md:w-1/4 items-center bg-teal-800 text-white w-1/2 justify-center rounded-lg hover:bg-teal-950 transition-colors duration-300 ease-in-out"
               onClick={() => {
                 setIsPrintAllOpen(true);
               }}
             >
               <Printer className="w-4 h-4" strokeWidth={1.5} />
-              Print Forms
+              <span className="lg:flex md:hidden flex truncate">
+                Print Forms
+              </span>
             </Button>
           </div>
         </div>
       </div>
+
       <Toaster />
       <TooltipProvider>
         <Table className="overflow-x-auto">
           <TableHeader className="text-center justify-center">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Item Name</TableHead>
-              <TableHead>Item Code</TableHead>
-              <TableHead>Quantity Borrowed</TableHead>
-              <TableHead>Borrower</TableHead>
-              <TableHead>Borrower Details</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Date Borrowed</TableHead>
-              <TableHead>Time Borrowed</TableHead>
-              <TableHead>Date Returned</TableHead>
-              <TableHead>Time Returned</TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>Damage Materials</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
+              <TableHead onClick={() => handleSort("borrowId")}>
+                ID{" "}
+                {sortColumn === "borrowId" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("material")}>
+                Item Name{" "}
+                {sortColumn === "material.itemName" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("material")}>
+                Item Code{" "}
+                {sortColumn === "material.itemCode" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("qty")}>
+                Quantity Borrowed{" "}
+                {sortColumn === "qty" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("user")}>
+                Borrower{" "}
+                {sortColumn === "user" && (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("borrowerDetail")}>
+                Borrower Details{" "}
+                {sortColumn === "borrowerDetail" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("department")}>
+                Department{" "}
+                {sortColumn === "department" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateBorrowed")}>
+                Date Borrowed{" "}
+                {sortColumn === "dateBorrowed" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("timeBorrowed")}>
+                Time Borrowed{" "}
+                {sortColumn === "timeBorrowed" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("dateReturned")}>
+                Date Returned{" "}
+                {sortColumn === "dateReturned" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("timeReturned")}>
+                Time Returned{" "}
+                {sortColumn === "timeReturned" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("remarks")}>
+                Remarks{" "}
+                {sortColumn === "remarks" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("damageMaterials")}>
+                Damage Materials{" "}
+                {sortColumn === "damageMaterials" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("status")}>
+                Status{" "}
+                {sortColumn === "status" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead onClick={() => handleSort("creationDate")}>
+                Created At{" "}
+                {sortColumn === "creationDate" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("dateUpdated")}
+                className="text-nowrap"
+              >
+                Updated At{" "}
+                {sortColumn === "dateUpdated" &&
+                  (sortDirection === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
