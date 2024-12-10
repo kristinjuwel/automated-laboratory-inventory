@@ -96,79 +96,80 @@ const DashboardPage = () => {
               scrollbarWidth: "thin",
             }}
           >
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <TabsTrigger
-                  value="inventory"
-                  onClick={() => setActiveTab("inventory")}
-                  className="flex items-center space-x-2"
-                >
+            <TabsTrigger
+              value="inventory"
+              onClick={() => setActiveTab("inventory")}
+              className="flex items-center space-x-2"
+            >
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
                   <Package size={20} />
                   <span className="font-medium">Inventory</span>
-                </TabsTrigger>
-              </PopoverTrigger>
-              <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto md:hidden">
-                <ul className="space-y-2">
-                  <li>
-                    <button
-                      onClick={() => {
-                        setActiveInventoryTab("biological");
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2 rounded-lg",
-                        activeInventoryTab === "biological" ? "bg-teal-50" : ""
-                      )}
-                    >
-                      Biological
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        setActiveInventoryTab("chemical");
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2 rounded-lg",
-                        activeInventoryTab === "chemical" ? "bg-teal-50" : ""
-                      )}
-                    >
-                      Chemical
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        setActiveInventoryTab("general");
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2 rounded-lg",
-                        activeInventoryTab === "general" ? "bg-teal-50" : ""
-                      )}
-                    >
-                      General
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        setActiveInventoryTab("reagent");
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2 rounded-lg",
-                        activeInventoryTab === "reagent" ? "bg-teal-50" : ""
-                      )}
-                    >
-                      Reagent
-                    </button>
-                  </li>
-                </ul>
-              </PopoverContent>
-            </Popover>
-
+                </PopoverTrigger>
+                <PopoverContent className="bg-white shadow-md rounded-lg w-56 max-h-48 overflow-y-auto md:hidden">
+                  <ul className="space-y-2">
+                    <li>
+                      <button
+                        onClick={() => {
+                          setActiveInventoryTab("biological");
+                          setOpen(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2 rounded-lg",
+                          activeInventoryTab === "biological"
+                            ? "bg-teal-50"
+                            : ""
+                        )}
+                      >
+                        Biological
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          setActiveInventoryTab("chemical");
+                          setOpen(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2 rounded-lg",
+                          activeInventoryTab === "chemical" ? "bg-teal-50" : ""
+                        )}
+                      >
+                        Chemical
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          setActiveInventoryTab("general");
+                          setOpen(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2 rounded-lg",
+                          activeInventoryTab === "general" ? "bg-teal-50" : ""
+                        )}
+                      >
+                        General
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          setActiveInventoryTab("reagent");
+                          setOpen(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2 rounded-lg",
+                          activeInventoryTab === "reagent" ? "bg-teal-50" : ""
+                        )}
+                      >
+                        Reagent
+                      </button>
+                    </li>
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            </TabsTrigger>
             <TabsTrigger
               value="purchaseOrder"
               onClick={() => setActiveTab("purchaseOrder")}
