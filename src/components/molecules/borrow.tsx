@@ -423,6 +423,12 @@ const Borrow = () => {
     }
   };
 
+  const adjustToDate = (date: string) => {
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999); // Set time to 11:59:59pm
+    return endDate;
+  };
+
   const filterTableData = () => {
     return tableData.filter((row) => {
       const dateBorrowed = new Date(row[7]);
@@ -431,13 +437,13 @@ const Borrow = () => {
 
       const isDateBorrowedInRange =
         (!dateBorrowedFrom || dateBorrowed >= new Date(dateBorrowedFrom)) &&
-        (!dateBorrowedTo || dateBorrowed <= new Date(dateBorrowedTo));
+        (!dateBorrowedTo || dateBorrowed <= adjustToDate(dateBorrowedTo));
       const isDateReturnedInRange =
         (!dateReturnedFrom || dateReturned >= new Date(dateReturnedFrom)) &&
-        (!dateReturnedTo || dateReturned <= new Date(dateReturnedTo));
+        (!dateReturnedTo || dateReturned <= adjustToDate(dateReturnedTo));
       const isCreationDateInRange =
         (!creationDateFrom || creationDate >= new Date(creationDateFrom)) &&
-        (!creationDateTo || creationDate <= new Date(creationDateTo));
+        (!creationDateTo || creationDate <= adjustToDate(creationDateTo));
 
       return (
         isDateBorrowedInRange && isDateReturnedInRange && isCreationDateInRange

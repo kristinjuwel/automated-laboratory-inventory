@@ -139,6 +139,12 @@ const Navbar = () => {
     }
   }, [query, allForms]);
 
+  const adjustToDate = (date: string) => {
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999); // Set time to 11:59:59pm
+    return endDate;
+  };
+
   const fetchStockLevels = async () => {
     try {
       let url = `${process.env.NEXT_PUBLIC_BACKEND_URL}material/all?`;
@@ -146,7 +152,7 @@ const Navbar = () => {
       if (selectedCategory) url += `category=${selectedCategory}&`;
       if (selectedSubcategory) url += `subcategory=${selectedSubcategory}&`;
       if (startDate) url += `startDate=${startDate}&`;
-      if (endDate) url += `endDate=${endDate}&`;
+      if (endDate) url += `endDate=${adjustToDate(endDate)}&`;
 
       const response = await fetch(url);
       if (!response.ok) {
@@ -807,7 +813,8 @@ const Navbar = () => {
                         return false;
                       if (
                         endDate &&
-                        new Date(material.createdAt ?? "") > new Date(endDate)
+                        new Date(material.createdAt ?? "") >
+                          adjustToDate(endDate)
                       )
                         return false;
                       return true;
