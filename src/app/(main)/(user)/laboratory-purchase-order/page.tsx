@@ -1154,10 +1154,10 @@ const LabPurchaseOrder = () => {
                         Category
                       </th>
                       <th className="text-sm px-2 py-1 border">Quantity</th>
-                      <th className="text-sm px-2 py-1 border text-nowrap">
+                      <th className="text-sm px-2 py-1 border">
                         Unit Price (Php)
                       </th>
-                      <th className="text-sm px-2 py-1 border text-nowrap">
+                      <th className="text-sm px-2 py-1 border">
                         Total Price (Php)
                       </th>
                       <th className="text-sm px-2 py-1 border">Remove</th>

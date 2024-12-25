@@ -318,17 +318,22 @@ const PurchaseOrder = () => {
     "Date Created",
     "Date Updated",
   ];
+  const adjustToDate = (date: string) => {
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+    return endDate;
+  };
   const tableData = purchases
     .filter((purchase) => {
       const purchaseDate = new Date(purchase.date);
       const creationDate = new Date(purchase.creationDate);
       const dateFromFilter = dateFrom ? new Date(dateFrom) : null;
-      const dateToFilter = dateTo ? new Date(dateTo) : null;
+      const dateToFilter = dateTo ? adjustToDate(dateTo) : null;
       const creationDateFromFilter = creationDateFrom
         ? new Date(creationDateFrom)
         : null;
       const creationDateToFilter = creationDateTo
-        ? new Date(creationDateTo)
+        ? adjustToDate(creationDateTo)
         : null;
 
       const isWithinDateRange =

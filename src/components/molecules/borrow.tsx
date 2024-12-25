@@ -62,7 +62,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 
 interface Borrow {
   borrowId: number;
@@ -340,51 +340,15 @@ const Borrow = () => {
           selectedDepartment.has(borrow.department);
         const matchesStatus =
           selectedStatus.size === 0 || selectedStatus.has(borrow.status);
-        const matchesDateBorrowed =
-          (!dateBorrowedFrom ||
-            new Date(borrow.dateBorrowed) >= new Date(dateBorrowedFrom)) &&
-          (!dateBorrowedTo ||
-            new Date(borrow.dateBorrowed) <=
-              new Date(new Date(dateBorrowedTo).setHours(23, 59, 59, 999)));
-        const matchesDateReturned =
-          (!dateReturnedFrom ||
-            new Date(borrow.dateReturned) >= new Date(dateReturnedFrom)) &&
-          (!dateReturnedTo ||
-            new Date(borrow.dateReturned) <=
-              new Date(new Date(dateReturnedTo).setHours(23, 59, 59, 999)));
-        const matchesCreationDate =
-          (!creationDateFrom ||
-            new Date(borrow.creationDate) >= new Date(creationDateFrom)) &&
-          (!creationDateTo ||
-            new Date(borrow.creationDate) <=
-              new Date(new Date(creationDateTo).setHours(23, 59, 59, 999)));
 
-        return (
-          matchesEquipment &&
-          matchesDepartment &&
-          matchesStatus &&
-          matchesDateBorrowed &&
-          matchesDateReturned &&
-          matchesCreationDate
-        );
+        return matchesEquipment && matchesDepartment && matchesStatus;
       });
 
       setFilteredBorrows(filtered);
       setCurrentPage(1);
     };
     applyFilters();
-  }, [
-    selectedEquipment,
-    selectedDepartment,
-    selectedStatus,
-    dateBorrowedFrom,
-    dateBorrowedTo,
-    dateReturnedFrom,
-    dateReturnedTo,
-    creationDateFrom,
-    creationDateTo,
-    borrows,
-  ]);
+  }, [selectedEquipment, selectedDepartment, selectedStatus, borrows]);
 
   const handleEquipmentChange = (equipment: string) => {
     setSelectedEquipment((prev) => {
@@ -459,14 +423,32 @@ const Borrow = () => {
     }
   };
 
-  const handlePrintDialogClose = () => {
-    setIsPrintAllOpen(false);
-    setDateBorrowedFrom("");
-    setDateBorrowedTo("");
-    setDateReturnedFrom("");
-    setDateReturnedTo("");
-    setCreationDateFrom("");
-    setCreationDateTo("");
+  const adjustToDate = (date: string) => {
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999); // Set time to 11:59:59pm
+    return endDate;
+  };
+
+  const filterTableData = () => {
+    return tableData.filter((row) => {
+      const dateBorrowed = new Date(row[7]);
+      const dateReturned = new Date(row[10]);
+      const creationDate = new Date(row[14]);
+
+      const isDateBorrowedInRange =
+        (!dateBorrowedFrom || dateBorrowed >= new Date(dateBorrowedFrom)) &&
+        (!dateBorrowedTo || dateBorrowed <= adjustToDate(dateBorrowedTo));
+      const isDateReturnedInRange =
+        (!dateReturnedFrom || dateReturned >= new Date(dateReturnedFrom)) &&
+        (!dateReturnedTo || dateReturned <= adjustToDate(dateReturnedTo));
+      const isCreationDateInRange =
+        (!creationDateFrom || creationDate >= new Date(creationDateFrom)) &&
+        (!creationDateTo || creationDate <= adjustToDate(creationDateTo));
+
+      return (
+        isDateBorrowedInRange && isDateReturnedInRange && isCreationDateInRange
+      );
+    });
   };
 
   return (
@@ -500,122 +482,111 @@ const Borrow = () => {
               </PopoverTrigger>
               <PopoverContent className="flex flex-col p-2 w-auto max-w-sm sm:max-w-lg  max-h-96 overflow-y-auto overflow-x-hidden">
                 <div className="flex flex-col items-start">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  <Collapsible
+                    open={isEquipmentOpen}
+                    onOpenChange={setIsEquipmentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
                       <Button
-                        variant="outline"
-                        className="w-full flex justify-between items-center"
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
                       >
+                        <ChevronsUpDown className="h-4 w-4" />
                         <span className="text-black">Equipment</span>
-                        <span className="ml-auto">▼</span>
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {Array.from(new Set(borrows.map((m) => m.equipment))).map(
-                        (equipment) => (
-                          <DropdownMenuCheckboxItem
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {Array.from(
+                          new Set(borrows.map((m) => m.equipment))
+                        ).map((equipment) => (
+                          <label
                             key={equipment}
-                            checked={selectedEquipment.has(equipment)}
-                            onCheckedChange={() =>
-                              handleEquipmentChange(equipment)
-                            }
+                            className="flex items-center space-x-2 whitespace-nowrap"
                           >
-                            {equipment}
-                          </DropdownMenuCheckboxItem>
-                        )
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                            <Input
+                              type="checkbox"
+                              value={equipment}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedEquipment.has(equipment)}
+                              onChange={() => handleEquipmentChange(equipment)}
+                            />
+                            <span>{equipment}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isDepartmentOpen}
+                    onOpenChange={setIsDepartmentOpen}
+                  >
+                    <CollapsibleTrigger asChild>
                       <Button
-                        variant="outline"
-                        className="w-full flex justify-between items-center"
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
                       >
+                        <ChevronsUpDown className="h-4 w-4" />
                         <span className="text-black">Department</span>
-                        <span className="ml-auto">▼</span>
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {["Pathology", "Immunology", "Microbiology"].map(
-                        (department) => (
-                          <DropdownMenuCheckboxItem
-                            key={department}
-                            checked={selectedDepartment.has(department)}
-                            onCheckedChange={() =>
-                              handleDepartmentChange(department)
-                            }
-                          >
-                            {department}
-                          </DropdownMenuCheckboxItem>
-                        )
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Pathology", "Immunology", "Microbiology"].map(
+                          (department) => (
+                            <label
+                              key={department}
+                              className="flex items-center space-x-2 whitespace-nowrap"
+                            >
+                              <Input
+                                type="checkbox"
+                                value={department}
+                                className="text-teal-500 accent-teal-200"
+                                checked={selectedDepartment.has(department)}
+                                onChange={() =>
+                                  handleDepartmentChange(department)
+                                }
+                              />
+                              <span>{department}</span>
+                            </label>
+                          )
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible
+                    open={isStatusOpen}
+                    onOpenChange={setIsStatusOpen}
+                  >
+                    <CollapsibleTrigger asChild>
                       <Button
-                        variant="outline"
-                        className="w-full flex justify-between items-center"
+                        variant="ghost"
+                        className="w-48 px-2 justify-start text-black text-sm font-semibold hover:bg-teal-100"
                       >
+                        <ChevronsUpDown className="h-4 w-4" />
                         <span className="text-black">Status</span>
-                        <span className="ml-auto">▼</span>
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {["Borrowed", "Returned"].map((status) => (
-                        <DropdownMenuCheckboxItem
-                          key={status}
-                          checked={selectedStatus.has(status)}
-                          onCheckedChange={() => handleStatusChange(status)}
-                        >
-                          {status}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <div className="flex flex-col gap-2">
-                    <label>Date Borrowed From:</label>
-                    <Input
-                      type="date"
-                      value={dateBorrowedFrom}
-                      onChange={(e) => setDateBorrowedFrom(e.target.value)}
-                    />
-                    <label>Date Borrowed To:</label>
-                    <Input
-                      type="date"
-                      value={dateBorrowedTo}
-                      onChange={(e) => setDateBorrowedTo(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label>Date Returned From:</label>
-                    <Input
-                      type="date"
-                      value={dateReturnedFrom}
-                      onChange={(e) => setDateReturnedFrom(e.target.value)}
-                    />
-                    <label>Date Returned To:</label>
-                    <Input
-                      type="date"
-                      value={dateReturnedTo}
-                      onChange={(e) => setDateReturnedTo(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label>Creation Date From:</label>
-                    <Input
-                      type="date"
-                      value={creationDateFrom}
-                      onChange={(e) => setCreationDateFrom(e.target.value)}
-                    />
-                    <label>Creation Date To:</label>
-                    <Input
-                      type="date"
-                      value={creationDateTo}
-                      onChange={(e) => setCreationDateTo(e.target.value)}
-                    />
-                  </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 transition-all text-sm">
+                        {["Borrowed", "Returned"].map((status) => (
+                          <label
+                            key={status}
+                            className="flex items-center space-x-2 whitespace-nowrap"
+                          >
+                            <Input
+                              type="checkbox"
+                              value={status}
+                              className="text-teal-500 accent-teal-200"
+                              checked={selectedStatus.has(status)}
+                              onChange={() => handleStatusChange(status)}
+                            />
+                            <span>{status}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                   <Button
                     variant="outline"
                     className="mt-2 w-full sticky bottom-0 bg-white hover:bg-gray-200"
@@ -953,16 +924,14 @@ const Borrow = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isPrintAllOpen} onOpenChange={handlePrintDialogClose}>
+      <Dialog open={isPrintAllOpen} onOpenChange={setIsPrintAllOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <Printer className="text-teal-500 size-5 -mt-0.5" />
               Print Borrow Report
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-
           <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label>Date Borrowed From:</label>
@@ -1034,7 +1003,7 @@ const Borrow = () => {
             <Button
               variant="ghost"
               className="bg-gray-100"
-              onClick={handlePrintDialogClose}
+              onClick={() => setIsPrintAllOpen(false)}
             >
               Cancel
             </Button>
@@ -1043,8 +1012,8 @@ const Borrow = () => {
               pageSize="long"
               orientation="landscape"
               tableHeaders={tableHeaders}
-              tableData={tableData}
-              closeDialog={handlePrintDialogClose}
+              tableData={filterTableData()}
+              closeDialog={() => setIsPrintAllOpen(false)}
             ></PdfGenerator>
           </div>
         </DialogContent>
@@ -1054,8 +1023,7 @@ const Borrow = () => {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 tracking-tight">
-              <Printer className="text-teal-500 size-5 -mt-0.5" />
-              Print Borrow Report
+              Print Borrow Form
             </DialogTitle>
             <DialogDescription />
           </DialogHeader>
